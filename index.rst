@@ -11,7 +11,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-
+   gang-of-four/decorator
 
 Indices and tables
 ==================
