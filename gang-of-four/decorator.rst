@@ -28,3 +28,5 @@ The pattern can be easier in Python:
 * You can build a class with wrappers.
   (Is this what `patch` does?)
 
+.. testcode::
+
