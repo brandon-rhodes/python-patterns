@@ -4,6 +4,18 @@ class LFCRFile(object):
     def __init__(self, file):
         self.file = file
 
+    def __enter__(self):
+        return self.file.__enter__()
+
+    def __exit__(self, *excinfo):
+        return self.file.__exit__(*excinfo)
+
+    def __iter__(self):
+        return self.file.__iter__()
+
+    def __repr__(self):
+        return self.file.__repr__()
+
     def close(self):
         return self.file.close()
 
