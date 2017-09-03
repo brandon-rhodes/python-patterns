@@ -31,11 +31,15 @@ The pattern can be easier in Python:
 
 first, full wrapper
 
-then, wrapper that does copy-across of method in __init__
-
 then, wrapper that does dynamic getattr
 (explain why you would use getattribute?)
 
+then, wrapper that does copy-across of method in __init__
+
 ? then, wrapper that does caching? ?
+
+then, wrapper that does copy-across based on loop
+
+then, superclass that does copy-across?
 
 

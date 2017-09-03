@@ -1,6 +1,6 @@
 # Traditional decorator: terribly verbose
 
-class LFCRFile(object):
+class LinefeedCarriageReturnFile(object):
     def __init__(self, file):
         self.file = file
 
