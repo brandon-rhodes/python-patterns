@@ -112,10 +112,15 @@ class AllCapsFileWrapper(object):
         return self.file.truncate(*args)
 
     def write(self, s):
-        return self.file.write(s)
+        if not isinstance(s, (bytes, str)):
+            raise TypeError('you can only write str or bytes to a file')
+        return self.file.write(s.upper())
 
     def writelines(self, strings):
-        return self.file.writelines(strings)
+        if self.closed:
+            raise ValueError('this file is closed')
+        for s in strings:
+            self.write(s)
 
     def xreadlines(self):
         return self.file.xreadlines()
