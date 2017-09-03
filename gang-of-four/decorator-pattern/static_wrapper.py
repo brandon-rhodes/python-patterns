@@ -1,6 +1,6 @@
 # Traditional decorator: terribly verbose
 
-class LinefeedCarriageReturnFile(object):
+class AllCapsFileWrapper(object):
     def __init__(self, file):
         self.file = file
 
@@ -13,6 +13,9 @@ class LinefeedCarriageReturnFile(object):
     def __iter__(self):
         return self.file.__iter__()
 
+    def __next__(self):
+        return self.file.__next__()
+
     def __repr__(self):
         return self.file.__repr__()
 
@@ -21,7 +24,7 @@ class LinefeedCarriageReturnFile(object):
 
     @property
     def closed(self):
-        return self.file.closed()
+        return self.file.closed
 
     @closed.setter
     def closed(self, value):
@@ -54,7 +57,7 @@ class LinefeedCarriageReturnFile(object):
 
     @property
     def mode(self):
-        return self.file.mode()
+        return self.file.mode
 
     @mode.setter
     def mode(self, value):
@@ -62,7 +65,7 @@ class LinefeedCarriageReturnFile(object):
 
     @property
     def name(self):
-        return self.file.name()
+        return self.file.name
 
     @name.setter
     def name(self, value):
@@ -82,14 +85,17 @@ class LinefeedCarriageReturnFile(object):
     def read(self, *args):
         return self.file.read(*args)
 
+    def readinto(self, buffer):
+        return self.file.readinto(buffer)
+
     def readline(self, *args):
         return self.file.readline(*args)
 
     def readlines(self, *args):
         return self.file.readlines(*args)
 
-    def seek(self, offset, whence=0):
-        return self.file.seek(offset, whence=whence)
+    def seek(self, *args):
+        return self.file.seek(*args)
 
     @property
     def softspace(self):
@@ -105,12 +111,11 @@ class LinefeedCarriageReturnFile(object):
     def truncate(self, *args):
         return self.file.truncate(*args)
 
-    def write(self):
-        return self.file.write()
+    def write(self, s):
+        return self.file.write(s)
 
     def writelines(self, strings):
-        for string in strings:
-            self.write(string)
+        return self.file.writelines(strings)
 
     def xreadlines(self):
-        return self
+        return self.file.xreadlines()
