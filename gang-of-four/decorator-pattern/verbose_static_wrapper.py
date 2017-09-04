@@ -30,6 +30,10 @@ class AllCapsFileWrapper(object):
     def closed(self, value):
         self.file.closed = value
 
+    @closed.deleter
+    def closed(self):
+        del self.file.closed
+
     @property
     def encoding(self):
         return self.file.encoding()
@@ -38,6 +42,10 @@ class AllCapsFileWrapper(object):
     def encoding(self, value):
         self.file.encoding = value
 
+    @encoding.deleter
+    def encoding(self):
+        del self.file.encoding
+
     @property
     def errors(self):
         return self.file.errors()
@@ -45,6 +53,10 @@ class AllCapsFileWrapper(object):
     @errors.setter
     def errors(self, value):
         self.file.errors = value
+
+    @errors.deleter
+    def errors(self):
+        del self.file.errors
 
     def fileno(self):
         return self.file.fileno()
@@ -63,6 +75,10 @@ class AllCapsFileWrapper(object):
     def mode(self, value):
         self.file.mode = value
 
+    @mode.deleter
+    def mode(self):
+        del self.file.mode
+
     @property
     def name(self):
         return self.file.name
@@ -71,16 +87,21 @@ class AllCapsFileWrapper(object):
     def name(self, value):
         self.file.name = value
 
+    @name.deleter
+    def name(self):
+        del self.file.name
+
     @property
     def newlines(self):
-        return self.file.newlines()
+        return self.file.newlines
 
     @newlines.setter
     def newlines(self, value):
         self.file.newlines = value
 
-    def next(self):
-        return self.file.next()
+    @newlines.deleter
+    def newlines(self):
+        del self.file.newlines
 
     def read(self, *args):
         return self.file.read(*args)
@@ -96,14 +117,6 @@ class AllCapsFileWrapper(object):
 
     def seek(self, *args):
         return self.file.seek(*args)
-
-    @property
-    def softspace(self):
-        return self.file.softspace()
-
-    @softspace.setter
-    def softspace(self, value):
-        self.file.softspace = value
 
     def tell(self):
         return self.file.tell()
@@ -121,6 +134,3 @@ class AllCapsFileWrapper(object):
             raise ValueError('this file is closed')
         for s in strings:
             self.write(s)
-
-    def xreadlines(self):
-        return self.file.xreadlines()

@@ -31,6 +31,13 @@ The pattern can be easier in Python:
 
 first, full wrapper
 
+
+`verbose_static_wrapper.py <verbose_static_wrapper.py>`_
+
+
+
+.. literalinclude:: verbose_static_wrapper.py
+
 then, wrapper that does dynamic getattr
 (explain why you would use getattribute?)
 

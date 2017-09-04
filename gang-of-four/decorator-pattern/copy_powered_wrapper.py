@@ -1,4 +1,4 @@
-# Dynamic version of Decorator Pattern: intercept live attributes
+# Traditional decorator: terribly verbose
 
 class AllCapsFileWrapper(object):
     def __init__(self, file):
@@ -17,12 +17,3 @@ class AllCapsFileWrapper(object):
 
     def __getattr__(self, name):
         return getattr(self.__dict__['file'], name)
-
-    def __setattr__(self, name, value):
-        if name == 'file':
-            self.__dict__['file'] = value
-        else:
-            setattr(self.__dict__['file'], name, value)
-
-    def __delattr__(self, name):
-        delattr(self.__dict__['file'], name)
