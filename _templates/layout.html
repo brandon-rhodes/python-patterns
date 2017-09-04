@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title|striptags|e }}</title>
+    <link rel="stylesheet" type="text/css"
+          href="{{ pathto('_static/style.css', true) }}">
+  </head>
+  <body>
+    {% if title != 'Skyfield' %}
+    <p class="motto">
+      <a href=".">Home</a>
+      •
+      <a href="toc.html">Table of Contents</a>
+      •
+      <a href="api.html">API Reference</a>
+    </p>
+    {% endif %}
+    {{ body }}
+  </body>
+</html>

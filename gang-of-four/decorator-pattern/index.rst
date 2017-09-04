@@ -35,6 +35,8 @@ first, full wrapper
 `verbose_static_wrapper.py <verbose_static_wrapper.py>`_
 
 
+would be mitigated by interface
+
 
 .. literalinclude:: verbose_static_wrapper.py
 
