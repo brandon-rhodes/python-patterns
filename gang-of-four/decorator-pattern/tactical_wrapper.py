@@ -1,6 +1,6 @@
 # Tactical version of Decorator Pattern: implement only what you need
 
-class AllCapsFileWrapper(object):
+class WriteLoggingFile(object):
     def __init__(self, file):
         self.file = file
 

@@ -1,6 +1,6 @@
 # Traditional decorator: terribly verbose
 
-class AllCapsFileWrapper(object):
+class WriteLoggingFile(object):
     def __init__(self, file):
         self.file = file
 

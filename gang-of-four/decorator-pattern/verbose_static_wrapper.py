@@ -1,8 +1,9 @@
 # Traditional decorator: terribly verbose
 
-class AllCapsFileWrapper(object):
-    def __init__(self, file):
+class WriteLoggingFile(object):
+    def __init__(self, file, logger):
         self.file = file
+        self.logger = logger
 
     def __enter__(self):
         return self.file.__enter__()
@@ -124,10 +125,12 @@ class AllCapsFileWrapper(object):
     def truncate(self, *args):
         return self.file.truncate(*args)
 
+    # The two methods we actually want to specialize,
+    # to log each occasion on which data is written.
+
     def write(self, s):
-        if not isinstance(s, (bytes, str)):
-            raise TypeError('you can only write str or bytes to a file')
-        return self.file.write(s.upper())
+        self.file.write(s)
+        self.logger.debug('wrote %s bytes to %s', len(s), self.file)
 
     def writelines(self, strings):
         if self.closed:
