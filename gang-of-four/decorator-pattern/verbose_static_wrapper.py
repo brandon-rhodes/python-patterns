@@ -5,6 +5,11 @@ class WriteLoggingFile(object):
         self.file = file
         self.logger = logger
 
+    # We need to implement every file method,
+    # and in the truly general case would need
+    # a getter, setter, and deleter for every
+    # single attribute!  Here goes:
+
     def __enter__(self):
         return self.file.__enter__()
 
@@ -37,7 +42,7 @@ class WriteLoggingFile(object):
 
     @property
     def encoding(self):
-        return self.file.encoding()
+        return self.file.encoding
 
     @encoding.setter
     def encoding(self, value):
@@ -49,7 +54,7 @@ class WriteLoggingFile(object):
 
     @property
     def errors(self):
-        return self.file.errors()
+        return self.file.errors
 
     @errors.setter
     def errors(self, value):
@@ -125,8 +130,9 @@ class WriteLoggingFile(object):
     def truncate(self, *args):
         return self.file.truncate(*args)
 
-    # The two methods we actually want to specialize,
-    # to log each occasion on which data is written.
+    # Finally, we reach the two methods
+    # that we actually want to specialize!
+    # These log each time data is written:
 
     def write(self, s):
         self.file.write(s)

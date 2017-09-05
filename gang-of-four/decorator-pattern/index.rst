@@ -9,10 +9,20 @@
      classes are perilous things
      and subclasses, doubly perilous
 
+.. admonition:: Verdict
+
+   The Decorator Pattern can be useful in Python code!
+   Happily, the pattern can be easier to implement
+   in a dynamic language like Python
+   than in the static languages where it was first practiced.
+   Use it on the rare occasion
+   when you need to adjust the behavior of an object
+   that you can’t subclass but can only wrap at runtime.
+
 The Python core developers made the terminology
 surrounding this design pattern more confusing than necessary
 by using the *decorator* for an entirely unrelated language feature.
-The timeline went something like this:
+The timeline:
 
 * The design pattern was developed and named in the early 1990s
   by participants in the “Architecture Handbook” series of workshops
@@ -29,10 +39,15 @@ The timeline went something like this:
 
 Why were the Python core developers
 not more concerned about the name collision?
-It may simply be that Python’s dynamic design
-kept its programmers so separate
+It may simply be that Python’s dynamic features
+kept its programming community so separate
 from the world of design-pattern literature for heavyweight languages
-that they imagined that confusion would never arise.
+that the core developers never imagined that confusion could arise.
+
+To try to keep the two concepts straight,
+I will use the term *decorator class*
+instead of just *decorator*
+when referring to a class that implements the Decorator Pattern.
 
 Definition
 ==========
@@ -49,35 +64,42 @@ that the wrapped object would normally implement
 when its methods are called.
 With a decorator class, you might:
 
-* Log method calls that would normally succeed or fail silently
+* Log method calls that would normally work silently
 * Perform extra setup or cleanup around a method
-* Pre-process method arguments or post-process return values
+* Pre-process method arguments
+* Post-process return values
 * Forbid actions that the wrapped object would normally allow
 
-These purposes might remind you
-of situations in which you would think of subclassing something.
+These purposes might remind you of situations
+in which you would also think of subclassing something.
 But the Decorator Pattern has a crucial difference:
 you can only solve a problem with a subclass
 when your own code is in charge
 of creating the objects in the first place.
 For example, it isn’t helpful
 to subclass the Python file object
-if a library you’re using
-is going ahead and creating Python file objects
-without asking you what class you wanted them to be —
-your new ``MyBetterFile`` subclass would sit there unused.
-But a ``FileDecorator`` wrapper class does not have that limitation.
+if a library you’re using is returning normal file objects
+and you have no way to intercept their construction —
+your new ``MyBetterFile`` subclass would sit unused.
+But a decorator class does not have that limitation.
 It can be wrapped around a plain old file object any time you want,
 without the need for you be in control
-at the moment the file is first opened.
+when the wrapped object was created.
 
-Example 1: static methods and properties
-========================================
+Approach 1: static methods and properties
+=========================================
 
 First, let’s learn the drudgery
-of creating the kind of decorator you would write in C++ or Java.
+of creating the kind of decorator class you would write in C++ or Java.
+We will not take advantage of the fact
+that Python is a dynamic language,
+but will give the wrapper a simple static definition
+of every method and property that exists on a Python file object.
+
 To be complete —
-to provide a real guarantee that every action on the decorator object
+to provide a real guarantee
+that every method called and attribute manipulated
+on the decorator object
 will be backed by the real behavior of the adapted object —
 the decorator class will need to implement:
 
@@ -86,22 +108,46 @@ the decorator class will need to implement:
 * A setter for every attribute
 * A deleter for every attribute
 
-This is conceptually simple but, wow, it involves a lot of code!
+This approach is conceptually simple
+but, wow, it involves a lot of code!
 
-Imagine that a library is giving you open Python file objects
-that you need to pass to another routine or library —
-but you want all of the output
+Imagine that one library is giving you open Python file objects,
+and you need to pass them to another routine or library —
+but to debug some product issues with latency,
+you want to log each time that data is written to the file.
 
+Python file objects often seem quite simple.
+We usually ``read()`` from them,
+``write()`` to them,
+and not much else.
+But in fact the file object supports more than a dozen methods
+and offers five different attributes!
+A wrapper class that really wants to implement that full behavior
+runs to nearly 100 lines of code —
+as shown here, in our first working example of the Decorator Pattern:
 
 `verbose_static_wrapper.py <verbose_static_wrapper.py>`_
 
-
-
-
-would be mitigated by interface
-
-
 .. literalinclude:: verbose_static_wrapper.py
+
+So for the sake of the half-dozen lines of code at the bottom
+that supplement the behavior of ``write()`` and ``writelines()``,
+another hundred or so lines of code are necessary in this case.
+
+If the class you are decorating
+does not have as many methods and attributes as a Python file,
+then wrapping it will be simpler and less verbose.
+But in the general case,
+writing out the full wrapper will be tedious
+unless you have a tool like an IDE that can automate the process.
+Also, the wrapper will need to be updated in the future
+if the underlying object gains (or loses)
+any methods, arguments, or attributes.
+
+Trick 1a: Tactical wrappers
+===========================
+
+
 
 then, wrapper that does dynamic getattr
 (explain why you would use getattribute?)
@@ -113,5 +159,22 @@ then, wrapper that does copy-across of method in __init__
 then, wrapper that does copy-across based on loop
 
 then, superclass that does copy-across?
+
+would be mitigated by interface
+
+
+Caveat: Decorator classes aren’t perfect
+========================================
+
+
+
+
+Dodge 1: Monkey-patch each object
+=================================
+
+
+Dodge 2: Monkey-patch the class?
+================================
+
 
 

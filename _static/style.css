@@ -88,6 +88,14 @@ h1, h2 {
     color: #ddd;
     box-shadow: none;
 }
+.admonition-verdict {
+    background-color: #b9ffe2;
+    padding: 0.5em 2em;
+}
+.admonition-title {
+    text-align: center;
+    font-weight: bold;
+}
 .motto {
     margin-bottom: 1.75em;
     text-align: center;
