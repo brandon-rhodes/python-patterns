@@ -86,15 +86,15 @@ It can be wrapped around a plain old file object any time you want,
 without the need for you be in control
 when the wrapped object was created.
 
-Approach 1: static methods and properties
-=========================================
+1. Literal wrappers
+===================
 
 First, let’s learn the drudgery
 of creating the kind of decorator class you would write in C++ or Java.
 We will not take advantage of the fact
 that Python is a dynamic language,
 but will give the wrapper a simple static definition
-of every method and property that exists on a Python file object.
+of every method and attribute that exists on a Python file object.
 
 To be complete —
 to provide a real guarantee
@@ -126,31 +126,106 @@ A wrapper class that really wants to implement that full behavior
 runs to nearly 100 lines of code —
 as shown here, in our first working example of the Decorator Pattern:
 
-`verbose_static_wrapper.py <verbose_static_wrapper.py>`_
-
 .. literalinclude:: verbose_static_wrapper.py
 
 So for the sake of the half-dozen lines of code at the bottom
 that supplement the behavior of ``write()`` and ``writelines()``,
 another hundred or so lines of code are necessary in this case.
 
-If the class you are decorating
-does not have as many methods and attributes as a Python file,
-then wrapping it will be simpler and less verbose.
+You will notice that each Python object attribute
+goads us into being even more verbose than Java!
+A typical Java attribute is implemented as exactly two methods,
+like ``getEncoding()`` and ``setEncoding()``.
+A Python attribute, on the other hand,
+will in the general case need to be backed by *three* actions —
+get, set, and delete —
+because Python’s object model is dynamic
+and supports the idea that an attribute might disappear from an instance.
+
+Of course,
+if the class you are decorating
+does not have as many methods and attributes
+as the Python file object we took as our example,
+then your wrapper will be shorter.
 But in the general case,
-writing out the full wrapper will be tedious
+writing out a full wrapper class will be tedious
 unless you have a tool like an IDE that can automate the process.
 Also, the wrapper will need to be updated in the future
 if the underlying object gains (or loses)
 any methods, arguments, or attributes.
 
-Trick 1a: Tactical wrappers
-===========================
+1.1. Tactical wrappers
+======================
+
+The wrapper in the previous section
+might have struck you as ridiculous.
+It tackled the Python file object as a general example
+of a class that needed to be wrapped,
+instead of studying the how file objects work to look for shortcuts:
+
+* File objects are implemented in the C language and do not,
+  in fact, permit deletion of any of their attributes.
+  So our wrapper could have omitted all 6 deleter methods
+  without any consequence, since the default behavior of a property
+  in the absence of a deleter is to disallow deletion anyway.
+  This would have saved 18 lines of code.
+
+* All file attributes except ``mode`` are read-only
+  and raise an ``AttributeError`` if assigned to —
+  which is the behavior if a property lacks a setter method.
+  So 5 of our 6 setters can be omitted, saving 15 more lines of code
+  and bringing our wrapper to ⅓ its original length
+  without sacrificing correctness.
+
+It might also have occurred to you
+that the code to which you are passing the wrapper
+is unlikely call every single file method that exists.
+What if it only calls two methods?
+Or only one?
+In many cases a programmer has found
+that a trivial wrapper like this
+will perfectly satisfy real-world code
+that just wants to write to a file!
+
+.. literalinclude:: tactical_wrapper.py
+
+Yes, this can admittedly be a bit dangerous.
+A routine that seems so happy with a minimal wrapper like this
+can suddenly fail later
+if rare circumstances
+make it dig into class features
+that you never happened to observe it using.
+Even if you audit the library’s code
+and are sure it can never call any method besides ``write()``,
+that could change
+the next time you upgrade the library to a new version.
+
+In a more formal programming language,
+a duck typing requirement like “this function requires a file object”
+would likely be replaced with an exact specification like
+“this argument needs to support a ``writelines()`` method”
+or “pass an object
+that offers every methods in the interface ``IWritableFile``.”
+But most Python code lacks this precision
+and will force you, as the author of a wrapper class,
+to decide where to draw the line
+between the magnificent pedantry of wrapping every possible method
+and the danger of not wrapping enough.
+
+1.2. Note that wrapping doesn’t actually work
+=============================================
+
+
+
+Approach 2: A dynamic wrapper
+=============================
 
 
 
 then, wrapper that does dynamic getattr
 (explain why you would use getattribute?)
+
+Trick 2a: 
 
 then, wrapper that does copy-across of method in __init__
 

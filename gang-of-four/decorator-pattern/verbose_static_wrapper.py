@@ -1,9 +1,9 @@
-# Traditional decorator: terribly verbose
+# Traditional Decorator pattern: noticeably verbose
 
 class WriteLoggingFile(object):
     def __init__(self, file, logger):
-        self.file = file
-        self.logger = logger
+        self._file = file
+        self._logger = logger
 
     # We need to implement every file method,
     # and in the truly general case would need
@@ -11,132 +11,132 @@ class WriteLoggingFile(object):
     # single attribute!  Here goes:
 
     def __enter__(self):
-        return self.file.__enter__()
+        return self._file.__enter__()
 
     def __exit__(self, *excinfo):
-        return self.file.__exit__(*excinfo)
+        return self._file.__exit__(*excinfo)
 
     def __iter__(self):
-        return self.file.__iter__()
+        return self._file.__iter__()
 
     def __next__(self):
-        return self.file.__next__()
+        return self._file.__next__()
 
     def __repr__(self):
-        return self.file.__repr__()
+        return self._file.__repr__()
 
     def close(self):
-        return self.file.close()
+        return self._file.close()
 
     @property
     def closed(self):
-        return self.file.closed
+        return self._file.closed
 
     @closed.setter
     def closed(self, value):
-        self.file.closed = value
+        self._file.closed = value
 
     @closed.deleter
     def closed(self):
-        del self.file.closed
+        del self._file.closed
 
     @property
     def encoding(self):
-        return self.file.encoding
+        return self._file.encoding
 
     @encoding.setter
     def encoding(self, value):
-        self.file.encoding = value
+        self._file.encoding = value
 
     @encoding.deleter
     def encoding(self):
-        del self.file.encoding
+        del self._file.encoding
 
     @property
     def errors(self):
-        return self.file.errors
+        return self._file.errors
 
     @errors.setter
     def errors(self, value):
-        self.file.errors = value
+        self._file.errors = value
 
     @errors.deleter
     def errors(self):
-        del self.file.errors
+        del self._file.errors
 
     def fileno(self):
-        return self.file.fileno()
+        return self._file.fileno()
 
     def flush(self):
-        return self.file.flush()
+        return self._file.flush()
 
     def isatty(self):
-        return self.file.isatty()
+        return self._file.isatty()
 
     @property
     def mode(self):
-        return self.file.mode
+        return self._file.mode
 
     @mode.setter
     def mode(self, value):
-        self.file.mode = value
+        self._file.mode = value
 
     @mode.deleter
     def mode(self):
-        del self.file.mode
+        del self._file.mode
 
     @property
     def name(self):
-        return self.file.name
+        return self._file.name
 
     @name.setter
     def name(self, value):
-        self.file.name = value
+        self._file.name = value
 
     @name.deleter
     def name(self):
-        del self.file.name
+        del self._file.name
 
     @property
     def newlines(self):
-        return self.file.newlines
+        return self._file.newlines
 
     @newlines.setter
     def newlines(self, value):
-        self.file.newlines = value
+        self._file.newlines = value
 
     @newlines.deleter
     def newlines(self):
-        del self.file.newlines
+        del self._file.newlines
 
     def read(self, *args):
-        return self.file.read(*args)
+        return self._file.read(*args)
 
     def readinto(self, buffer):
-        return self.file.readinto(buffer)
+        return self._file.readinto(buffer)
 
     def readline(self, *args):
-        return self.file.readline(*args)
+        return self._file.readline(*args)
 
     def readlines(self, *args):
-        return self.file.readlines(*args)
+        return self._file.readlines(*args)
 
     def seek(self, *args):
-        return self.file.seek(*args)
+        return self._file.seek(*args)
 
     def tell(self):
-        return self.file.tell()
+        return self._file.tell()
 
     def truncate(self, *args):
-        return self.file.truncate(*args)
+        return self._file.truncate(*args)
 
     # Finally, we reach the two methods
     # that we actually want to specialize!
     # These log each time data is written:
 
     def write(self, s):
-        self.file.write(s)
-        self.logger.debug('wrote %s bytes to %s', len(s), self.file)
+        self._file.write(s)
+        self._logger.debug('wrote %s bytes to %s', len(s), self._file)
 
     def writelines(self, strings):
         if self.closed:

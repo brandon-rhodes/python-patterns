@@ -89,7 +89,7 @@ h1, h2 {
     box-shadow: none;
 }
 .admonition-verdict {
-    background-color: #b9ffe2;
+    border: 2px solid black;
     padding: 0.5em 2em;
 }
 .admonition-title {
@@ -138,6 +138,10 @@ dt code {
     border: none;
     padding: 0;
     background: none;
+}
+li {
+    margin-top: 0.3em;
+    margin-bottom: 0.3em;
 }
 pre {
     border: 1px dashed #93A1A1;

@@ -35,10 +35,6 @@ class AutoTests1(test.test_file.AutoFileTests, BaseCase):
 class OtherTests1(test.test_file.OtherFileTests, BaseCase):
     class_under_test = verbose_static_wrapper.WriteLoggingFile
 
-    # @unittest.skip('TODO: make this insensitive to case')
-    # def testIteration(self):
-    #     raise unittest.Skip()
-
 class AutoTests2(test.test_file.AutoFileTests, BaseCase):
     class_under_test = getattr_powered_wrapper.WriteLoggingFile
 
@@ -48,10 +44,6 @@ class AutoTests2(test.test_file.AutoFileTests, BaseCase):
 
 class OtherTests2(test.test_file.OtherFileTests, BaseCase):
     class_under_test = getattr_powered_wrapper.WriteLoggingFile
-
-    # @unittest.skip('TODO: make this insensitive to case')
-    # def testIteration(self):
-    #     raise unittest.Skip()
 
 # class AutoTests3(test.test_file.AutoFileTests, BaseCase):
 #     def open(self, *args, **kw):
@@ -70,7 +62,7 @@ class OtherTests2(test.test_file.OtherFileTests, BaseCase):
 #     #     raise unittest.Skip()
 
 class MyTests(BaseCase):
-    def test_thing(self):
+    def test_some_attribute_behaviors(self):
         for module in (
                 verbose_static_wrapper,
                 getattr_powered_wrapper,
@@ -79,10 +71,17 @@ class MyTests(BaseCase):
                 logger = logging.getLogger('testlog')
                 w = module.WriteLoggingFile(f, logger)
                 self.assertEqual(f.newlines, w.newlines)
-                with self.assertRaises(AttributeError):
-                    w.name = '\n'
                 with self.assertRaisesRegex(AttributeError, '.*TextIO.*'):
-                    del w.name
+                    # Make sure at least one access is really going back
+                    # to the file class (the 'closed' attr in particular
+                    # has a delete error that mentions the class name)
+                    del w.closed
+                for attr in ('closed', 'encoding', 'errors',
+                             'name', 'newlines'):  # 'mode' is writable
+                    with self.assertRaises(AttributeError):
+                        setattr(w, attr, '\n')
+                    with self.assertRaises(AttributeError):
+                        delattr(w, attr)
 
                 for name in dir(w):
                     if not name.startswith('_') and name not in (
