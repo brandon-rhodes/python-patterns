@@ -2,7 +2,7 @@
 # what if you read the code, and the only thing
 # the library really needs is the write() method?
 
-class WriteLoggingFile(object):
+class WriteLoggingFile2(object):
     def __init__(self, file, logger):
         self._file = file
         self._logger = logger

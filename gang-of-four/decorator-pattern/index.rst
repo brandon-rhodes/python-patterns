@@ -19,6 +19,10 @@
    when you need to adjust the behavior of an object
    that you can’t subclass but can only wrap at runtime.
 
+.. toctree::
+
+   index.rst
+
 The Python core developers made the terminology
 surrounding this design pattern more confusing than necessary
 by using the *decorator* for an entirely unrelated language feature.
@@ -86,15 +90,15 @@ It can be wrapped around a plain old file object any time you want,
 without the need for you be in control
 when the wrapped object was created.
 
-1. Literal wrappers
-===================
+Implement: Static wrapper
+=========================
 
 First, let’s learn the drudgery
 of creating the kind of decorator class you would write in C++ or Java.
 We will not take advantage of the fact
 that Python is a dynamic language,
-but will give the wrapper a simple static definition
-of every method and attribute that exists on a Python file object.
+but will instead write static (non-dynamic) code
+where every method and attribute appears right on the page.
 
 To be complete —
 to provide a real guarantee
@@ -154,8 +158,10 @@ Also, the wrapper will need to be updated in the future
 if the underlying object gains (or loses)
 any methods, arguments, or attributes.
 
-1.1. Tactical wrappers
-======================
+.. TODO explain why I did both write methods and how I chose to do it
+
+Implement: Tactical wrapper
+---------------------------
 
 The wrapper in the previous section
 might have struck you as ridiculous.
@@ -193,7 +199,7 @@ Yes, this can admittedly be a bit dangerous.
 A routine that seems so happy with a minimal wrapper like this
 can suddenly fail later
 if rare circumstances
-make it dig into class features
+make it dig into class methods or attributes
 that you never happened to observe it using.
 Even if you audit the library’s code
 and are sure it can never call any method besides ``write()``,
@@ -212,20 +218,240 @@ to decide where to draw the line
 between the magnificent pedantry of wrapping every possible method
 and the danger of not wrapping enough.
 
-1.2. Note that wrapping doesn’t actually work
-=============================================
+Implement: Dynamic wrapper
+==========================
+
+A very common approach to the Decorator Pattern in Python
+is the dynamic wrapper.
+Instead of trying to implement a method and property
+for every method and attribute on the wrapped object,
+a dynamic wrapper intercepts live attribute accesses
+as the program executes
+and responds by trying to access the same attribute
+on the wrapped object.
+
+A dynamic wrapper implements
+the dunder methods ``__getattr__()``, ``__setattr__()``, and
+— if it really wants to be feature-complete —
+``__delattr__()`` and responds to each of them
+by performing the equivalent operation on the wrapped object.
+Because ``__getattr__()`` is only invoked
+for attributes that are in fact missing on the wrapper,
+the wrapper is free to offer real implementations
+of any methods or properties it wants to intercept.
+
+There are a few edge cases that prevent every attribute access
+from being handled with ``__getattr__()``.
+For example, if the wrapped object is iterable,
+then the basic operation ``iter()`` will fail on the wrapper
+if the wrapper is not given a real ``__iter__()`` method of its own.
+Similarly, even if the wrapped object is an iterator,
+``next()`` will fail unless the wrapper offers a real ``__next__()``,
+because these two operations examine an object’s class
+for dunder methods
+instead of hitting the object directly with a ``__getattr__()``.
+
+As a result of these special cases,
+a getattr-powered wrapper usually involves at least a half-dozen methods
+in addition to the methods you specifically want to specialize:
+
+.. literalinclude:: getattr_powered_wrapper.py
+
+.. TODO Could you fool it with getattribute? probably not but say why.
+
+But as you can see,
+the code can be quite economical
+compared to the vast slate of methods
+we saw earlier in ``WriteLoggingFile1``
+that are necessary to manually implement every possible attribute.
+
+While the extra level of indirection
+does carry a small performance penalty for every attribute access,
+it is very often preferred to the burden of writing a static wrapper.
+
+Dynamic wrappers also offer pleasant insulation
+against changes that might happen in the future
+to the object being wrapped.
+If a future version of Python adds or removes
+an attribute or method from the file object,
+the code of ``WriteLoggingFile3`` will require no change at all.
+
+.. TODO what about live copying each attribute as it's accessed?
+
+Caveat: Wrapping doesn’t actually work
+======================================
+
+If Python didn’t support introspection —
+if the only operation you could perform on an object
+was attribute lookup,
+whether statically through an identifier like ``f.write``
+or dynamically via ``getattr(f, attrname)`` string lookup —
+then a decorator could be foolproof.
+As long as every attribute lookup that succeeds on the wrapped object
+will return the same sort of value when performed on the wrapper,
+then Python could never know the difference.
+
+But Python is not merely a dynamic programming language.
+It also supports introspection.
+And introspection is the downfall of the Decorator Pattern.
+If the code to which you pass the wrapper decides to look deeper,
+all kinds of differences become apparent.
+The native file object, for example,
+is buttressed with many private methods and attributes:
+
+.. testsetup::
+
+   import sys
+   sys.path.insert(0, 'gang-of-four/decorator-pattern')
+   from verbose_static_wrapper import WriteLoggingFile1
+   from tactical_wrapper import WriteLoggingFile2
+   from getattr_powered_wrapper import WriteLoggingFile3
+
+>>> from logging import getLogger
+>>> f = open('/etc/passwd')
+>>> dir(f)
+['_CHUNK_SIZE', '__class__', '__del__', '__delattr__', '__dict__', '__dir__', '__doc__', '__enter__', '__eq__', '__exit__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__iter__', '__le__', '__lt__', '__ne__', '__new__', '__next__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '_checkClosed', '_checkReadable', '_checkSeekable', '_checkWritable', '_finalizing', 'buffer', 'close', 'closed', 'detach', 'encoding', 'errors', 'fileno', 'flush', 'isatty', 'line_buffering', 'mode', 'name', 'newlines', 'read', 'readable', 'readline', 'readlines', 'seek', 'seekable', 'tell', 'truncate', 'writable', 'write', 'writelines']
+
+Your wrapper, on the other hand —
+if you have crafted it around the file’s public interface —
+will lack all of those private accouterments.
+Behind your carefully implemented public methods and attributes
+are the bare dunder methods of a generic Python ``object``,
+plus the few you had to implement to maintain compatibility:
+
+>>> w = WriteLoggingFile1(f, getLogger())
+>>> dir(w)
+['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__enter__', '__eq__', '__exit__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__iter__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__next__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_file', '_logger', 'close', 'closed', 'encoding', 'errors', 'fileno', 'flush', 'isatty', 'mode', 'name', 'newlines', 'read', 'readinto', 'readline', 'readlines', 'seek', 'tell', 'truncate', 'write', 'writelines']
+
+The tactical wrapper, of course,
+looks spectacularly different than a real file object,
+because it does not even attempt to provide
+the full range of methods available on the wrapped object:
+
+>>> w = WriteLoggingFile2(f, getLogger())
+>>> dir(w)
+['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_file', '_logger', 'write']
+
+More interesting is the getattr wrapper.
+Even though, in practice,
+it offers access to every attribute and method of the wrapped class,
+they are completely missing from its ``dir()``
+because each attribute only springs into existence
+when accessed by name.
+
+>>> w = WriteLoggingFile3(f, getLogger())
+>>> dir(w)
+['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattr__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__iter__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__next__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_file', '_logger', 'write', 'writelines']
+
+Could even these differences be ironed out?
+If you scroll through the many dunder methods in the `Python Data Model
+<https://docs.python.org/3/reference/datamodel.html>`_,
+your might be struck by a sudden wild hope
+when you see the `__dir__ method
+<https://docs.python.org/3/reference/datamodel.html#object.__dir__>`_ —
+surely this is the final secret to camouflaging your wrapper?
+
+Alas, it will not be enough.
+Even if you implement ``__dir__()``
+and forward it through to the wrapped object,
+Python special-cases the ``__dict__`` attribute —
+accessing it always provides direct access
+to the dictionary that holds a Python class instance’s attributes.
+
+>>> f.__dict__
+{'mode': 'r'}
+>>> w.__dict__
+{'_file': <_io.TextIOWrapper name='/etc/passwd' mode='r' encoding='UTF-8'>, '_logger': <RootLogger root (WARNING)>}
+
+You might begin to think of even more obscure ways
+to subvert Python’s introspection —
+at this point you might already be thinking of ``__slots__``,
+for example —
+but all roads lead to the same place.
+However clever and obscure your maneuvers,
+at least a small chink will still be left in your wrapper’s armor
+which will allow careful enough introspection to see the difference.
+Thus we are lead to a conclusion:
+
+.. admonition:: Maxim
+
+   The Decorator Pattern supports *programming* — not *metaprogramming*.
+   Code that is happy to simply access the attributes it needs
+   will be happy to accept a Decorator Pattern wrapper instead.
+   But code that indulges in introspection will see the difference.
+
+Among other things,
+Python code that attempts to list an object’s attributes,
+examine its ``__class__``, or directly access its ``__dict__``
+will see differences between the object it expected
+and the decorator object you have in fact given it instead.
+Well-written application code would never do such things, of course —
+they are necessary only when implementing a developer tool
+like a framework, test harness, or debugger.
+But as you do not always have the option
+of dealing solely with well-written libraries,
+be prepared to see and work around
+any symptoms of intrusive introspection
+as you deploy the Decorator Pattern.
+
+Dodge: Monkey-patch each object
+===============================
 
 
 
-Approach 2: A dynamic wrapper
-=============================
+>>> def bind_write_method(logger):
+...     def write_and_log(self, s):
+...         self.write(s)
+...         logger.debug('wrote %s bytes to %s', len(s), self._file)
+...     return write_and_log
+
+You can't put a function on an instance
+and have it treated as a method.
+Doesn't work:
+
+>>> f = open('/dev/null', 'w')
+>>> f.write
+<built-in method write ...>
+>>> f.write = bind_write_method(getLogger())
+>>> f.write('Hello, world.')
+Traceback (most recent call last):
+  ...
+TypeError: write_and_log() missing 1 required positional argument: 's'
+
+So you either need to go ahead and provide the object yourself.
+
+>>> def bind_write_method(self, logger):
+...     def write_and_log(s):
+...         write(s)
+...         print('wrote {} bytes to {}'.format(len(s), self.name))
+...     write = self.write
+...     return write_and_log
+
+>>> f = open('/dev/null', 'w')
+>>> f.write = bind_write_method(f, getLogger())
+>>> f.write('Hello, world.')
+wrote 13 bytes to /dev/null
+
+Dodge 2: Monkey-patch the class?
+================================
 
 
 
-then, wrapper that does dynamic getattr
-(explain why you would use getattribute?)
+>>> f = open('/etc/passwd')
+>>> class Foo(object): pass
+>>> f.__class__ = Foo
+Traceback (most recent call last):
+  ...
+TypeError: __class__ assignment only supported for heap types or ModuleType subclasses
 
-Trick 2a: 
+>>> def my_write():
+...     print('hey!')
+>>> f.write = my_write
+>>> f.write()
+hey!
+
+AttributeError: 'file' object attribute 'write' is read-only
+
 
 then, wrapper that does copy-across of method in __init__
 
@@ -236,20 +462,5 @@ then, wrapper that does copy-across based on loop
 then, superclass that does copy-across?
 
 would be mitigated by interface
-
-
-Caveat: Decorator classes aren’t perfect
-========================================
-
-
-
-
-Dodge 1: Monkey-patch each object
-=================================
-
-
-Dodge 2: Monkey-patch the class?
-================================
-
 
 

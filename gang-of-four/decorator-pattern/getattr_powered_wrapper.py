@@ -1,16 +1,16 @@
 # Dynamic version of Decorator Pattern: intercept live attributes
 
-class WriteLoggingFile(object):
+class WriteLoggingFile3(object):
     def __init__(self, file, logger):
-        self.file = file
-        self.logger = logger
+        self._file = file
+        self._logger = logger
 
     # The two methods we actually want to specialize,
     # to log each occasion on which data is written.
 
     def write(self, s):
-        self.file.write(s)
-        self.logger.debug('wrote %s bytes to %s', len(s), self.file)
+        self._file.write(s)
+        self._logger.debug('wrote %s bytes to %s', len(s), self._file)
 
     def writelines(self, strings):
         if self.closed:
@@ -22,21 +22,21 @@ class WriteLoggingFile(object):
     # but iter() and next() will be upset without them.
 
     def __iter__(self):
-        return self.__dict__['file'].__iter__()
+        return self.__dict__['_file'].__iter__()
 
     def __next__(self):
-        return self.__dict__['file'].__next__()
+        return self.__dict__['_file'].__next__()
 
     # Offer every other method and property dynamically.
 
     def __getattr__(self, name):
-        return getattr(self.__dict__['file'], name)
+        return getattr(self.__dict__['_file'], name)
 
     def __setattr__(self, name, value):
-        if name in ('file', 'logger'):
+        if name in ('_file', '_logger'):
             self.__dict__[name] = value
         else:
-            setattr(self.__dict__['file'], name, value)
+            setattr(self.__dict__['_file'], name, value)
 
     def __delattr__(self, name):
-        delattr(self.__dict__['file'], name)
+        delattr(self.__dict__['_file'], name)

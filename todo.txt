@@ -1,0 +1,5 @@
+
+
+Zope security: "principle" instead of "user"?
+Zope: not know the difference between an abstraction
+and a confusing synonym. Equated obscurity with abstraction.

@@ -88,7 +88,7 @@ h1, h2 {
     color: #ddd;
     box-shadow: none;
 }
-.admonition-verdict {
+.admonition {
     border: 2px solid black;
     padding: 0.5em 2em;
 }

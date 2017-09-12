@@ -1,6 +1,6 @@
 # Traditional Decorator pattern: noticeably verbose
 
-class WriteLoggingFile(object):
+class WriteLoggingFile1(object):
     def __init__(self, file, logger):
         self._file = file
         self._logger = logger

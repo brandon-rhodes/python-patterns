@@ -1,4 +1,4 @@
 #!/bin/bash
 
 ,simplehttpserver &
-,watch make html -- gang-of-four/**
+,watch make dirhtml doctest -- gang-of-four/**
