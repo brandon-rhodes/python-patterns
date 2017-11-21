@@ -19,9 +19,8 @@
    when you need to adjust the behavior of an object
    that you can’t subclass but can only wrap at runtime.
 
-.. toctree::
-
-   index.rst
+.. contents:: Contents:
+   :backlinks: none
 
 The Python core developers made the terminology
 surrounding this design pattern more confusing than necessary
