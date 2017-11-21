@@ -6,7 +6,10 @@
 Python Patterns
 ===============
 
-
+A work-in-progress
+to document the design patterns
+that one Python programmer finds useful — or not so useful —
+in Python.
 
 .. toctree::
    :maxdepth: 2

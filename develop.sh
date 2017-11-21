@@ -1,4 +1,4 @@
 #!/bin/bash
 
 ,simplehttpserver &
-,watch make dirhtml doctest -- gang-of-four/**
+,watch make dirhtml doctest -- **/*.rst **/*.css
