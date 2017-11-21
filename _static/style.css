@@ -55,13 +55,6 @@ body {
     font-family: "Gentium Custom", sans-serif, serif;
     max-width: 36em;
 }
-body:after {
-    display: block;
-    padding-top: 0.4in;
-    padding-bottom: 0.6in;
-    text-align: center;
-    content: "· · · ·";
-}
 img {
     max-width: 100%;
 }
@@ -170,6 +163,10 @@ tr:last-child td {
     float: right;
     margin-left: 1em;
     color: #888;
+}
+.copyright {
+    text-align: center;
+    opacity: 0.5;
 }
 @media screen and (min-width: 480px) {body {font-size: 1.125em;}}
 @media screen and (min-width: 640px) {body {max-width: 42em;}}
