@@ -9,3 +9,14 @@ http://lists.squeakfoundation.org/pipermail/squeak-dev/1998-October/017019.html
 "The key in making great and growable systems is much more to design how its
 modules communicate rather than what their internal properties and
 behaviors should be"
+
+Can I use this?
+http://objology.blogspot.com/2011/09/one-of-best-bits-of-programming-advice.html
+"Take some sort of "Loader" for example. The focus here is on the unit
+of work it does. It'll have lots of instance variables, lots of
+arguments, and pass lots of data around probably. Now instead replace
+that with a LoadRecord and a LoadStream. I'm reasonably confident you'll
+end up with something that is more akin to what the original Founding
+Fathers of OOP had in mind. We want to create objects that describe what
+they are, and then bind behavior to them, rather than focus on what they
+do, and then figure out what data they'll need to do that."
