@@ -3,3 +3,9 @@
 Zope security: "principle" instead of "user"?
 Zope: not know the difference between an abstraction
 and a confusing synonym. Equated obscurity with abstraction.
+
+When I do Facade, take quotes from:
+http://lists.squeakfoundation.org/pipermail/squeak-dev/1998-October/017019.html
+"The key in making great and growable systems is much more to design how its
+modules communicate rather than what their internal properties and
+behaviors should be"
