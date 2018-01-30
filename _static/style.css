@@ -83,8 +83,12 @@ h1, h2 {
     color: #ddd;
 }
 .admonition {
-    border: 2px solid black;
-    padding: 0.5em 2em;
+    border: 1em solid white;
+    padding: 0em 2em;
+    background-color: #eee;
+}
+.admonition-warning {
+    background-color: #edd;
 }
 .admonition-title {
     text-align: center;

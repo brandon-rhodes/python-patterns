@@ -9,6 +9,15 @@
      classes are perilous things
      and subclasses, doubly perilous
 
+.. admonition:: Warning
+
+   The “Decorator Pattern” ≠ Python “decorators”!
+
+   If you are interested in Python decorators like ``@classmethod``
+   and ``@contextmanager`` and ``@wraps()``,
+   then stay tuned for a later phase of this project
+   in which I start tackling Python language features.
+
 .. admonition:: Verdict
 
    The Decorator Pattern can be useful in Python code!
@@ -24,7 +33,8 @@
 
 The Python core developers made the terminology
 surrounding this design pattern more confusing than necessary
-by using the *decorator* for an entirely unrelated language feature.
+by using the *decorator* for an entirely
+`unrelated language feature <https://www.python.org/dev/peps/pep-0318/>`_.
 The timeline:
 
 * The design pattern was developed and named in the early 1990s
@@ -53,7 +63,7 @@ instead of just *decorator*
 when referring to a class that implements the Decorator Pattern.
 
 Definition
-==========
+----------
 
 A *decorator* class:
 
@@ -90,7 +100,7 @@ without the need for you be in control
 when the wrapped object was created.
 
 Implement: Static wrapper
-=========================
+-------------------------
 
 First, let’s learn the drudgery
 of creating the kind of decorator class you would write in C++ or Java.
@@ -161,7 +171,7 @@ any methods, arguments, or attributes.
 .. TODO explain why I did both write methods and how I chose to do it
 
 Implement: Tactical wrapper
-===========================
+---------------------------
 
 The wrapper in the previous section
 might have struck you as ridiculous.
@@ -220,7 +230,7 @@ between the magnificent pedantry of wrapping every possible method
 and the danger of not wrapping enough.
 
 Implement: Dynamic wrapper
-==========================
+--------------------------
 
 A very common approach to the Decorator Pattern in Python
 is the dynamic wrapper.
@@ -280,7 +290,7 @@ the code of ``WriteLoggingFile3`` will require no change at all.
 .. TODO what about live copying each attribute as it's accessed?
 
 Caveat: Wrapping doesn’t actually work
-======================================
+--------------------------------------
 
 If Python didn’t support introspection —
 if the only operation you could perform on an object
@@ -397,7 +407,7 @@ any symptoms of intrusive introspection
 as you deploy the Decorator Pattern.
 
 Hack: Monkey-patch each object
-==============================
+------------------------------
 
 There are two final approaches to decoration
 based on the questionable practice of monkey patching.
@@ -454,7 +464,7 @@ on a single object instance
 while leaving the entire rest of its behavior alone.
 
 Hack: Monkey-patch the class
-============================
+----------------------------
 
 Another approach you might see in the wild
 is to create a subclass that has the desired behaviors overridden,
@@ -478,3 +488,14 @@ TypeError: __class__ assignment only supported for heap types or ModuleType subc
 But in cases where the surgery does work,
 you will have an object whose behavior
 is that of your subclass rather than of its original class.
+
+Further Reading
+---------------
+
+* If dynamic wrappers and monkey patching spur your interest,
+  check out Graham Dumpleton’s
+  `wrapt library <http://wrapt.readthedocs.io/en/latest/quick-start.html>`_,
+  his accompanying series of
+  `blog posts <http://blog.dscpl.com.au/p/decorators-and-monkey-patching.html>`_,
+  and his `monkey patching talk at Kiwi PyCon <https://www.youtube.com/watch?v=GCZmGgtWi3M>`_
+  that delve deep into the arcane technical details of the practice.
