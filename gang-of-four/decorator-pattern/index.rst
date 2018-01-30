@@ -74,8 +74,8 @@ With a decorator class, you might:
 * Forbid actions that the wrapped object would normally allow
 
 These purposes might remind you of situations
-in which you would also think of subclassing something.
-But the Decorator Pattern has a crucial difference:
+in which you would also think of subclassing an existing class.
+But the Decorator Pattern has a crucial advantage over a subclass:
 you can only solve a problem with a subclass
 when your own code is in charge
 of creating the objects in the first place.
@@ -83,8 +83,8 @@ For example, it isn’t helpful
 to subclass the Python file object
 if a library you’re using is returning normal file objects
 and you have no way to intercept their construction —
-your new ``MyBetterFile`` subclass would sit unused.
-But a decorator class does not have that limitation.
+your new ``MyEvenBetterFile`` subclass would sit unused.
+A decorator class does not have that limitation.
 It can be wrapped around a plain old file object any time you want,
 without the need for you be in control
 when the wrapped object was created.
@@ -97,7 +97,8 @@ of creating the kind of decorator class you would write in C++ or Java.
 We will not take advantage of the fact
 that Python is a dynamic language,
 but will instead write static (non-dynamic) code
-where every method and attribute appears right on the page.
+where every method and attribute appears literally,
+on the page.
 
 To be complete —
 to provide a real guarantee
@@ -133,7 +134,7 @@ as shown here, in our first working example of the Decorator Pattern:
 
 So for the sake of the half-dozen lines of code at the bottom
 that supplement the behavior of ``write()`` and ``writelines()``,
-another hundred or so lines of code are necessary in this case.
+another hundred or so lines of code wound up being necessary.
 
 You will notice that each Python object attribute
 goads us into being even more verbose than Java!
@@ -160,7 +161,7 @@ any methods, arguments, or attributes.
 .. TODO explain why I did both write methods and how I chose to do it
 
 Implement: Tactical wrapper
----------------------------
+===========================
 
 The wrapper in the previous section
 might have struck you as ridiculous.
@@ -188,9 +189,9 @@ is unlikely call every single file method that exists.
 What if it only calls two methods?
 Or only one?
 In many cases a programmer has found
-that a trivial wrapper like this
+that a trivial wrapper like the following
 will perfectly satisfy real-world code
-that just wants to write to a file!
+that just wants to write to a file:
 
 .. literalinclude:: tactical_wrapper.py
 
@@ -198,8 +199,9 @@ Yes, this can admittedly be a bit dangerous.
 A routine that seems so happy with a minimal wrapper like this
 can suddenly fail later
 if rare circumstances
-make it dig into class methods or attributes
-that you never happened to observe it using.
+make it dig into methods or attributes
+that you never implemented
+because you never saw it use them.
 Even if you audit the library’s code
 and are sure it can never call any method besides ``write()``,
 that could change
@@ -258,15 +260,15 @@ in addition to the methods you specifically want to specialize:
 
 .. TODO Could you fool it with getattribute? probably not but say why.
 
-But as you can see,
+As you can see,
 the code can be quite economical
 compared to the vast slate of methods
 we saw earlier in ``WriteLoggingFile1``
-that are necessary to manually implement every possible attribute.
+for manually implementing every possible attribute.
 
-While the extra level of indirection
+This extra level of indirection
 does carry a small performance penalty for every attribute access,
-it is very often preferred to the burden of writing a static wrapper.
+but is usually preferred to the burden of writing a static wrapper.
 
 Dynamic wrappers also offer pleasant insulation
 against changes that might happen in the future
@@ -288,10 +290,10 @@ or dynamically via ``getattr(f, attrname)`` string lookup —
 then a decorator could be foolproof.
 As long as every attribute lookup that succeeds on the wrapped object
 will return the same sort of value when performed on the wrapper,
-then Python could never know the difference.
+then other Python code would never know the difference.
 
-But Python is not merely a dynamic programming language.
-It also supports introspection.
+But Python is not merely a dynamic programming language;
+it also supports introspection.
 And introspection is the downfall of the Decorator Pattern.
 If the code to which you pass the wrapper decides to look deeper,
 all kinds of differences become apparent.
@@ -360,7 +362,7 @@ to the dictionary that holds a Python class instance’s attributes.
 >>> f.__dict__
 {'mode': 'r'}
 >>> w.__dict__
-{'_file': <_io.TextIOWrapper name='/etc/passwd' mode='r' encoding='UTF-8'>, '_logger': <RootLogger root (WARNING)>}
+{'_file': <_io.TextIOWrapper name='/etc/passwd' mode='r' encoding='UTF-8'>, '_logger': <RootLogger root (NOTSET)>}
 
 You might begin to think of even more obscure ways
 to subvert Python’s introspection —
@@ -374,8 +376,9 @@ Thus we are lead to a conclusion:
 
 .. admonition:: Maxim
 
-   The Decorator Pattern supports *programming* — not *metaprogramming*.
-   Code that is happy to simply access the attributes it needs
+   The Decorator Pattern in Python
+   supports *programming* — but not *metaprogramming*.
+   Code that is happy to simply access attributes
    will be happy to accept a Decorator Pattern wrapper instead.
    But code that indulges in introspection will see the difference.
 
@@ -393,20 +396,31 @@ be prepared to see and work around
 any symptoms of intrusive introspection
 as you deploy the Decorator Pattern.
 
-Dodge: Monkey-patch each object
-===============================
+Hack: Monkey-patch each object
+==============================
 
+There are two final approaches to decoration
+based on the questionable practice of monkey patching.
+The first approach takes each object that needs decoration
+and installs a new method directly on the object,
+shadowing the official method that remains on the class itself.
 
+If you have ever attempted this maneuver yourself,
+you might have run aground on the fact
+that a function installed on a Python object instance
+does *not* receive an automatic ``self`` argument —
+instead, it sees only the arguments with which it is literally invoked.
+So a first try at supplementing a file’s ``write()`` with logging:
 
 >>> def bind_write_method(logger):
+...     # Does not work: will not receive `self` argument
 ...     def write_and_log(self, s):
 ...         self.write(s)
 ...         logger.debug('wrote %s bytes to %s', len(s), self._file)
 ...     return write_and_log
 
-You can't put a function on an instance
-and have it treated as a method.
-Doesn't work:
+— will die with an error
+because the new method sees only one argument, not two:
 
 >>> f = open('/dev/null', 'w')
 >>> f.write
@@ -417,7 +431,10 @@ Traceback (most recent call last):
   ...
 TypeError: write_and_log() missing 1 required positional argument: 's'
 
-So you either need to go ahead and provide the object yourself.
+The quick way to resolve the dilemma
+is to do the binding yourself,
+by providing the object instance
+to the closure that wraps the new method itself:
 
 >>> def bind_write_method(self, logger):
 ...     def write_and_log(s):
@@ -431,35 +448,33 @@ So you either need to go ahead and provide the object yourself.
 >>> f.write('Hello, world.')
 wrote 13 bytes to /dev/null
 
-Dodge 2: Monkey-patch the class?
-================================
+While clunky,
+this approach does let you update the action of a single method
+on a single object instance
+while leaving the entire rest of its behavior alone.
 
+Hack: Monkey-patch the class
+============================
 
+Another approach you might see in the wild
+is to create a subclass that has the desired behaviors overridden,
+and then to surgically change the class of the object instance.
+This is not, alas, possible in the general case,
+and in fact fails for our example here because the file class,
+like all built-in classes,
+does not permit assignment to its ``__class__`` attribute:
 
 >>> f = open('/etc/passwd')
->>> class Foo(object): pass
+>>> class Foo(type(f)):
+...     def write_and_log(self, s):
+...         self.write(s)
+...         logger.debug('wrote %s bytes to %s', len(s), self._file)
+...
 >>> f.__class__ = Foo
 Traceback (most recent call last):
   ...
 TypeError: __class__ assignment only supported for heap types or ModuleType subclasses
 
->>> def my_write():
-...     print('hey!')
->>> f.write = my_write
->>> f.write()
-hey!
-
-AttributeError: 'file' object attribute 'write' is read-only
-
-
-then, wrapper that does copy-across of method in __init__
-
-? then, wrapper that does caching? ?
-
-then, wrapper that does copy-across based on loop
-
-then, superclass that does copy-across?
-
-would be mitigated by interface
-
-
+But in cases where the surgery does work,
+you will have an object whose behavior
+is that of your subclass rather than of its original class.
