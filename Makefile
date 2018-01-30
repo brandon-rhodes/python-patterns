@@ -227,6 +227,6 @@ dummy:
 	@echo "Build finished. Dummy builder generates no files."
 
 .PHONY: sync
-sync:
+sync: dirhtml
 	rsync -av --chmod=a+rX \
-		_build/html/ wf-rhodesmill:webapps/python_patterns/
+		_build/dirhtml/ wf-rhodesmill:webapps/python_patterns/
