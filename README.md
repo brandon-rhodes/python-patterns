@@ -1,4 +1,4 @@
-This is the source behind the [python-patterns.guide](python-patterns.guide) site by Brandon Rhodes,
+This is the source behind the [python-patterns.guide](http://python-patterns.guide/) site by Brandon Rhodes,
 in case anyone finds it instructive to see how Sphinx is used to generate this static site.
 
 The actual texts of each page are ©2018 Brandon Rhodes, all rights reserved,
