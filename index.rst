@@ -26,7 +26,7 @@ You can watch for links to new material on my Twitter account:
 `@brandon_rhodes <https://twitter.com/brandon_rhodes>`_
 
 And with those preliminaries complete,
-here we go — my very first write-up of a design pattern,
+here we go — my first two write-ups of design patterns,
 that I’ll doubtless revisit and revise and correct many times
 over the years as I learn more,
 but that (deep breath) it’s time to hit “Publish” on:
@@ -35,3 +35,4 @@ but that (deep breath) it’s time to hit “Publish” on:
    :maxdepth: 2
 
    gang-of-four/decorator-pattern/index
+   gang-of-four/factory-method/index
