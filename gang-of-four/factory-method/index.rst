@@ -171,7 +171,7 @@ is the ``json`` module in the Standard Library,
 which was added around 2008.
 
 Here’s one example from the ``json`` module.
-Every time the JSON module encounters a number its input,
+Every time the JSON module encounters a number in its input,
 it has to instantiate some kind of Python object
 capable of representing the number.
 But which number class should it instantiate?
