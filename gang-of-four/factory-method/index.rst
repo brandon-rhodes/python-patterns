@@ -308,7 +308,7 @@ like partial application::
     from decimal import Context, ROUND_DOWN
     from functools import partial
 
-    parse_number = partial(Decimal, context=Context(2, ROUND_DOWN)
+    parse_number = partial(Decimal, context=Context(2, ROUND_DOWN))
 
 Feel free to enjoy this Pythonic freedom of providing any kind of callable,
 and not limiting yourself to just providing classes,
