@@ -11,12 +11,12 @@
    and high-level network applications.
    In Python, the Composite Pattern can often be implemented
    with less fuss than in tightly constrained object oriented languages.
-   You won’t need to assume
-   that your container objects and the objects inside them
-   need to inherit from a common parent class.
-   Instead, consider building classes
+   You won’t be forced to inherit your container objects
+   and the objects inside of them
+   from a common parent class.
+   Instead, you can build classes
    that share only a common interface rather than any implementation —
-   or simply duck-type them to offer common behavior.
+   or that are simply duck typed to offer common behavior.
 
 The Composite Pattern suggests
 that whenever you design “container” objects
@@ -243,7 +243,9 @@ The principle has even been enshrined in the famous *Zen of Python:*
 
     “Flat is better than nested.”
 
-The realm in which hierarchy does reign supreme today is the document.
+The big exception,
+the realm in which hierarchy does reign supreme today,
+is the document.
 Documents are almost universally processed and represented
 as a hierarchy of sections and paragraphs
 beneath which are spans of bold and italics and hyperlinks.
@@ -320,18 +322,19 @@ Your code can therefore fly forward
 and always assume the presence of the method.
 Here, so that you can a working example,
 is a complete program that builds a simple Tkinter GUI
-that on exit descends through the widgets
-printing out their hierarchy to the terminal.
+that can print out the widget hierarchy to the terminal:
+
+.. literalinclude:: tk_example.py
+
+The resulting printout looks like::
+
+    * <tkinter.Frame object .!frame>
+        * <tkinter.Button object .!frame.!button>
+        * <tkinter.Button object .!frame.!button2>
+
 Thanks to the Composite Pattern symmetry between widgets,
 no ``if`` statement is necessary
-to handle whatever kind of widget is passed to ``print_tree()``::
-
-    [rest of script]
-
-    def print_tree(widget, indent=0):
-        print('{:<{}} * {!r}'.format('', indent * 4, widget))
-        for child in widget.winfo_children():
-            print_tree(child, indent + 1)
+to handle whatever kind of widget is passed to ``print_tree()``.
 
 Note that there is controversy among Composite Pattern
 enthusiasts over whether all widgets should really act like containers —
@@ -347,8 +350,7 @@ and instead only making truly general operations
 like ``winfo_rootx()`` universal
 (general, because all widgets have an *x*\ -coordinate).
 I myself tend to enjoy interfaces more
-when there is as much symmetry as possible,
-but not everyone agrees.
+when there is as much symmetry as possible.
 
 If you study the Tkinter library —
 which is perhaps the most classic Object Oriented module
