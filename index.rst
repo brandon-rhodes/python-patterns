@@ -36,3 +36,4 @@ but that (deep breath) it’s time to hit “Publish” on:
 
    gang-of-four/decorator-pattern/index
    gang-of-four/factory-method/index
+   gang-of-four/composite/index

@@ -20,3 +20,28 @@ end up with something that is more akin to what the original Founding
 Fathers of OOP had in mind. We want to create objects that describe what
 they are, and then bind behavior to them, rather than focus on what they
 do, and then figure out what data they'll need to do that."
+
+
+
+Why bottom out? Python strings are made of — strings!
+
+in Go I keep making error
+
+line = path + '\n'
+TODO: what exception?
+
+strings!
+smaller piece of string? it’s a string too!
+
+
+>>> p = 'Python'
+>>> s = 'Yet all experience is an arch'
+>>> s[4:7]
+'all'
+>>> type(s[4:7])
+<class 'str'>
+>>> s[4]
+'a'
+>>> type(s[4])
+<class 'str'>
+
