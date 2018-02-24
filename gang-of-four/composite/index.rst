@@ -320,7 +320,7 @@ For other widgets? It simply returns an empty list.
 
 Your code can therefore fly forward
 and always assume the presence of the method.
-Here, so that you can a working example,
+Here, so that you can see a working example,
 is a complete program that builds a simple Tkinter GUI
 that can print out the widget hierarchy to the terminal:
 
