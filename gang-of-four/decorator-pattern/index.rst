@@ -372,7 +372,7 @@ to the dictionary that holds a Python class instance’s attributes.
 >>> f.__dict__
 {'mode': 'r'}
 >>> w.__dict__
-{'_file': <_io.TextIOWrapper name='/etc/passwd' mode='r' encoding='UTF-8'>, '_logger': <RootLogger root (NOTSET)>}
+{'_file': <_io.TextIOWrapper name='/etc/passwd' mode='r' encoding='UTF-8'>, '_logger': <RootLogger root (WARNING)>}
 
 You might begin to think of even more obscure ways
 to subvert Python’s introspection —
