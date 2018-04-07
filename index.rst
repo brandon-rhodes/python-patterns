@@ -34,6 +34,7 @@ but that (deep breath) it’s time to hit “Publish” on:
 .. toctree::
    :maxdepth: 2
 
+   gang-of-four/composite/index
    gang-of-four/decorator-pattern/index
    gang-of-four/factory-method/index
-   gang-of-four/composite/index
+   gang-of-four/iterator/index
