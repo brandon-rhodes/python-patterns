@@ -5,7 +5,7 @@
 
 Verdict
 
-Python has embraced the Iterator Pattern
+Python supports the Iterator Pattern
 at the most fundamental level available to a programming language:
 it’s built into Python’s syntax.
 
@@ -19,20 +19,19 @@ you have to generate the integer indexes yourself.
 Code in such languages struggles to stay at the high level
 of describing programmer intent.
 Instead, the flow of each thought
-gets interrupted with low-level details about data structures.
+is interrupted with low-level data structure details.
 When code can’t abstract away the mechanics of iteration,
 it becomes more difficult to read;
 it’s more liable to errors,
 because the same iteration logic needs to be repeated over and over;
-and no improvements can be made to a data structure
-that change its iteration strategy
-without finding and changing every place in the code
+and any improvements to a data structure that affects iteration
+require finding and changing every place in the code
 where that data structure is iterated across.
 
 The remedy is encapsulation.
-The Iterator Pattern explains that you should move
-the details about how a data structure is traversed
-into an “iterator” object that,
+The Iterator Pattern proposes
+that the details about how a data structure is traversed
+should be moved into an “iterator” object that,
 from the outside,
 simply yields one item after another
 without exposing the internals of how the data structure is traversed.
@@ -42,9 +41,9 @@ Iterating with the “for” loop
 
 Python’s ``for`` loop
 abstracts the Iterator Pattern so thoroughly
-that most Python programmers are never aware
+that most Python programmers are never even aware
 of the object design pattern that it enacts beneath the surface.
-The loop performs repeated assignment,
+The ``for`` loop performs repeated assignment,
 repeating its indented block of code
 once for each item in the sequence it is iterating over.
 
@@ -60,30 +59,29 @@ once for each item in the sequence it is iterating over.
    3
    5
 
-The loop above has performed a series of three assignment statements
+The above loop has performed a series of three assignment statements
 ``prime = 2``, ``prime = 3``, and ``prime = 5``,
 running the indented block of code after each assignment.
 The block can include the C-style loop control statements
 ``break`` to leave the loop early
-and ``continue`` to skip back to the top of the loop
-and move on to the next item.
+and ``continue`` to skip back to the top of the loop.
 
 Because ``for`` is a repeated assignment statement,
 it has the same flexibility as Python’s normal ``=`` assignment operator:
 by listing several names separated by commas,
-you can upgrade from assigning a single name to unpacking a tuple.
+you can upgrade from assigning a single name to unpacking a whole tuple.
 This lets you skip a separate unpacking step.
 
 .. testcode::
 
    elements = [('H', 1.008), ('He', 4.003), ('Li', 6.94)]
 
-   # You don’t need to assign to "tup" first
+   # You’re not limited to a single name like “tup”...
    for tup in elements:
        symbol, weight = tup
        print(symbol, weight)
 
-   # Instead, unpack right inside the "for" statement
+   # ...instead, unpack right inside the "for" statement
    for symbol, weight in elements:
        print(symbol, weight)
 
@@ -98,19 +96,19 @@ This lets you skip a separate unpacking step.
    Li 6.94
 
 Famously, this can be coupled with the Python dictionary’s ``item()`` method
-to easily visit each key along with its value
-without the expense of any key lookups.
+to easily visit each dictionary key and value
+without the expense of a key lookup at the top of each loop.
 
 .. testcode::
 
    d = {'H': 1.008, 'He': 4.003, 'Li': 6.94}
 
-   # You don’t need to:
+   # You don’t need to...
    for symbol in d.keys():
        weight = d[symbol]
        print(symbol, weight)
 
-   # Instead, you can:
+   # ...instead, you can simply:
    for symbol, weight in d.items():
        print(symbol, weight)
 
@@ -128,7 +126,7 @@ The ``for`` loop combines such admirable concision and expressiveness
 that Python not only supports it as a stand-alone statement,
 but has incorporated it into four different expressions —
 Python’s famous “comprehensions” that build lists, sets, dictionaries,
-and iterators directly from inline loops:
+and generators directly from inline loops:
 
 .. testcode::
 
@@ -145,6 +143,8 @@ makes the language simpler, easier to learn, and easier to remember.
 The pattern: the iterable and its iterator
 ==========================================
 
+Let’s now step behind the ``for`` loop
+and learn about the design pattern that powers it.
 The traditional Iterator Pattern involves three kinds of object.
 
 First, there’s a *container* object.
@@ -153,35 +153,32 @@ Second, the container’s internal logic
 lets it corral and organize a number of *item* objects.
 
 Finally, there’s the key to the pattern:
-instead of the container supplying its users
-with special container-specific instructions
-for how to access its items —
+instead of the container implementing its own unique methods
+for stepping through its items —
 which would force the programmer to learn
-a different approach for every container their code uses —
-it offers access to its items
-through a generic mechanism
-that works the same across many different kinds of container.
+a different approach for every container —
+it offers sequential access to its items
+through a generic *iterator* object
+that implements the exact same interface
+as the iterator classes offered by every other kind of container.
 
 Python provides a pair of builtins
 that let you step behind the ``for`` loop
 and pull the levers of iteration yourself.
 
-* ``iter()`` asks the container object
-  to build and return a new iterator object.
-  (If the argument you pass isn’t actually a container,
-  a ``TypeError`` is raised: ``object is not iterable``.)
+* ``iter()`` takes a container object as its argument
+  and asks it to build and return a new iterator object.
+  If the argument you pass isn’t actually a container,
+  a ``TypeError`` is raised: ``object is not iterable``.
 
 * ``next()`` takes the iterator as its argument and,
-  when called repeatedly,
-  returns each of the item objects
-  that would be visited by a ``for`` loop over the container.
-  Each call to ``next()`` returns one object.
-  Once the container is exhausted and there are no more objects to return,
-  a special exception ``StopIteration`` is raised.
+  each time it’s called,
+  returns another item from the sequence of items in the container.
+  Once the container has no more objects to return,
+  the exception ``StopIteration`` is raised.
 
-To reenact the first ``for`` loop
-that we studied in the previous section,
-we would make a single call to ``iter()``
+To manually reenact the previous section’s first ``for`` loop,
+we make a single call to ``iter()``
 followed by four calls to ``next()``:
 
 .. testcode::
@@ -198,18 +195,12 @@ followed by four calls to ``next()``:
    foof
 
 These are precisely the actions
-taken by Python’s ``for`` loop,
-though it works a bit differently.
-The ``for`` loop doesn’t check ahead of time
-how many items there are in the container —
-because some iterables simply don’t know ahead of time
-how many items they’ll yield,
-as when you are iterating over the lines of a file.
-So it can’t plan ahead,
-as I did when writing the above example code,
-and call ``next()`` exactly four times.
-
-Instead, ``for`` is implemented as a ``while`` loop — something like:
+that were taken by Python’s ``for`` loop.
+Of course,
+the real ``for`` loop doesn’t hard-code
+exactly the right number of ``next()`` calls
+like I did here —
+instead, ``for`` is implemented as something like the following ``while`` loop:
 
 .. testcode::
 
@@ -224,24 +215,22 @@ Instead, ``for`` is implemented as a ``while`` loop — something like:
 
    foof
 
-My big question when first encountering the Iterator Pattern was:
-why does the iterator need to be a separate object
-from the iterable container object itself?
+My first question when I learned the Iterator Pattern was:
+why does the iterator need to be a separate object from the container?
 Why can’t each container simply include a counter inside
 that reminds it which object to yield next?
 
-The answer is that,
-while a single internal counter would work fine
+The answer is that a single internal counter would work
 as long as only one ``for`` loop at a time
-were ever iterating over a container,
-there are many situations where several ``for`` loops
+were ever iterating over a container.
+But there are many situations where several ``for`` loops
 are working on the same container at once.
-To generate all combinations of two coin flips, for example,
-the programmer might quite naturally write concentric loops:
+For example, to generate all combinations of two coin flips,
+a programmer might write concentric loops:
 
 .. testcode::
 
-   sides = [‘heads’, ‘tails’]
+   sides = ['heads', 'tails']
    for coin1 in sides:
        for coin2 in sides:
            print(coin1, coin2)
@@ -254,76 +243,67 @@ If the Python list object ``sides``
 had tried to support iteration using only a single internal counter,
 then the inner ``for`` loop would have used up all of the items
 and left the outer ``for`` loop without any further items to visit.
+Instead, we are given a separate iterator on each call to ``iter()``.
 
-And multiple threads of control,
-whether operating system threads or coroutines,
+.. testcode::
+
+   it1 = iter(sides)
+   it2 = iter(sides)
+
+   # Even if we move “it1” past the first element...
+   print(next(it1))
+
+   # ...“it2” is still waiting at the beginning.
+   print(next(it2))
+
+.. testoutput::
+
+   foof
+
+Not only concentric loops, but multiple threads of control —
+whether operating system threads or coroutines —
 also offer plenty of circumstances
 under which an object might be operated on
-by several ``for`` loops at the same time.
+by several ``for`` loops at the same time,
+which also each need their own iterator
+to avoid throwing each other off track.
 
->>> iter(some_primes)
->>> iter(elements)
+A twist: objects which are their own iterator
+=============================================
 
-We have now seen the behavior of an iterable and its iterator.
-But what’s the object protocol behind the scenes
-that lets objects support Pythonic iteration,
-whether it’s enacted with ``for`` or with ``iter()`` and ``next()``?
-We’ll tackle it soon — but first,
-let’s study a variation of the traditional Iterator Pattern
-that will help us understand the full set of requirements
-placed on iterator objects.
+Each time you pass a normal Python container
+like a list, set, or dictionary to ``iter()``,
+you receive a new iterator object
+that starts iteration over again from the beginning.
 
-Python’s twist: objects which are their own iterator
-====================================================
+Some Python objects, however, exhibit a different behavior.
 
-
-which wasn’t possible because of no inheritance?
-
-wasn’t possible because of combination of:
-
-no interfaces, can only interchange objects if they inherit from a common
-implementation.
-
-no multiple inheritance.
-
-(is that true? or does C++ support multiple inheritance?)
-
-Iterator objects and “iter()”
-=============================
-
-To understand the Iterator Pattern behind the ``for`` loop,
-we need to distinguish between two different kinds of object:
-an *iterable* whose items can be visited,
-and an *iterator* that keeps track of where we’re at
-as we visit those items.
-To see the difference,
-we’ll compare iteration over a file object
-with iteration over a Python list.
-Let’s consider the file object first.
-
-The Python file object is designed to yield lines
+The Python file object is a good example.
+It conveniently yields lines of text
 when you iterate across it with a ``for`` loop.
-If you stop iterating early,
-the remaining lines will still be waiting
-for the next time you loop over the file.
-This feature can be used
-to loop over a file in phases.
+But, unlike a list or dictionary,
+it doesn’t start over again at the first line
+when traversed with a new ``for`` loop.
+Instead, it remembers its previous place in the file
+and continues yielding lines from where you previously left off.
 
-We can motivate a simple example
-by considering a traditional UNIX mailbox file:
+The fact that a file picks up where it left off
+can be used to loop over a file in phases.
+A simple example of a file format that’s composed of different sections
+is the traditional UNIX mailbox file:
 
 .. literalinclude:: email.txt
 
 This file needs to be parsed in three phases
-because each section is delimited by its own rules.
+because each section is delimited by different rules.
 The initial “envelope line” that starts with the word ``From``
-is guaranteed to be a single standalone line.
-Each line of the header that follows
-contains a name, ``:``, and a value,
-with the header itself finishing with a single blank line.
-The body, which comes last,
-ends at either the next envelope ``From`` line
-or else the end of the file.
+is always a single standalone line.
+The header follows,
+consisting of a series of colon-separated names and values
+which is terminated by a single blank line.
+The body comes last
+and ends at either the next envelope ``From`` line
+or the end of the file.
 Here’s how we might parse the first message from a mailbox file:
 
 .. testsetup::
@@ -351,10 +331,10 @@ Here’s how we might parse the first message from a mailbox file:
        return envelope, headers, body
 
 This convenient pattern —
-in which we tackle each section of the file with its own ``for`` loop —
+in which we tackle each section of the file with its own ``for`` loop
+that does a ``break`` once it’s done processing its section —
 is possible because each time we start up another loop,
 the file object continues reading from right where we left off.
-The above function works perfectly when passed a Python file object:
 
 .. testcode::
 
@@ -369,18 +349,51 @@ The above function works perfectly when passed a Python file object:
    Mary Smith <mary@example.net>
    2 lines
 
-Python programmers whose early experiences with iteration
-all involve file objects
-might expect every Python iterable to behave in the same way —
-they might expect iteration to always pick up
-exactly where it left off,
-if a previous ``for`` loop ended early with ``break``.
+How does the file object subvert normal iteration
+and preserve state between one ``for`` loop and the next?
 
-But, alas, this pattern shatters
-the very first time the programmer
-tries iterating over a native Python container.
-Let’s run the same code over the same mailbox file,
-but this time read the lines of the file into a Python list first:
+We can see the answer by stepping behind the ``for`` loop,
+calling ``iter()`` ourselves,
+and examining the result:
+
+>>> f
+>>> it1 = iter(f)
+>>> it2 = iter(f)
+>>> it1
+>>> it2
+>>> it1 is it2 is f
+
+The file object is taking advantage of a technicality:
+the rule that ``iter()`` must return an iterator
+never says that the iterator can’t be the iterable object itself!
+Instead of creating a separate iterator object
+to keep up with which line from the file should be returned next,
+the file itself serves as its own iterator
+and yields a single continuous series of lines,
+delivering the next available line
+to whichever of possibly many consumers
+is the first to invoke ``next()``.
+
+In the case of the file object,
+the decision to collapse the iterable and iterator together
+is driven by the implementation.
+Not all files support rewind and fast forward —
+Unix terminals and pipes don’t, for example —
+so the Python file object simply lets the operating system
+keep up with the current line
+and never tries to rewind on its own.
+
+But what if you wanted the ability to iterate in separate phases
+with other objects besides the file?
+
+For example,
+what if you wanted to be able to traverse a list of lines
+using a series of ``for`` loops
+where each one picks up where the last one leaves off?
+We can’t simply pass a normal list to our ``parse_email`` function.
+Each of its ``for`` loops
+will start looping over the list again from the beginning,
+and will fail to make progress through the whole file:
 
 .. testcode::
 
@@ -396,123 +409,98 @@ but this time read the lines of the file into a Python list first:
    Mary Smith <mary@example.net>
    0 lines
 
-Wait — zero lines?
-The body of the message is now empty?
+The body was missed
+because the function’s third ``for`` loop
+started over... TODO
+
+How can we support gradual iteration
+over a standard container like a Python list?
+
+The answer is another extension to the traditional Iterator Pattern:
+in Python, iterators return themselves if passed to ``iter()`` —
+so an iterator is its own iterator,
+and can be passed to a ``for`` loop!
 
 .. testcode::
 
-   print(body)
-
-.. testoutput::
-
-   []
-
-The body is empty!
-What’s gone wrong?
-
-To see the problem,
-let’s write a pair of ``for`` loops
-that print exactly which strings they see as they iterate across a list.
-
-.. testcode::
-
-   states = ['Alabama', 'Alaska', 'Arizona']
-
-   # First, we consume a single line.
-   print('Loop #1:')
-   for s in states:
-       print(s)
+   it = iter(some_primes)
+   print(next(it))
+   for prime in it:
+       print(prime)
        break
-
-   # Then we do a complete loop across the items.
-   print('Loop #2:')
-   for s in states:
-       print(s)
+   print(next(it))
 
 .. testoutput::
 
-    Loop #1:
-    Alabama
-    Loop #2:
-    Alabama
-    Alaska
-    Arizona
+   2
+   3
+   5
 
-You can see that once the first ``for`` loop exited with ``break``,
-we lost our place in the list —
-the second ``for`` loop started all over again with the first string ``"one"``.
-How can the Python list object choose
-to make each iteration across it independent of the last,
-and the file object choose iterations to be linked?
+Because the above code handles only a single iterator
+that we requested ourselves with ``iter()``,
+both its manual ``next()`` calls as well as its ``for()`` loop
+are all advancing the same iterator
+along through the 3 items in the underlying list.
+The ``for`` loop works because the iterator object ``it``
+returns itself when asked for its iterator:
 
-The answer is that the ``for`` loop
-relies entirely on each iterable object’s class
-to define what iteration means.
-Each time ``for`` starts up,
-it asks the object for  —
-through a mechanism we'll learn later —
+>>> it
+>>> iter(it)
 
-
-Each class makes its own decision
-about whether several different ``for`` loops over the same object
-will share state,
-or else each start over with the iterable's first item.
-
-The Python list 
+So we can successfully use our ``parse_email()`` routine with a Python list
+if instead of passing the underlying list
+we instead pass an iterator that we’ve already created.
+With that change, the routine runs successfully:
 
 .. testcode::
 
-   i1 = iter(states)
-   i2 = iter(states)
-   print(i1)
-   print(i2)
+   with open('email.txt') as f:
+       lines = list(f)
+
+   it = iter(lines)
+   envelope, headers, body = parse_email(it)
+   print(headers['To'])
+   print(len(body), 'lines')
 
 .. testoutput::
-    :hide:
 
-    <list_iterator object at 0x...>
-    <list_iterator object at 0x...>
+   Mary Smith <mary@example.net>
+   2 lines
 
-::
-
-    <list_iterator object at 0x7f09ced444a8>
-    <list_iterator object at 0x7f09ced343c8>
-
-
+If you ever really do implement a routine like ``parse_email()``,
+it’s better not to make your caller remember to pass an iterator.
+Instead, have them pass the container
+and call ``iter()`` yourself.
 
 Implementing an Iterable and Iterator
 =====================================
 
-The Iterator Pattern dictates
-that a loop visiting successive items in a container
-must vow to never touch the actual container object —
-must never get involved with the details, whether simple or intricate,
-of how the container enumerates or addresses or arranges its contents.
-Instead, the container should offer consumers
-an “iterator” object that knows all the secrets
-of how to address items in the container and traverse across them.
+How should a class implement the Iterator Pattern
+to plug in to Python’s native iteration mechanisms
+``for``, ``iter()``, and ``next()``?
 
-Python requires that a uniform protocol be implemented by all objects
-that want to participate in Python iteration.
+* The container must offer an ``__iter__()`` method
+  that returns an iterator object.
+  Supporting this method makes a container an “iterable” =
+  “something that’s able to be iterated over.”
 
-* Containers must offer an ``__iter__()`` method.
-  It should return an iterator.
-  Supporting this method makes a container “able to be iterated over”
-  = “iterable.”
-
-* So, what’s an iterator?
-  It’s any object that offers a ``__next__()`` method
-  that returns another item from the container each time it’s called.
+* Each iterator offers a ``__next__()`` method
+  that returns the next item from the container each time it’s called.
   It raises ``StopIterator`` when there are no further items.
   (In old Python 2 code, the spelling is ``next()`` without the dunder.)
 
-There’s another requirement of iterators,
-but we’ll reveal it later
-(scroll down looking for a lone bullet point if you’re in a hurry)
-once we’ve provided a motivation.
+* Remember the special case we learned about in the previous section —
+  that some users pass iterators to a ``for`` loop
+  instead of passing the underlying container?
+  To cover this case, each iterator is also required
+  to offer an ``__iter__()`` method that simply returns itself.
 
-There is no requirement that the items yielded by ``__next__()``
-be stored as persistent values inside the container.
+We can see all of these requirements at work
+by implementing our own simple iterator.
+
+Note that there is no requirement that the items yielded by ``__next__()``
+be stored as persistent values inside the container,
+or exist at all before the moment that ``__next__()`` is called.
 This lets us offer a very simple Iterator Pattern example
 without even implementing storage in the container:
 
@@ -528,7 +516,7 @@ without even implementing storage in the container:
            return OddIterator(self)
 
    class OddIterator(object):
-       "Very nearly an iterator (see next example)."
+       "An iterator."
 
        def __init__(self, container):
            self.container = container
@@ -536,13 +524,17 @@ without even implementing storage in the container:
 
        def __next__(self):
            self.n += 2
-           if self.n >= self.container.maximum:
+           if self.n > self.container.maximum:
                raise StopIteration
            return self.n
+
+       def __iter__(self):
+           return self
 
 With these simple methods,
 these objects are now eligible for full membership
 in Python’s rich iteration ecosystem.
+They’ll work in a ``for`` loop:
 
 .. testcode::
 
@@ -551,112 +543,107 @@ in Python’s rich iteration ecosystem.
    for n in numbers:
        print(n)
 
-These objects can even dance with the comprehensions.
+They’ll work with the ``iter()`` and ``next()`` builtins.
+
+.. testcode::
+
+   it = iter(OddNumbers(5))
+   print(next(it))
+   print(next(it))
+   print(next(it))
+
+And they can even dance with the comprehensions.
 
 .. testcode::
 
    print(list(numbers))
    print(set(n for n in numbers if n > 5))
 
-Since these ``for`` loops have elegantly hidden the underlying mechanics,
-let’s repeat the operation,
-but this time invoke the underlying methods manually
-as though we were ourselves a Python ``for`` loop.
+This pattern is how any objects you want to write
+can participate in Python’s rich support for iteration.
 
-.. testcode::
+Python’s extra level of indirection
+===================================
 
-   # What the “for” loop does behind the scenes.
+Why does Python even have ``iter()`` and ``next()``?
 
-   it = numbers.__iter__()
-   n = it.__next__()
-   print(n)
-   n = it.__next__()
-   print(n)
-   n = it.__next__()
-   print(n)
-   n = it.__next__()
-   print(n)
-   n = it.__next__()
+After all, the standard Iteration Pattern
+out in the wider world of programming languages
+involves no builtin functions.
+It instead talks directly about object behavior:
+a container needs to implement one method,
+and an iterable needs to implement another.
+Why didn’t Python simply specify the methods themselves
+and then let users call them directly if they wanted?
 
-.. testoutput::
+The reason is that Python had a legacy iteration mechanism to support.
 
-   TODO
+Originally, Python’s ``for`` loop only supported containers
+that were integer-indexed, like the Python list and tuple.
+Its underlying operation looked something like this:
+
+    >>> primes[0]
+    >>> primes[1]
+    >>> primes[2]
+    >>> primes[3]
+
+It was ``IndexError`` that told the ``for`` loop it was finished.
+To iterate over a container
+that wasn’t always addressable by sequential integer indices,
+like a dictionary,
+you had to first ask for a list of keys, values, or items,
+then iterate over the list instead
+because that was what the ``for`` loop understood.
+
+When the time came for `PEP-234 <https://www.python.org/dev/peps/pep-0234/>`_
+to incorporate the Iterator Pattern into Python 2.2,
+there was a problem.
+If the ``for`` loop was now going to start calling
+an ``__iter__()`` method and a ``__next__()`` method on the container,
+what would happen to all of the simpler containers that programmers had built
+that accepted integer indices,
+trusting that behavior to make them iterable?
+
+Happily,
+all problems in computer science
+can be solved by another level of indirection.
+
+The PEP decreed that:
+
+* The ``for`` loop would now prefer the Iterator Pattern.
+  If a container offered ``__iter__()``,
+  then the ``for`` loop would use it
+  and proceed to use the repeated ``__next__()`` calls
+  of the Iterator Pattern to retrieve items.
+
+* To support old containers,
+  ``for`` would fall back to looking for a ``__getitem__()`` method and,
+  if it existed,
+  passing it the integers 0,1,2,… to receive items
+  until it received an ``IndexError``.
+
+* To expose this mechanism to Python programmers
+  without each one needing to hand-implement
+  this carefully crafted fallback themselves,
+  ``iter()`` was introduced.
+  It gives programmers access the underlying operation
+  “create an iterator from an iterable”
+  that would otherwise have only been natively available
+  to the ``for`` loop itself.
+
+* Finally, ``next()`` was added in a later version of Python
+  so that both halves of the Iterator Pattern —
+  and not just the container half —
+  would be symmetrically covered by builtins.
+
+While they were at it,
+they also tossed an obscure convenience into ``iter()``
+that involves passing it two arguments instead of one.
+Since it’s not related to the classic Iterator Pattern itself,
+I’ll recommend you read about it
+`in the Standard Libary documention <https://docs.python.org/3/library/functions.html#iter>`_
+for ``iter()`` if you’re curious
+and then experiment with it for yourself.
 
 
 
-
-
-Making an object its own iterable
-
-
-
-It might surprise you at first
-that two objects are involved here —
-why can’t ``OddNumbers`` itself maintain the counter
-that gets incremented as the ``for`` loop makes progress?
-
-The reason a container might need to spin up several iterators
-is that Python code might simultaneously
-make several iterations across the same object.
-To see the problem,
-let’s imagine that we had only implemented the ``OddIterator`` —
-a single object, with a single loop counter inside —
-and two concentric ``for`` loops tried to make use of it
-to produce pairs of odd numbers::
-
-.. testcode::
-
-
-.. testoutput::
-
-   TODO
-
-The output ended earlier than we expected
-because the two ``for`` loops had to share
-
-For example,
-here’s a pair of ``for`` loops which each needs its own ``OddIterator``
-
-
-these concentric ``for`` loops across the same list
-would interfere with each other
-break if the list had only a single counter inside of it
-
-
-why? because loop in another loop
-also because of threads
-
-but maybe just need one
-
-The builtins “iter()” and “next()”
-
-that would put dunders into your code, which would be terrible
-
-> Dunders are for defining, not for calling
-
-but what if you need to do several
-iter()
-
-subtlety
-don’t actually need a container
-
-Iterating with “next()”
-
-what if you just want one element
-next()
-
-Writing a generator
-
-yield
-
-Writing a raw iterator
-
-class
-
-thrown out:
-
-   i = OddIterator(OddNumbers(5))
-   for a in i:
-       for b in i:
-           if b > a:
-               print(a, b)
