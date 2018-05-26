@@ -9,6 +9,14 @@
    at the most fundamental level available to a programming language:
    it’s built into Python’s syntax.
 
+   But to support not only the object-based Iterator Pattern
+   but also its own legacy iteration protocol,
+   Python relegates the actual iteration object protocol
+   to a pair of dunder methods.
+   Instead of calling these directly,
+   programmers are expected to invoke iteration
+   through a pair of builtin functions.
+
 The least expressive computer languages
 make no attempt to hide the inner workings of their data structures.
 In those languages,

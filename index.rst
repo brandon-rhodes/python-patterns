@@ -1,6 +1,7 @@
 
-Python Patterns
-===============
+=================
+ Python Patterns
+=================
 
 Welcome!
 
@@ -29,12 +30,30 @@ And with those preliminaries complete,
 here we go — my first two write-ups of design patterns,
 that I’ll doubtless revisit and revise and correct many times
 over the years as I learn more,
-but that (deep breath) it’s time to hit “Publish” on:
+but that (deep breath) it’s time to hit “Publish” ON:
+
+Creational Patterns
+===================
+
+.. toctree::
+   :maxdepth: 2
+
+   gang-of-four/abstract-factory/index
+   gang-of-four/factory-method/index
+
+Structural Patterns
+===================
 
 .. toctree::
    :maxdepth: 2
 
    gang-of-four/composite/index
    gang-of-four/decorator-pattern/index
-   gang-of-four/factory-method/index
+
+Behavioral Patterns
+===================
+
+.. toctree::
+   :maxdepth: 2
+
    gang-of-four/iterator/index
