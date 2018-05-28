@@ -318,7 +318,7 @@ would be a class adhering to the required interface:
 
     from abc import ABCMeta, abstractmethod
 
-    class AbstractFactory(object):
+    class AbstractFactory(metaclass=ABCMeta):
 
         @abstractmethod
         def build_sequence(self):
