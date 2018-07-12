@@ -340,3 +340,24 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #
 # texinfo_no_detailmenu = False
+
+# -- Address comparison -------------------------------------------
+
+import doctest
+import re
+import sphinx.ext.doctest as ext_doctest
+
+ADDRESS_RE = re.compile(r'\b0x[0-9a-f]{1,16}\b')
+
+class BetterDocTestRunner(ext_doctest.SphinxDocTestRunner):
+    def __init__(self, checker=None, verbose=None, optionflags=0):
+        checker = BetterOutputChecker()
+        doctest.DocTestRunner.__init__(self, checker, verbose, optionflags)
+
+class BetterOutputChecker(doctest.OutputChecker):
+    def check_output(self, want, got, optionflags):
+        want = ADDRESS_RE.sub('0x7f00ed991e80', want)
+        got = ADDRESS_RE.sub('0x7f00ed991e80', got)
+        return doctest.OutputChecker.check_output(self, want, got, optionflags)
+
+ext_doctest.SphinxDocTestRunner = BetterDocTestRunner
