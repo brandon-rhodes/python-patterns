@@ -39,6 +39,7 @@ Creational Patterns
    :maxdepth: 2
 
    gang-of-four/abstract-factory/index
+   gang-of-four/builder/index
    gang-of-four/factory-method/index
 
 Structural Patterns
