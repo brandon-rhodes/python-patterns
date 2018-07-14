@@ -170,55 +170,181 @@ the library would instead have offered constructors or methods
 that concealed from client code
 the actual names of the classes being built.
 
-building different things
+Building Different Objects
+==========================
 
-When a gang of four formally described the Builder pattern it is notable they did not consider convenience to be its most important result property instead they opened their own description of the pattern by emphasizing how it decouples code from Individual classes And therefore can let the same code Drive the creation of several different forests of objects
+The examples of the Builder pattern in the previous section decouple code
+from the specific classes
+that the code is directing the instantiation of.
+You simply call ``pyplot.plot()`` or ``requests.get()``
+and don’t usually even pay attention to which exact classes
+are being created behind the scenes.
 
- in the examples above the calling code is certainly decoupled through the Builder pattern from the specific classes that it is instantiating you call plot or requestand thereforecan old support. Get and you usually don't even know which exact classes are being created behind the scenes
+When the Gang of Four formally described the Builder pattern,
+it is notable they did not consider convenience
+to be its most important property.
+Instead, they opened their chapter about the pattern
+by emphasizing how it decouples code from individual classes
+and can therefore let the same code
+drive the creation of several different kinds of resulting object:
 
- maybe add to that previous paragraph a little flourish like how does it take apple decouple
+    “TODO separate the construction of a complex object
+    from its representation
+    so that the same construction process
+    can create different representations.”
 
- but the gang of four was excited not nearly at decoupling code from specific classes with all of the simplification and elimination of import statements that that happily entails but with the fact that it enables multiplexing the same code can be passed different builders on different occasions in order to drive the construction of different kinds of objects
+At least in Python code,
+this seems to be by far the less common
+of the two main uses of the Builder pattern.
+The Gang of Four use as their example
+a text converter
+that needs to be able to produce plain text
+and also populate an interactive text widget.
+They imagine code that calls methods
+like “convert character” and “convert paragraph”
+which each Builder implements in a way appropriate to its medium.
 
- indeed vein name this as the primary intent of their Builder pattern
+Hypothetical examples of this sort could, of course, easily be multiplied.
+You might want to write only once
+the code for producing a certain drawing,
+and have the “draw line” method that it is calling
+to on one occasion produce the SVG description for that line,
+but on another occasion to actually paint pixels across a bitmap
+that you are about to save as a `.png` file.
 
- quote intent separate the construction of a complex object from its representation so that the same construction process can create different representations
+This pattern proves far more rare in Python code
+then I think the gang of four, writing in the 1990s,
+might have expected.
+Maybe the growing and happy popularity of intermediate representations
+as the coupling between the different phases of a Python program
+we today are far more likely to  write code
+that builds an intermediate representation
+that an output routine can mend reverse
+then we are likely 2 have our drawing code
+directly and immediately invoke output routines
+you can see this pattern in our first example
+matplotlib
+all of your plotting commands merely create an intermediate representation
+all of those objects
+insert example here
+that is only turned into real lines on a page
+when you have finished manipulating it
+and pass it to the output routine
 
-At least in Python code this seems to be by far the less common of the two main uses of the Builder pattern the gang of four use as their example a text converter that needs to be able to produce plain asking and also populate an interactive text widget they imagine code that calls methods like convert character and convert paragraph That each Builder implements anyway appropriate to its medium
+nevertheless examples of the Builder pattern as multiplexer
+can be discovered if you look hard enough
+here is one very modest example from the python standard Library
 
- examples of this sort could have course easily be multiplied you might want to write only once the code for producing a certain drawing and have the draw line method that it is calling on one occasion produce the SVG description for that line but on another occasion to actually paint pixels in a PNG that you were about to save out
+even though most applications today
+are likely to use a small relational database
+for local configuration storage
+think of the way that both Chrome and Firefox use sequel light three
+also built into python standard Library.
+but there was an era in which small key value stores
+were very popular
+and the python standard Library recalls this legacy
+and its various flavors of DDM module
+all inheriting in some way or other
+from the famous Berkeley database C library
 
- this pattern proves far more rare in Python code then I think the gang of four riding in the 1990s might have expected the reason Maybe the growing and happy popularity of intermediate representations as the coupling between the different phases of a Python program we today are far more likely to  write code that builds an intermediate representation that an output routine can mend reverse then we are likely 2 have our drawing code directly and immediately invoke output routines you can see this pattern in our first example matplotlib all of your plotting commands merely create an intermediate representation all of those objects insert example here that is only turned into real lines on a page when you have finished manipulating it and pass it to the output routine
+as implementations of the simple key Value Store proliferated
+list them here>
+the standard Library grew more modules
+this presented programmers with a problem
+how can they detect which Berkeley database implementations
+are available on the platform that python was compiled on
+and select which one to use
 
- nevertheless examples of the Builder pattern as multiplexer can be discovered if you look hard enough here is one very modest example from the python standard Library
+the standard Library provides a simple Builder pattern as the solution
+the any dbm module programmer makes a single call
+and receives an instance of whatever
+the best supported Berkeley database key value library is
+on the current system
+given the way the python was compiled
+the calling code gets too then use the key value API of the day store
+from the question of which exact class has been returned to it
+and does not even need to import the correct module itself
 
-even though most applications today are likely to use a small relational database for local configuration storage think of the way that both Chrome and Firefox use sequel light three also built into python standard Library. but there was an era in which small key value stores were very popular and the python standard Library recalls this Legacy and its various flavors of DDM module all inheriting in some way or other from the famous Berkeley database C library
+in miniature this is the Builder pattern
+as originally envisioned by the gang of four
+TODO quote about complex
 
- as implementations of the simple key Value Store proliferated list them here>  the standard Library grew more modules this presented programmers with a problem how can they detect which Berkeley database implementations are available on the platform that python was compiled on and select which one to use
+The Builder Pattern as optional arguments
 
- the standard Library provides a simple Builder pattern as the solution the any dbm module programmer makes a single call and receives an instance of whatever the best supported Berkeley database key value library is on the current system given the way the python was compiled the calling code gets too then use the key value API of the day store from the question of which exact class has been returned to it and does not even need to import the correct module itself in miniature this is the Builder pattern as originally envisioned by the gang of four
+For the sake of completeness,
+I should mention a most bizarre use
+to which the Builder pattern back
+a most bizarre use to which the Builder pattern back
+the most unexpected use to which the Builder pattern
+has been put in certain underpowered languages--
+especiallyto help readers
+who might have run across
+who might have run across the pattern and have been confused by it
 
- the Builder pattern as boilerplate
+for the sake of completeness I should describe a surprising use
+to which the Builder pattern has recently been put
+in less convenient languages than python
+in particular I hope to help readers
+who might have seen examples of this practice
+and thereby been confused
+about how the Builder pattern usually looks in Python code
 
-For the sake of completeness I should mention a most bizarre use to which the Builder pattern back a most bizarre use to which the Builder pattern back the most unexpected use to which the Builder pattern has been put in certain underpowered languages--  especiallyto help readers who might have run across who might have run across the pattern and have been confused by it
+The problem arises like this.
 
- for the sake of completeness I should describe a surprising use to which the Builder pattern has recently been put in other less convenient languages than python in particular I hope to help readers who might have seen examples of this practice and thereby been confused about how the Builder pattern usually books in Python code
+* A programmer an object intended to hold data
+  and wishes its fields to be immutable.
 
- looks in Python code
+* The class has several attributes — imagine that it has a dozen.
 
-The problem arises like this
+* But the programmer is trapped in a programming language
+  that lacks python’s support for optional arguments
+  neither position Lee nor through keywords
+  can they select which attributes back
+  can they select which arguments to pass
+  to the initialization function method of the class
+  and which attributes to leave at their default values.
 
- a programmer designs an designs of class object intended to hold data and wishes it's fields to be immutable
+You will see immediately the unhappy consequence of writing such a class
+in such a language
+everytime you instantiate one of the objects
+you will have to supply a value for every one of the dozen attributes
 
-  the class has several attributes imagine that it has a dozen
+to escape their  dilemma
+and to support the same kind of brevity
+that python programmers take for granted
+programmers facing the situation supplement each class they are writing
+with a separate, second class
+that serves only as a builder for the first
+and this is the key the Builder object is not immutable
+it can therefore quietly set all of its attributes to default values
+then offer methods by which users can manipulate
+only the attributes they need to set manually
+and then finally have a method where all of the attributes
+both those with their default values
+and those that were manually set
+all get used together to construct the immutable object
+that's the ultimate goal
 
- but they are writing in a programming language that wax pythons support 4 optional arguments neither position Lee nor through keywords can they select which attributes back can they select which arguments to pass to the initialization function method of the class and which attributes to leave at their default values
+at the expense of a good deal of boilerplate
+this allows programmers in more deeply compromised languages
+to enjoy some of the same Freedom
+that we python programmers get through optional arguments
+to an initialization method
 
- you will see immediately the unhappy consequence of writing such a classin such a language everytime you instantiate one of the objects you will have to supply a value for every one of the Dozen attributes 
-
- to escape their  dilemma and to support the same kind of brevity that python programmers take for granted programmers facing the situation supplement each class they are writing with a separate second class that serves only as a builder for the first and this is the key the Builder object is not immutable it can therefore quietly set all of its attributes to default values then offer methods by which users can manipulate only the attributes they need to set manually and then finally have a method where all of the attributes both those with their default values and those that were manually set all get used together to construct the immutable object that's the ultimate goal at the expense of a good deal of boilerplate this allows programmers in more deeply compromised languages to enjoy some of the same Freedom that we python programmers get through optional arguments to an initialization method
-
- hopefully you will never see code like this in Python especially since an excellent stack Overflow answer has provided the secret to allowing even named tuples to have defaults 4 initialization arguments but you should now be forearmed against blog posts that present the above pattern as though it is the essence of the gang of fours Builder pattern when in fact gang of four originally wrote blah when in fact the gang of fours original chapter on the Builder pattern does not even mention or consider the case of an immutable object and the difficulties that might involve constructing it the original Builder pattern looks nothing like the above code it is simply the construction of an object hierarchy on behalf of calling code that is there by relieved of needing to construct the objects it's itself 
-
-
-
+hopefully you will never see code like this in Python
+especially since an excellent stack Overflow answer
+has provided the secret to allowing even named tuples
+to have defaults for initialization arguments
+but you should now be forearmed against blog posts
+that present the above pattern
+as though it is the essence of the Gang of Four Builder Pattern
+when, in fact, the Gang of Four originally wrote
+blah
+when in fact the gang of fours original chapter on the Builder pattern
+does not even mention or consider the case of an immutable object
+and the difficulties that might involve constructing it
+the original Builder pattern looks nothing like the above code
+it is simply the construction of an object hierarchy
+on behalf of calling code
+that is there by relieved of needing
+to construct the objects it's itself
