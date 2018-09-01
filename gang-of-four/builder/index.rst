@@ -269,82 +269,128 @@ in miniature this is the Builder pattern
 as originally envisioned by the gang of four
 TODO quote about complex
 
-The Builder Pattern as optional arguments
+A substitute for optional keyword arguments
+===========================================
 
 For the sake of completeness,
-I should mention a most bizarre use
-to which the Builder pattern back
-a most bizarre use to which the Builder pattern back
-the most unexpected use to which the Builder pattern
-has been put in certain underpowered languages--
-especiallyto help readers
-who might have run across
-who might have run across the pattern and have been confused by it
+I should describe a surprising recent use of the Builder pattern
+in some less convenient languages than Python.
+In particular, I hope to help readers
+who might have seen examples of this novel Builder pattern
+and gotten confused because it does not closely resemble
+the Builder pattern as defined by the Gang of Four.
 
-for the sake of completeness I should describe a surprising use
-to which the Builder pattern has recently been put
-in less convenient languages than python
-in particular I hope to help readers
-who might have seen examples of this practice
-and thereby been confused
-about how the Builder pattern usually looks in Python code
+The problem arises like this:
 
-The problem arises like this.
+* A programmer designs a class
+  with immutable attributes.
+  Once an instance is created,
+  its attributes will be impossible to modify.
 
-* A programmer an object intended to hold data
-  and wishes its fields to be immutable.
+* The class has not just one or two, but many attributes —
+  imagine that it has a dozen.
 
-* The class has several attributes — imagine that it has a dozen.
+* The programmer is trapped in a programming language
+  that lacks Python’s support for optional arguments.
+  Every single attribute will need to be given a value
+  each time the class is instantiated.
 
-* But the programmer is trapped in a programming language
-  that lacks python’s support for optional arguments
-  neither position Lee nor through keywords
-  can they select which attributes back
-  can they select which arguments to pass
-  to the initialization function method of the class
-  and which attributes to leave at their default values.
+You can see immediately the verbose and unhappy consequences:
+every single object instantiation
+will have to specify a value for every one of the dozen attributes,
+even if most of them are empty or default values.
+Worse yet,
+if the language does not support keyword arguments
+then each value in the long list of attributes will be unlabeled.
+Imagine reading a long list of values like
+``None`` ``None`` ``0`` ``''`` ``None``
+and trying to visually pair each value
+with the corresponding name in the attribute list.
+A comment next to each value can improve readability,
+but the language will not provide any guard rail
+if a later edit moves the comments accidentally out of sync
+with the actual attributes.
 
-You will see immediately the unhappy consequence of writing such a class
-in such a language
-everytime you instantiate one of the objects
-you will have to supply a value for every one of the dozen attributes
+To escape their dilemma
+and achieve some approximation of the happy brevity
+that Python programmers take for granted,
+programmers facing this situation
+often supplement each class they write with a second class
+that serves only as a builder for the first.
+The difference is that:
 
-to escape their  dilemma
-and to support the same kind of brevity
-that python programmers take for granted
-programmers facing the situation supplement each class they are writing
-with a separate, second class
-that serves only as a builder for the first
-and this is the key the Builder object is not immutable
-it can therefore quietly set all of its attributes to default values
-then offer methods by which users can manipulate
-only the attributes they need to set manually
-and then finally have a method where all of the attributes
-both those with their default values
-and those that were manually set
-all get used together to construct the immutable object
-that's the ultimate goal
+* The Builder class is *not* immutable.
 
-at the expense of a good deal of boilerplate
-this allows programmers in more deeply compromised languages
-to enjoy some of the same Freedom
-that we python programmers get through optional arguments
-to an initialization method
+* The Builder class requires very few arguments to instantiate.
+  Instead, most or all of its attributes are set to default values.
 
-hopefully you will never see code like this in Python
-especially since an excellent stack Overflow answer
-has provided the secret to allowing even named tuples
-to have defaults for initialization arguments
-but you should now be forearmed against blog posts
-that present the above pattern
-as though it is the essence of the Gang of Four Builder Pattern
-when, in fact, the Gang of Four originally wrote
-blah
-when in fact the gang of fours original chapter on the Builder pattern
-does not even mention or consider the case of an immutable object
-and the difficulties that might involve constructing it
-the original Builder pattern looks nothing like the above code
-it is simply the construction of an object hierarchy
-on behalf of calling code
-that is there by relieved of needing
-to construct the objects it's itself
+* The Builder offers a method for each attribute
+  to overwrite the default value with another one.
+
+* Finally, the Builder offers a method
+  that creates an instance of the original immutable class
+  whose attributes are copied from the corresponding attributes
+  of the Builder instance.
+
+Here is a tiny example in Python —
+non-tiny examples are, alas, painful to read
+because of their rampant repetition:
+
+.. testcode::
+
+   from collections import namedtuple
+
+   Port = namedtuple('Port', 'number name protocol')
+
+   # Real Python code takes advantage of optional arguments
+   # to specify whatever combination of attributes it wants:
+
+   Port(2)
+   Port(7, 'echo')
+   Port(69, 'tftp', 'UDP')
+
+   # Keyword arguments let you skip earlier arguments:
+
+   Port(517, protocol='UDP')
+
+   # But what if Python lacked optional arguments?
+   # Then we might engage in contortions like:
+
+   class PortBuilder(object):
+       def __init__(self, port):
+           self.port = port
+           self.name = None
+           self.protocol = None
+
+       def build(self):
+           return Port(
+               port=self.port,
+               name=self.name,
+               protocol=self.protocol,
+           )
+
+   # Creating a Port without specifying all three attributes.
+
+   b = PortBuilder(517)
+   b.protocol = 'UDP'
+   b.build()
+
+At the expense of a good deal of boilerplate —
+which is in many cases made even worse than in this example
+by insisting on a setter for each of the attributes —
+this pattern allows programmers in deeply compromised programming languages
+to enjoy some of the same conveniences
+that are built into the design of the Python “call” operator.
+
+Hopefully you will never see a Builder like this in Python,
+even to correct the awkward fact that named tuples
+provide no obvious way to set a default value for each field —
+the
+`excellent answers to this Stack Overflow question <https://stackoverflow.com/questions/11351032/namedtuple-and-default-values-for-optional-keyword-arguments>`_
+provide several more Pythonic alternatives.
+But hopefully the brief example above
+will help you recognize when a book chapter or blog post
+is using this definition of a “Builder” that,
+unlike the Builder pattern in the Gang of Four,
+stands in a very simple one-to-one correspondence
+with the class being built.
