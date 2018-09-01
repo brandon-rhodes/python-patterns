@@ -201,8 +201,8 @@ tr:last-child td {
 .gr { color: #657b83 } /* Generic.Error */
 .gh { color: #657b83 } /* Generic.Heading */
 .gi { color: #657b83 } /* Generic.Inserted */
-.go { color: #657b83 } /* Generic.Output */
-.gp { color: #657b83 } /* Generic.Prompt */
+.go { color: #000000 } /* Generic.Output (customized) */
+.gp { color: #cb4b16 } /* Generic.Prompt (customized) */
 .gs { color: #657b83 } /* Generic.Strong */
 .gu { color: #657b83 } /* Generic.Subheading */
 .gt { color: #657b83 } /* Generic.Traceback */

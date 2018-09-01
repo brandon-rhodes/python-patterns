@@ -6,8 +6,8 @@
 .. admonition:: Verdict
 
    The full-fledged Builder Pattern as imagined by the Gang of Four
-   allowed a single series of method calls
-   to power the creation of several different kinds of object hierarchy —
+   arranged for a single series of method calls
+   to power the creation of several different object hierarchies —
    but that use of the pattern
    has turned out to be vanishingly rare in Python.
    Instead, the pattern is wildly popular
@@ -16,7 +16,7 @@
    calling itself the “Builder”
    which pairs each immutable class in a program
    with a more convenient builder class —
-   an verbose tactic used in less expressive languages
+   a tactic used in less expressive languages
    to simulate Python’s built-in syntactic support
    for optional constructor arguments.
 
@@ -34,20 +34,20 @@ Instead, the Builder is used almost everywhere
 for what the Gang of Four considered a secondary benefit:
 its convenience.
 
-Even more recently,
+More recently,
 an even simpler pattern has adopted the name “Builder”
-that appears in some of the less expressive programming languages
+that appears in certain less expressive programming languages
 to make up for their lack of optional parameters
 in a call to a constructor.
 
-On this page I will start by describing
+This article will start by describing
 the Builder pattern’s most popular use in Python programs.
 Next we will glance at what the Gang of Four
-thought would be the pattern’s primary purpose
+thought the pattern’s primary purpose was going to be,
 and explore why it is rarely used that way in Python.
 Finally, for completeness,
 we will look at the more recent use of the pattern
-to help languages whose syntax is less flexible.
+to help languages whose syntax is less flexible than Python’s.
 
 The Builder as convenience
 ==========================
@@ -57,14 +57,14 @@ because it lets client code stay simple and sleek
 even while directing the creation of an elaborate hierarchy of objects.
 
 The formal definition is that the Builder pattern is present
-whenever the caller to a library
-gets to make a series of simple function and method calls but,
+whenever a library lets you make
+a simple series of function and method calls that,
 behind the scenes,
-the library is reacting by instantiating objects.
+the library reacts to by building a whole hierarchy of objects.
 Thanks to the Builder pattern,
-the caller is thus exempted
+the caller is exempted
 from needing to manually instantiate each object
-and understanding how the objects will fit together once constructed.
+or understand how the objects fit together once constructed.
 
 A classic example in Python
 is the `matplotlib <https://matplotlib.org/>`_ library’s
@@ -101,8 +101,10 @@ by the ``plot()`` call above:
 
 >>> plt.gcf()
 <Figure size 640x480 with 1 Axes>
+
 >>> plt.gcf().subplots()
 <matplotlib.axes._subplots.AxesSubplot object at 0x7ff910917a20>
+
 >>> plt.gcf().subplots().bbox
 TransformedBbox(
     Bbox(x0=0.125, y0=0.10999999999999999, x1=0.9, y1=0.88),
@@ -114,8 +116,8 @@ TransformedBbox(
                  [  0. 100.   0.]
                  [  0.   0.   1.]]))))
 
-While we have the option of providing more keyword arguments
-or making additional calls to customize the plot,
+While matplotlib will let us providing more keyword arguments
+or make additional calls to customize the plot,
 ``pyplot`` is happy to insulate us from all of the details
 of how plots are represented as objects.
 
@@ -123,10 +125,10 @@ The Builder pattern is now deeply ingrained in Python culture
 thanks in part to the pressure that library authors feel
 to make the sample code on their front page
 as impressively brief as possible.
-But even if the face of this pressure
-there still exist libraries that expect you,
-their user, to build an entire object hierarchy
-one object at a time in the course of using the library.
+But even in the face of this pressure,
+there still exist libraries that expect you —
+their caller — to build an entire object hierarchy yourself
+in the course of using the library.
 
 The fact that some libraries
 rely on their callers to tediously instantiate objects
@@ -134,7 +136,7 @@ is even used as advertisement by their competitors.
 For example,
 the `Requests library <http://docs.python-requests.org/en/master/>`_
 famously introduces itself to users
-by comparing its one-liner for making an HTTP request with authentication
+by comparing its one-liner for an HTTP request with authentication
 to the same maneuver performed with the old
 `urllib2 <https://docs.python.org/2/library/urllib2.html>`_
 Standard Library module —
@@ -160,9 +162,10 @@ provides an illustration::
     urllib2.urlopen('http://www.example.com/login.html')
 
 Had the Builder pattern been used here,
-the library would instead have offered constructors or methods
+the library would instead have offered functions or methods
 that concealed from client code
-the actual structure of the object hierarchy being built.
+the structure and classes
+in the opener - builder - authentication handler hierarchy.
 
 Nuance
 ======
@@ -171,9 +174,9 @@ My claim that the matplotlib ``pyplot`` interface is a Builder
 is complicated by the second-to-last paragraph in the Gang of Four’s
 chapter on the Builder:
 
-    Builder returns the product as a final step, but as far as the
+    “Builder **returns the product as a final step**, but as far as the
     Abstract Factory pattern is concerned, the product gets returned
-    immediately.
+    immediately.”
 
 While this stipulation focuses on the difference between the Builder
 and the :doc:`Abstract Factory </gang-of-four/abstract-factory/index>`,
@@ -184,13 +187,12 @@ Absent the crucial final step of returning the object that has been built,
 the Builder arguably devolves into the Facade pattern instead.
 
 So by the strict definition,
-``pyplot``might not qualify as a Builder in my example code above
+``pyplot`` might not qualify as a Builder in my example code above
 because I never ask for an actual reference to the object
 that my ``plot()`` call constructed.
 To rescue my example in case anyone decides to press the point,
 I can ask for a reference to the plot
-and ask the plot itself to render itself
-and save the resulting image to a file:
+and ask the plot itself to save a rendered image to a file.
 
 .. testcode::
 
@@ -200,24 +202,24 @@ and save the resulting image to a file:
 
 Such are the demands of pedantry: an extra line of code.
 
-The Builder as  Different Objects
-=================================
+Dueling builders
+================
 
 When the Gang of Four introduced the Builder,
 they had greater ambitions for the pattern
 than mere convenience and encapsulation.
 The opening sentence of their chapter on the Builder
-declared this “Intent” — to:
+declared the following “Intent”:
 
-    Separate the construction of a complex object from its
+    “Separate the construction of a complex object from its
     representation so that the same construction process can create
-    different representations.
+    different representations.”
 
 For the Gang of Four, then,
 the Builder pattern is only operating at full tilt
 when a library offers several implementations of the same Builder,
-each of which return a different hierarchy of objects
-in response to exactly the same series of client calls.
+each of which returns a different hierarchy of objects
+in response to the same series of client calls.
 
 I cannot find evidence that the full-tilt Builder pattern
 is in frequent use across today’s most popular python libraries.
@@ -229,7 +231,7 @@ as the common currency that is usually passed
 between one phase of a Python program’s execution and the next.
 To understand why,
 let’s turn to the Gang of Four’s own sample code.
-Here, for example, is one the situation in which their Builder is placed
+Here, for example, is one situation in which their Builder is placed
 as it responds to calls describing the creation of a maze
 (the example has been lightly edited to translate it into Python):
 
@@ -238,8 +240,8 @@ as it responds to calls describing the creation of a maze
     class StandardMazeBuilder(object):
         # ...
         def build_door(n1, n2):
-            room1 = self.current_maze.get_room(n1)
-            room2 = self.current_maze.get_room(n2)
+            room1 = self._current_maze.get_room(n1)
+            room2 = self._current_maze.get_room(n2)
             door = Door(r1, r2)
 
             room1.set_side(common_wall(r1, r2), d)
@@ -247,17 +249,15 @@ as it responds to calls describing the creation of a maze
 
 Notice the awkward responsive pattern into which the code is forced.
 It knows that a maze is under construction,
-but has to recover a reference to the object
+but has to recover a reference to the maze
 by asking ``self`` for its ``current_maze`` attribute.
 It then has to make several adjustments
 to update the room objects with the new information
-so that subsequent interactions will start from a state
-that now has that data included.
+so that subsequent interactions will start from a new state.
 This looks suspiciously like I/O code
 that has been contorted into a series of callbacks,
-each needing to re-fetch the state of the world
-in order to ratchet forward another state change
-that the next callback will yet again have to fetch and recover.
+each needing to re-fetch and re-assemble the current state of the world
+in order to ratchet its state machine forward one further click.
 
 If a modern Python Library
 does want to drive two very different kinds of activity
@@ -265,44 +265,43 @@ from the same series of client constructor calls,
 it would be very unusual for that library
 to offer two completely separate implementations
 of the same Builder interface —
-not one but two builders that both have to be capable
-of being prodded through the same series of incremental updates
+two builders that both have to be capable
+of being prodded through the same series of incremental
+client-driven updates
 to produce a coherent result.
 
 Instead, modern python libraries are overwhelmingly likely
 to have a single implementation of a given Builder,
 one that produces a single well-defined intermediate representation
-of the information gradually supplied by the caller’s
-function or method invocations.
+from the caller’s function and method invocations.
 That representation,
-whether publicly documented for the caller
-or private and internal to the library,
+whether publicly documented or private and internal to the library,
 can then be provided as the input
 to any number of downstream transformation or output routines —
 whose processing will now be simpler
-because it is free to roam across the intermediate data structure
-at its own pace and in its own order
-without being constrained by the sequence of calls
-that the client code happened to use to construct it.
+because they are free to roam across the intermediate data structure
+at their own pace and in whatever order they want.
 
 To compare the popularity of callback programming
 with the popularity of foregrounding an intermediate representation,
-count the number of Python libraries that use the Standard Library
-`lmx.sax <https://docs.python.org/3/library/xml.sax.html>`_ package —
+compare the paltry number of Python libraries that use the |sax|_ —
 which learns about a document by responding to a long series
-of ``startElement()`` and ``endElement`` calls —
-with the popularity of the
+of ``startElement()`` and ``endElement()`` calls —
+with the wide popularity of the
 `ElementTree <https://docs.python.org/3/library/xml.etree.elementtree.html>`_
-interface that presumes the XML is already completely parsed
+API that presumes the XML is already completely parsed
 and offers the caller a Document Object Module
-that the caller can traverse in whatever order it wants.
+to traverse in whatever order it wants.
+
+.. |sax| replace:: Standard Library ``lmx.sax`` package
+.. _sax: https://docs.python.org/3/library/xml.sax.html
 
 It is, therefore, probably Python’s very rich collection of data types
 for representing deep compound information —
 tuples, lists, dictionaries, classes —
 and the convenience of writing code to traverse them
 that has produced almost an entire absence
-of the full-tilt multi-Builder pattern
+of the full-tilt Builder pattern
 from today's popular Python libraries.
 
 A degenerate case: simulating optional arguments
