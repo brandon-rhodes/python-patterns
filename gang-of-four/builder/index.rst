@@ -164,104 +164,57 @@ the library would instead have offered constructors or methods
 that concealed from client code
 the actual structure of the object hierarchy being built.
 
-Building Different Objects
-==========================
+Nuance
+======
 
-The examples of the Builder pattern in the previous section decouple code
-from the specific classes
-that the code is directing the instantiation of.
-You simply call ``pyplot.plot()`` or ``requests.get()``
-and don’t usually even pay attention to which exact classes
-are being created behind the scenes.
+My claim that the matplotlib ``pyplot`` interface is a Builder
+is complicated by the second-to-last paragraph in the Gang of Four’s
+chapter on the Builder:
 
-When the Gang of Four formally described the Builder pattern,
-it is notable they did not consider convenience
-to be its most important property.
-Instead, they opened their chapter about the pattern
-by emphasizing how it decouples code from individual classes
-and can therefore let the same code
-drive the creation of several different kinds of resulting object:
+    Builder returns the product as a final step, but as far as the
+    Abstract Factory pattern is concerned, the product gets returned
+    immediately.
 
-    “TODO separate the construction of a complex object
-    from its representation
-    so that the same construction process
-    can create different representations.”
+While this stipulation focuses on the difference between the Builder
+and the :doc:`Abstract Factory </gang-of-four/abstract-factory/index>`,
+it makes clear that — for the Gang of Four —
+both patterns are supposed conclude
+with the return of the constructed object to the caller.
+Absent the crucial final step of returning the object that has been built,
+the Builder arguably devolves into the Facade pattern instead.
 
-At least in Python code,
-this seems to be by far the less common
-of the two main uses of the Builder pattern.
-The Gang of Four use as their example
-a text converter
-that needs to be able to produce plain text
-and also populate an interactive text widget.
-They imagine code that calls methods
-like “convert character” and “convert paragraph”
-which each Builder implements in a way appropriate to its medium.
+So by the strict definition,
+``pyplot``might not qualify as a Builder in my example code above
+because I never ask for an actual reference to the object
+that my ``plot()`` call constructed.
+To rescue my example in case anyone decides to press the point,
+I can ask for a reference to the plot
+and ask the plot itself to render itself
+and save the resulting image to a file:
 
-Hypothetical examples of this sort could, of course, easily be multiplied.
-You might want to write only once
-the code for producing a certain drawing,
-and have the “draw line” method that it is calling
-to on one occasion produce the SVG description for that line,
-but on another occasion to actually paint pixels across a bitmap
-that you are about to save as a `.png` file.
+.. testcode::
 
-This pattern proves far more rare in Python code
-then I think the gang of four, writing in the 1990s,
-might have expected.
-Maybe the growing and happy popularity of intermediate representations
-as the coupling between the different phases of a Python program
-we today are far more likely to  write code
-that builds an intermediate representation
-that an output routine can mend reverse
-then we are likely 2 have our drawing code
-directly and immediately invoke output routines
-you can see this pattern in our first example
-matplotlib
-all of your plotting commands merely create an intermediate representation
-all of those objects
-insert example here
-that is only turned into real lines on a page
-when you have finished manipulating it
-and pass it to the output routine
+   plt.plot(x, np.sin(x))
+   sine_figure = plt.gcf()  # “gcf” = “get current figure”
+   sine_figure.savefig('sine.png')
 
-nevertheless examples of the Builder pattern as multiplexer
-can be discovered if you look hard enough
-here is one very modest example from the python standard Library
+Such are the demands of pedantry: an extra line of code.
 
-even though most applications today
-are likely to use a small relational database
-for local configuration storage
-think of the way that both Chrome and Firefox use sequel light three
-also built into python standard Library.
-but there was an era in which small key value stores
-were very popular
-and the python standard Library recalls this legacy
-and its various flavors of DDM module
-all inheriting in some way or other
-from the famous Berkeley database C library
+The Builder as  Different Objects
+=================================
 
-as implementations of the simple key Value Store proliferated
-list them here>
-the standard Library grew more modules
-this presented programmers with a problem
-how can they detect which Berkeley database implementations
-are available on the platform that python was compiled on
-and select which one to use
+When the Gang of Four introduced the Builder,
+they had greater ambitions for the pattern
+than mere convenience and encapsulation.
+The opening sentence of their chapter on the Builder
+declared this “Intent”:
 
-the standard Library provides a simple Builder pattern as the solution
-the any dbm module programmer makes a single call
-and receives an instance of whatever
-the best supported Berkeley database key value library is
-on the current system
-given the way the python was compiled
-the calling code gets too then use the key value API of the day store
-from the question of which exact class has been returned to it
-and does not even need to import the correct module itself
+    Separate the construction of a complex object from its
+    representation so that the same construction process can create
+    different representations.
 
-in miniature this is the Builder pattern
-as originally envisioned by the gang of four
-TODO quote about complex
+
+
 
 A degenerate case: simulating optional arguments
 ================================================
@@ -335,9 +288,14 @@ because of their rampant repetition:
 
 .. testcode::
 
-   from collections import namedtuple
+   # Slightly less convenient in Python < 3.6:
 
-   Port = namedtuple('Port', 'number name protocol')
+   from typing import NamedTuple
+
+   class Port(NamedTuple):
+       number: int
+       name: str = ''
+       protocol: str = ''
 
    # Real Python code takes advantage of optional arguments
    # to specify whatever combination of attributes it wants:
@@ -364,6 +322,7 @@ because of their rampant repetition:
 
    # The Builder lets the caller create a Port without
    # needing to specify a value for every attribute.
+   # Here we skip providing a “name”:
 
    b = PortBuilder(517)
    b.protocol = 'UDP'
