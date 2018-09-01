@@ -23,23 +23,13 @@
 .. contents:: Contents:
    :backlinks: none
 
-The Pattern
-facade
-open
-file
-_io.TextIOWrapper
-plt
-multiplxing
-Data
-h?
-
-
+.. TODO link to Facade pattern once that one gets written up
 
 The Builder pattern has a most interesting history.
 Its primary intent,
-as described by the gang of four in the very first sentence
+as described by the Gang of Four in the very first sentence
 of their chapter on the pattern,
-has wound up as the rarest purpose for which the pattern is used.
+has wound being the rarest purpose for which the pattern is used.
 Instead, the Builder is used almost everywhere
 for what the Gang of Four considered a secondary benefit:
 its convenience.
@@ -59,24 +49,28 @@ Finally, for completeness,
 we will look at the more recent use of the pattern
 to help languages whose syntax is less flexible.
 
-The Pattern
-===========
+The Builder as convenience
+==========================
 
-The Builder pattern recommends
-that when a library needs to build
-a whole constellation of objects and subordinate objects
-whose construction could be described more simply
-through a series of method calls,
-that the library should avoid sending its users
-through the tedium of creating the objects one by one
-and instead provide an API taking those parameters
-and performing the construction behind the scenes.
+The Builder pattern is wildly popular in Python
+because it lets client code stay simple and sleek
+even while directing the creation of an elaborate hierarchy of objects.
 
-A classic example is the `matplotlib <https://matplotlib.org/>`_ library’s
+The formal definition is that the Builder pattern is present
+whenever the caller to a library
+gets to make a series of simple function and method calls but,
+behind the scenes,
+the library is reacting by instantiating objects.
+Thanks to the Builder pattern,
+the caller is thus exempted
+from needing to manually instantiate each object
+and understanding how the objects will fit together once constructed.
+
+A classic example in Python
+is the `matplotlib <https://matplotlib.org/>`_ library’s
 ``pyplot`` interface.
-Constructing a very simple plot with ``pyplot``
-can be accomplished in a single line of code,
-and it can be saved to a file with just one line more:
+It lets the caller build a simple plot with just a single line of code,
+and save the diagram to disk with just one line more:
 
 .. testsetup::
 
@@ -94,18 +88,16 @@ and it can be saved to a file with just one line more:
 
    import matplotlib.pyplot as plt
    plt.plot(x, np.sin(x))
-   plt.plot(x, np.cos(x))
    plt.savefig('sine.png')
 
 .. image:: sine.png
 
-What the pyplot interface
-has happily — very, very happily —
-hidden from the user here
-is that a dozen or more objects had to be created
-for matplotlib to represent and manage
-all of the components of this plot in Python.
-Here, for example, are eight of them:
+What the pyplot interface has hidden from the caller
+is that more than a dozen objects had to be created
+for matplotlib to represent even this simple plot.
+Here, for example, are eight of the objects
+that were generated behind the scenes
+by the ``plot()`` call above:
 
 >>> plt.gcf()
 <Figure size 640x480 with 1 Axes>
@@ -122,20 +114,19 @@ TransformedBbox(
                  [  0. 100.   0.]
                  [  0.   0.   1.]]))))
 
-The creation of this entire cascade of objects
-was accomplished by our calls to `plot()`.
-While we had the option of providing more keyword arguments
-or making additional calls to customize the objects further,
-``pyplot`` is happy to insulate us from most of the details
-of plots are represented as objects.
+While we have the option of providing more keyword arguments
+or making additional calls to customize the plot,
+``pyplot`` is happy to insulate us from all of the details
+of how plots are represented as objects.
 
-The Builder pattern is now deeply ingrained in Python culture,
+The Builder pattern is now deeply ingrained in Python culture
 thanks in part to the pressure that library authors feel
 to make the sample code on their front page
-as impressively short and convenient as possible.
-But there do exist libraries that expect you,
-their user, to build the entire object hierarchy above
-one object at a time in your own code.
+as impressively brief as possible.
+But even if the face of this pressure
+there still exist libraries that expect you,
+their user, to build an entire object hierarchy
+one object at a time in the course of using the library.
 
 The fact that some libraries
 rely on their callers to tediously instantiate objects
@@ -144,30 +135,34 @@ For example,
 the `Requests library <http://docs.python-requests.org/en/master/>`_
 famously introduces itself to users
 by comparing its one-liner for making an HTTP request with authentication
-with the same maneuver performed with the old
+to the same maneuver performed with the old
 `urllib2 <https://docs.python.org/2/library/urllib2.html>`_
 Standard Library module —
-which does, in fairness, seem to require the caller
-to build a small pile of objects
+which, in fairness, does require the caller to build a small pile of objects
 any time they want to do anything interesting.
-The “Examples” section of its documentation provides an illustration::
+The “Examples” section of the ``urllib2`` documentation
+provides an illustration::
 
     import urllib2
+
     # Create an OpenerDirector with support for Basic HTTP Authentication...
+
     auth_handler = urllib2.HTTPBasicAuthHandler()
     auth_handler.add_password(realm='PDQ Application',
                               uri='https://mahler:8092/site-updates.py',
                               user='klem',
                               passwd='kadidd!ehopper')
     opener = urllib2.build_opener(auth_handler)
+
     # ...and install it globally so it can be used with urlopen.
+
     urllib2.install_opener(opener)
     urllib2.urlopen('http://www.example.com/login.html')
 
 Had the Builder pattern been used here,
 the library would instead have offered constructors or methods
 that concealed from client code
-the actual names of the classes being built.
+the actual structure of the object hierarchy being built.
 
 Building Different Objects
 ==========================
