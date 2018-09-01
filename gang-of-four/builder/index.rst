@@ -5,12 +5,20 @@
 
 .. admonition:: Verdict
 
-   The Builder Pattern is so convenient
-   that it seems to turn up everywhere in Python libraries,
-   whether the author knew it was a design pattern or not.
-   Happily, Python lacks several constraints
-   that in other languages lead to almost every complex class
-   needing its own builder.
+   The full-fledged Builder Pattern as imagined by the Gang of Four
+   allowed a single series of method calls
+   to power the creation of several different kinds of object hierarchy —
+   but that use of the pattern
+   has turned out to be vanishingly rare in Python.
+   Instead, the pattern is wildly popular
+   simply for its convenience.
+   You might also have seen a more recent pattern
+   calling itself the “Builder”
+   which pairs each immutable class in a program
+   with a more convenient builder class —
+   an verbose tactic used in less expressive languages
+   to simulate Python’s built-in syntactic support
+   for optional constructor arguments.
 
 .. contents:: Contents:
    :backlinks: none
@@ -22,46 +30,34 @@ file
 _io.TextIOWrapper
 plt
 multiplxing
-originally to multiplex
-but now just because it’s convenient
 Data
 h?
 
-Elsewhere: mutable builders for immutable objects
 
 
+The Builder pattern has a most interesting history.
+Its primary intent,
+as described by the gang of four in the very first sentence
+of their chapter on the pattern,
+has wound up as the rarest purpose for which the pattern is used.
+Instead, the Builder is used almost everywhere
+for what the Gang of Four considered a secondary benefit:
+its convenience.
 
+Even more recently,
+an even simpler pattern has adopted the name “Builder”
+that appears in some of the less expressive programming languages
+to make up for their lack of optional parameters
+in a call to a constructor.
 
-
-The Builder pattern is second nature to the Python programmer,
-many of whom see it every day without ever giving it thought.
-Its original purposes were:
-
-* Allowing a single routine
-  to drive the creation of several different kinds of object
-  depending on which builder it is passed,
-  without needing to know their differences or details behind the scenes.
-
-* For the sake of convenience;
-  even a routine that only needs to create a single kind of object
-  might be able to do so more easily
-  if it’s given a builder that automates much of the work.
-
-It turns out that it is this latter purpose
-which has taken off in the Python world.
-We provide builders to make it convenient to use libraries.
-Only rarely do we implement the Builder pattern
-so that a single routine can be used to build
-more than one system of objects from the same set of builder calls —
-a problem for which a better pattern exists,
-which will be discussed below.
-
-Beyond the above two uses
-for which the Builder pattern was originally proposed,
-a novel use has sprung up and become popular
-to escape the limits of languages that lack optional keyword arguments.
-For the sake of completeness I’ll demonstrate that approach
-in the last section of this document.
+On this page I will start by describing
+the Builder pattern’s most popular use in Python programs.
+Next we will glance at what the Gang of Four
+thought would be the pattern’s primary purpose
+and explore why it is rarely used that way in Python.
+Finally, for completeness,
+we will look at the more recent use of the pattern
+to help languages whose syntax is less flexible.
 
 The Pattern
 ===========
