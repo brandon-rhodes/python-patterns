@@ -207,14 +207,103 @@ When the Gang of Four introduced the Builder,
 they had greater ambitions for the pattern
 than mere convenience and encapsulation.
 The opening sentence of their chapter on the Builder
-declared this “Intent”:
+declared this “Intent” — to:
 
     Separate the construction of a complex object from its
     representation so that the same construction process can create
     different representations.
 
+For the Gang of Four, then,
+the Builder pattern is only operating at full tilt
+when a library offers several implementations of the same Builder,
+each of which return a different hierarchy of objects
+in response to exactly the same series of client calls.
 
+I cannot find evidence that the full-tilt Builder pattern
+is in frequent use across today’s most popular python libraries.
 
+Why has the pattern not come into widespread use?
+
+I think the answer is the supremacy of data, and of data structures,
+as the common currency that is usually passed
+between one phase of a Python program’s execution and the next.
+To understand why,
+let’s turn to the Gang of Four’s own sample code.
+Here, for example, is one the situation in which their Builder is placed
+as it responds to calls describing the creation of a maze
+(the example has been lightly edited to translate it into Python):
+
+.. testcode::
+
+    class StandardMazeBuilder(object):
+        # ...
+        def build_door(n1, n2):
+            room1 = self.current_maze.get_room(n1)
+            room2 = self.current_maze.get_room(n2)
+            door = Door(r1, r2)
+
+            room1.set_side(common_wall(r1, r2), d)
+            room2.set_side(common_wall(r2, r1), d);
+
+Notice the awkward responsive pattern into which the code is forced.
+It knows that a maze is under construction,
+but has to recover a reference to the object
+by asking ``self`` for its ``current_maze`` attribute.
+It then has to make several adjustments
+to update the room objects with the new information
+so that subsequent interactions will start from a state
+that now has that data included.
+This looks suspiciously like I/O code
+that has been contorted into a series of callbacks,
+each needing to re-fetch the state of the world
+in order to ratchet forward another state change
+that the next callback will yet again have to fetch and recover.
+
+If a modern Python Library
+does want to drive two very different kinds of activity
+from the same series of client constructor calls,
+it would be very unusual for that library
+to offer two completely separate implementations
+of the same Builder interface —
+not one but two builders that both have to be capable
+of being prodded through the same series of incremental updates
+to produce a coherent result.
+
+Instead, modern python libraries are overwhelmingly likely
+to have a single implementation of a given Builder,
+one that produces a single well-defined intermediate representation
+of the information gradually supplied by the caller’s
+function or method invocations.
+That representation,
+whether publicly documented for the caller
+or private and internal to the library,
+can then be provided as the input
+to any number of downstream transformation or output routines —
+whose processing will now be simpler
+because it is free to roam across the intermediate data structure
+at its own pace and in its own order
+without being constrained by the sequence of calls
+that the client code happened to use to construct it.
+
+To compare the popularity of callback programming
+with the popularity of foregrounding an intermediate representation,
+count the number of Python libraries that use the Standard Library
+`lmx.sax <https://docs.python.org/3/library/xml.sax.html>`_ package —
+which learns about a document by responding to a long series
+of ``startElement()`` and ``endElement`` calls —
+with the popularity of the
+`ElementTree <https://docs.python.org/3/library/xml.etree.elementtree.html>`_
+interface that presumes the XML is already completely parsed
+and offers the caller a Document Object Module
+that the caller can traverse in whatever order it wants.
+
+It is, therefore, probably Python’s very rich collection of data types
+for representing deep compound information —
+tuples, lists, dictionaries, classes —
+and the convenience of writing code to traverse them
+that has produced almost an entire absence
+of the full-tilt multi-Builder pattern
+from today's popular Python libraries.
 
 A degenerate case: simulating optional arguments
 ================================================
