@@ -30,8 +30,11 @@ h?
 Elsewhere: mutable builders for immutable objects
 
 
+
+
+
 The Builder pattern is second nature to the Python programmer,
-many of whom see it every way without ever giving it thought.
+many of whom see it every day without ever giving it thought.
 Its original purposes were:
 
 * Allowing a single routine
@@ -269,22 +272,24 @@ in miniature this is the Builder pattern
 as originally envisioned by the gang of four
 TODO quote about complex
 
-A substitute for optional keyword arguments
-===========================================
+A degenerate case: simulating optional arguments
+================================================
 
 For the sake of completeness,
-I should describe a surprising recent use of the Builder pattern
-in some less convenient languages than Python.
-In particular, I hope to help readers
-who might have seen examples of this novel Builder pattern
-and gotten confused because it does not closely resemble
-the Builder pattern as defined by the Gang of Four.
+I should describe an alternative Builder pattern
+that differs from the pattern described by the Gang of Four,
+in case you have seen it in blog posts or books
+and have been confused by the difference.
+It has arisen recently
+in some of the less convenient programming languages than Python,
+and substitutes for those languages’ lack
+of optional parameters.
 
-The problem arises like this:
+The degenerate Builder addresses this problem:
 
 * A programmer designs a class
   with immutable attributes.
-  Once an instance is created,
+  Once a class instance is created,
   its attributes will be impossible to modify.
 
 * The class has not just one or two, but many attributes —
@@ -292,40 +297,41 @@ The problem arises like this:
 
 * The programmer is trapped in a programming language
   that lacks Python’s support for optional arguments.
-  Every single attribute will need to be given a value
-  each time the class is instantiated.
+  A call to the class constructor will need to supply a value
+  for every single attribute each time the class is instantiated.
 
-You can see immediately the verbose and unhappy consequences:
-every single object instantiation
-will have to specify a value for every one of the dozen attributes,
-even if most of them are empty or default values.
-Worse yet,
-if the language does not support keyword arguments
-then each value in the long list of attributes will be unlabeled.
+You can imagine the verbose and unhappy consequences.
+Not only will every single object instantiation
+have to specify every one of the dozen attributes,
+but if the language does not support keyword arguments
+then each value in the long list of attributes will also be unlabeled.
 Imagine reading a long list of values like
 ``None`` ``None`` ``0`` ``''`` ``None``
 and trying to visually pair each value
 with the corresponding name in the attribute list.
 A comment next to each value can improve readability,
 but the language will not provide any guard rail
-if a later edit moves the comments accidentally out of sync
+if a later edit accidentally moves the comments out of sync
 with the actual attributes.
 
 To escape their dilemma
 and achieve some approximation of the happy brevity
 that Python programmers take for granted,
 programmers facing this situation
-often supplement each class they write with a second class
-that serves only as a builder for the first.
-The difference is that:
+can supplement each class they write with a second class
+that serves as a builder for the first.
+The differences between the builder and the class is constructs are that:
+
+* The Builder class carries all the same attributes as the target class.
 
 * The Builder class is *not* immutable.
 
 * The Builder class requires very few arguments to instantiate.
-  Instead, most or all of its attributes are set to default values.
+  Most or all of its attributes start off with default values.
 
-* The Builder offers a method for each attribute
-  to overwrite the default value with another one.
+* The Builder offers a mechanism
+  for each attribute that starts with a default value
+  to be rewritten with a different value.
 
 * Finally, the Builder offers a method
   that creates an instance of the original immutable class
@@ -349,7 +355,7 @@ because of their rampant repetition:
    Port(7, 'echo')
    Port(69, 'tftp', 'UDP')
 
-   # Keyword arguments let you skip earlier arguments:
+   # Keyword arguments even let you skip earlier arguments:
 
    Port(517, protocol='UDP')
 
@@ -363,24 +369,34 @@ because of their rampant repetition:
            self.protocol = None
 
        def build(self):
-           return Port(
-               port=self.port,
-               name=self.name,
-               protocol=self.protocol,
-           )
+           return Port(self.port, self.name, self.protocol)
 
-   # Creating a Port without specifying all three attributes.
+   # The Builder lets the caller create a Port without
+   # needing to specify a value for every attribute.
 
    b = PortBuilder(517)
    b.protocol = 'UDP'
    b.build()
 
 At the expense of a good deal of boilerplate —
-which is in many cases made even worse than in this example
-by insisting on a setter for each of the attributes —
+which becomes even worse if the author
+insists on writing a setter for each of the Builder’s attributes —
 this pattern allows programmers in deeply compromised programming languages
 to enjoy some of the same conveniences
 that are built into the design of the Python “call” operator.
+
+This is clearly not the Builder pattern from the Gang of Four.
+It fails to achieve every one of the “Consequences”
+their chapter lists for the Builder pattern:
+its ``build()`` method always returns the same class,
+instead of exercising the freedom
+to return any of several subclasses of the target class;
+it does not isolate the caller
+from how the target class represents its data
+since the builder and target attributes correspond one-to-one;
+and no fine control over the build process is achieved
+since the effect is the same — though less verbose —
+as if the caller had simply instantiated the target class directly.
 
 Hopefully you will never see a Builder like this in Python,
 even to correct the awkward fact that named tuples
@@ -388,9 +404,8 @@ provide no obvious way to set a default value for each field —
 the
 `excellent answers to this Stack Overflow question <https://stackoverflow.com/questions/11351032/namedtuple-and-default-values-for-optional-keyword-arguments>`_
 provide several more Pythonic alternatives.
-But hopefully the brief example above
-will help you recognize when a book chapter or blog post
-is using this definition of a “Builder” that,
-unlike the Builder pattern in the Gang of Four,
-stands in a very simple one-to-one correspondence
-with the class being built.
+But you might see it in other languages
+when reading or even porting their code,
+in which case you will want to recognize the pattern
+so that you can replace it with something simpler
+if the code is re-implemented in Python.
