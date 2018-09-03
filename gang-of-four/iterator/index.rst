@@ -3,6 +3,8 @@
  Iterator Pattern
 ==================
 
+*A “Behavioral Pattern” from the* :doc:`/gang-of-four/index`
+
 .. admonition:: Verdict
 
    Python supports the Iterator Pattern

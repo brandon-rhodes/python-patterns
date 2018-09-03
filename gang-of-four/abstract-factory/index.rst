@@ -3,6 +3,8 @@
  Abstract Factory Pattern
 ==========================
 
+*A “Creational Pattern” from the* :doc:`/gang-of-four/index`
+
 I’ve just ordered coffee and breakfast here at the coffee shop.
 Imagine rendering my receipt as a JSON string:
 

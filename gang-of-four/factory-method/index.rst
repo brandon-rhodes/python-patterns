@@ -2,6 +2,8 @@
  Factory Method
 ================
 
+*A “Creational Pattern” from the* :doc:`/gang-of-four/index`
+
 .. admonition:: Verdict
 
    The “Factory Method” pattern is a poor fit for Python.

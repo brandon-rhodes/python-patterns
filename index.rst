@@ -6,8 +6,11 @@
 Welcome!
 
 It’s time for me to start writing up, in one place,
-my ideas about Python patterns
-that are currently scattered across all of my talks and writing.
+my ideas about Python programming patterns
+that are currently scattered across all of my
+`talks <http://rhodesmill.org/brandon/talks/>`_
+and
+`writing <http://rhodesmill.org/brandon/all/>`_.
 
 One reason is that, after all of these years,
 my
@@ -26,11 +29,7 @@ You can watch for links to new material on my Twitter account:
 
 `@brandon_rhodes <https://twitter.com/brandon_rhodes>`_
 
-And with those preliminaries complete,
-here we go — my first two write-ups of design patterns,
-that I’ll doubtless revisit and revise and correct many times
-over the years as I learn more,
-but that (deep breath) it’s time to hit “Publish” ON:
+And with those preliminaries complete, here we go!
 
 Creational Patterns
 ===================
@@ -58,3 +57,11 @@ Behavioral Patterns
    :maxdepth: 2
 
    gang-of-four/iterator/index
+
+Bibliography
+============
+
+.. toctree::
+   :maxdepth: 2
+
+   gang-of-four/index

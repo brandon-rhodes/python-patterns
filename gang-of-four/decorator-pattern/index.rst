@@ -3,6 +3,8 @@
  The Decorator Pattern
 =======================
 
+*A “Structural Pattern” from the* :doc:`/gang-of-four/index`
+
 .. TODO
    talk about editing the class of objects that are returned
    simpler than subclassing: you are not in between obj and its own methods

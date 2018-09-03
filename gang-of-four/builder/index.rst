@@ -3,6 +3,8 @@
  Builder Pattern
 =================
 
+*A “Creational Pattern” from the* :doc:`/gang-of-four/index`
+
 .. admonition:: Verdict
 
    The full-fledged Builder Pattern as imagined by the Gang of Four
@@ -10,14 +12,15 @@
    to power the creation of several different object hierarchies —
    but that use of the pattern
    has turned out to be vanishingly rare in Python.
-   Instead, the pattern is wildly popular
+   Instead, the Builder is wildly popular
    simply for its convenience.
+
    You might also have seen a more recent pattern
    calling itself the “Builder”
    which pairs each immutable class in a program
-   with a more convenient builder class —
-   a tactic used in less expressive languages
-   to simulate Python’s built-in syntactic support
+   with a more convenient builder class.
+   That pattern, happily, is never necessary in Python
+   since the language itself provides built-in syntactic support
    for optional constructor arguments.
 
 .. contents:: Contents:
