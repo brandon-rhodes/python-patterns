@@ -23,7 +23,7 @@ Programmers often found that language limitations and static types
 were locking them out of improvements they later wanted to make to their code.
 
 The “Gang of Four” rode to the rescue.
-Their book’s most first and most fundamental pattern,
+Their book’s first and most fundamental pattern,
 blazoned across the page in italics,
 would — if practiced consistently —
 break programmers free of code that was hard-wired to concrete classes:
