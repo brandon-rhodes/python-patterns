@@ -1,5 +1,42 @@
 
 
+Remaining GoF patterns:
+
+Creational Patterns
+
+x Abstract Factory
+x Builder
+x Factory Method
+  Prototype
+  Singleton
+
+Structural Patterns
+
+  Adapter
+  Bridge
+x Composite
+x Decorator
+  Facade
+  Flyweight
+  Proxy
+
+Behavioral Patterns
+
+  Chain of Responsibility
+  Command
+  Interpreter
+x Iterator
+  Mediator
+  Memento
+  Observer
+  State
+  Strategy
+  Template Method
+  Visitor
+
+
+
+
 Zope security: "principle" instead of "user"?
 Zope: not know the difference between an abstraction
 and a confusing synonym. Equated obscurity with abstraction.
@@ -44,4 +81,3 @@ smaller piece of string? it’s a string too!
 'a'
 >>> type(s[4])
 <class 'str'>
-
