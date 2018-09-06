@@ -156,8 +156,8 @@ that will be supplied when the partial itself is later called:
        'flat': Flat,
    }
 
-We will stop there,
-though you are free to keep imagining even more alternatives —
+I will stop there,
+though you are free to keep imagining more alternatives —
 for example, you could supply a class, a tuple, and a dictionary
 ``(cls, args, kw)`` for each menu item
 and the framework would call ``cls(*args, **kw)``
@@ -186,6 +186,9 @@ and then supply those arguments when they are asked for a new object:
 
 .. testcode::
 
+   # What the Prototype pattern avoids:
+   # needing one factory for every class.
+
    class NoteFactory(object):
        def __init__(self, fraction):
            self.fraction = fraction
@@ -193,11 +196,11 @@ and then supply those arguments when they are asked for a new object:
        def build(self):
            return Note(self.fraction)
 
-   class Sharp(object):
+   class SharpFactory(object):
        def build(self):
            return Sharp()
 
-   class Flat(object):
+   class FlatFactory(object):
        def build(self):
            return Flat()
 
@@ -225,6 +228,9 @@ with exactly the same arguments it received:
 
 .. testcode::
 
+   # The Prototype pattern: teach each object
+   # instance how to build copies of itself.
+
    class Note(object):
        "Musical note 1 ÷ `fraction` measures long."
        def __init__(self, fraction):
@@ -245,10 +251,12 @@ with exactly the same arguments it received:
 
 While we could make this example more complicated —
 for example,
-each ``clone()`` method should probably use ``type(self)`` to learn its class,
-in case it is being called from a subclass —
-you can at least see now how the Prototype pattern works.
-It’s not as convenient as the mechanisms available in the Python language,
+each ``clone()`` method should probably call ``type(self)``
+instead of hard-coding its class name,
+in case the method gets called on a subclass —
+this at least illustrates the pattern.
+The Prototype Pattern is not as convenient
+as the mechanisms available in the Python language,
 but this clever simplification made it much easier
 for the Gang of Four to accomplish parametrized object creation
 in some of the underpowered Object Oriented languages
