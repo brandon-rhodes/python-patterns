@@ -257,7 +257,7 @@ to build them in code using object and method calls.
 Instead, when we can, we parse them from a native representation
 that makes the hierarchy explicit and natural.
 The great monument to the Composite Pattern on today’s web
-it not document construction —
+is not document construction —
 documents are usually delivered as HTML —
 but document manipulation,
 through the Document Object Model exposed for the use of JavaScript code.
@@ -278,16 +278,20 @@ which comes built in to Python.
 
 It would have been easy enough for Tkinter’s designers
 to have decided that only ``Frame`` containers
-needed ``winfo_children()`` methods —
+needed ``winfo_children()`` methods to list their children —
 after all, simpler widgets like ``Label`` and ``Button``
-aren’t supposed to contain children.
-The asymmetry would have forced an ``if`` statement
+aren’t supposed to contain children,
+and could have omitted the method entirely.
+But that asymmetry would have forced an ``if`` statement
 into any routine that wanted to visit both frames and their children::
 
-    # If only Frame objects had offered winfo_children()
-    ...
+    # If Frame objects alone had offered winfo_children()
+
     if isinstance(widget, Frame):
         children = widget.winfo_children()
+        ...
+    else:
+        # carefully avoid calling winfo_children()
         ...
 
 This pattern, when it can’t be avoided,

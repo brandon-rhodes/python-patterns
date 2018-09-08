@@ -197,7 +197,7 @@ instead of studying the how file objects work to look for shortcuts:
 
 It might also have occurred to you
 that the code to which you are passing the wrapper
-is unlikely call every single file method that exists.
+is unlikely to call every single file method that exists.
 What if it only calls two methods?
 Or only one?
 In many cases a programmer has found
