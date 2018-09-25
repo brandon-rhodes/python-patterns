@@ -155,7 +155,7 @@ Exit
 
 cut that approach but that approach
 is both for both and more expensive
-then it's more pythonic alternative prebound methods
+then it's more pythonic alternative Prebound Methods
 
 The pattern
 ===========
@@ -210,7 +210,27 @@ each of which might have to go pull bits
 from all across the operating system
 to seed their generator.
 
-cut examples here
+Examples of the pattern are strewn merrily across the Standard Library.
+The ``calendar.py`` module uses it::
+
+ c = TextCalendar()
+ ...
+ week = c.formatweek
+ weekheader = c.formatweekheader
+ ...
+
+As does the venerable old ``reprlib.py``::
+
+ aRepr = Repr()
+ repr = aRepr.repr
+
+You will also find Prebound Methods
+bound to the Standard Library objects:
+
+* ``distutils.log._global_log``
+* ``multiprocessing.forkserver._forkserver``
+* ``multiprocessing.semaphore_tracker._semaphore_tracker``
+* ``secrets._sysrand``
 
 One final hint:
 it is almost always better
@@ -227,21 +247,6 @@ Python programmers believe that “Explicit is better than implicit” —
 and materializing the stack of names as real code
 supports readers, debuggers, and that essential tool ``grep``.
 
-
-
-
-
-problem
-module wants to offer routines which share state
-
-random module
-takes a little effort to set up
-
-no problem sharing state
-more efficient to
-
-“mirror”
-
 .. Decoys
 
    this is NOT open = TarFile.open
@@ -252,84 +257,7 @@ more efficient to
 
    note that this is not object creation like in dumps/loads
 
-
-Alternatives
-
-functions that manipulate global state
-
-show example
-
-terrible, can’t test, can’t have several
-
-so create object
-
-you can just offer object as a facade and let user instantiate it
-but, cost: have to keep initializing and doing random seed
-
-or have object sitting at top level / so create an object at the top level
-but adds an extra level of verbosity
-
-pass-through functions
+.. mention pass-through functions?
 
     def random():
         return _instance.random()
-
-more expensive
-
-The Pattern
-
-show the whole module
-
-the class
-
-then create a method
-
-finally bind each method and assign it a global name
-
-And always be explicit! Not implicit or loops. If you can help it.
-
-random
-
-
-calendar.py:
-c = TextCalendar()
-...
-week = c.formatweek
-weekheader = c.formatweekheader
-...
-
-distutils/log.py:
-_global_log = Log()
-log = _global_log.log
-debug = _global_log.debug
-info = _global_log.info
-warn = _global_log.warn
-error = _global_log.error
-fatal = _global_log.fatal
-
-_forkserver = ForkServer()
-ensure_running = _forkserver.ensure_running
-get_inherited_fds = _forkserver.get_inherited_fds
-connect_to_new_process = _forkserver.connect_to_new_process
-set_forkserver_preload = _forkserver.set_forkserver_preload
-
-secrets.py
-_sysrand = SystemRandom()
-randbits = _sysrand.getrandbits
-choice = _sysrand.choice
-
-reprlib.py:
-aRepr = Repr()
-repr = aRepr.repr
-
-multiprocessing/semaphore_tracker.py
-_semaphore_tracker = SemaphoreTracker()
-ensure_running = _semaphore_tracker.ensure_running
-register = _semaphore_tracker.register
-unregister = _semaphore_tracker.unregister
-getfd = _semaphore_tracker.getfd
-
-
-hint: keep names the same
-
-
