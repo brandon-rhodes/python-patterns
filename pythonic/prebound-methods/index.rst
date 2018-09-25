@@ -3,22 +3,18 @@
  Prebound Methods
 ==================
 
-
-.. to find examples:
-   ag --ignore site-packages '^[a-z_]+ = [a-z_]+\.[a-z_]+$' /usr/lib/python3.6
-
 There are occasions on which a Python module
 wants to offer a collection of routines
 in the module’s global namespace
 which will need to share state with each other at runtime.
 
 Probably the most famous example
-is the `random`_ module from the Python Standard Library.
-It does provide advanced users
-with the option of creating their own
-random number generator instances.
-But everyone else can simply call
-a slate of routines at the top level of the module —
+is the Python Standard Library’s `random`_ module.
+While it does provide advanced users
+with the option of building their own
+random number generator instance,
+everyone else instead uses
+a slate of routines sitting conveniently at the top level of the module —
 `randrange <https://docs.python.org/3/library/random.html#random.randrange>`_,
 `randint <https://docs.python.org/3/library/random.html#random.randint>`_,
 `choice <https://docs.python.org/3/library/random.html#random.choice>`_,
@@ -27,9 +23,9 @@ that mirror the methods of a ``Random`` object.
 
 How do these top-level routines share state?
 Behind the scenes these callables are, in fact, methods
-that have all been prebound
+that have all been bound ahead of time
 to a single instance of ``Random``
-that the module constructs ahead of time.
+that the module itself has constructed.
 
 .. _random: https://docs.python.org/3/library/random.html
 
@@ -42,19 +38,20 @@ Alternatives
 The most primitive approach
 to sharing state between a pair of module-level callables
 is to write a pair of functions
-that manipulate data that is also stored at the top level of the module.
+that manipulate data that’s also stored next to them
+at the top level of the module.
 
-Imagine that we want to offer a simple random number generator.
+Imagine that we ourselves want to offer a simple random number generator.
 It returns, in an endless loop,
 the numbers between 1 and 255 in a fixed pseudo-random order.
-We also want to offer a simple routine
+We also want to offer a simple ``set_seed()`` routine
 for resetting the state of the generator —
-which is important both for writing tests that use random numbers
+which is important both for writing tests that use the random numbers,
 as well as reproducing simulation output
-that’s driven by pseudo-randomness.
+that’s driven by its pseudo-randomness.
 If Python only allowed us to write plain functions,
 then we might store the shared seed
-as a module global name
+as a module global
 that our functions would directly access and modify:
 
 .. literalinclude:: random8_with_globals.py
@@ -64,28 +61,25 @@ There are several problems with this approach.
 
 First, it is impossible to ever instantiate
 a second copy of this random number generator.
-If two threads each wanted their own copy of the generator
+If two threads each wanted their own generator
 to avoid needing to protect it with locks,
 then they are out of luck.
 
-(By “out of luck” I don’t mean “impossible” —
-this, after all, is Python, the famous dynamic language.
+(Okay, not really; this is Python.
 Think of the possibilities.
 You could import the module,
 rename it in ``sys.modules``,
 and then import it again to get a second copy.
 Or you could manually instantiate a second module object
 and copy all three names across.
-I simply mean that you would be out of luck
-if you have any sense of Pythonic decorum.)
+I mean “out of luck” only with respect to Pythonic approaches.)
 
 Second, it is more difficult to decouple
 your random number generator tests from each other
-if its state is global.
-Instead of each test creating its own instance,
+if the generator’s state is global.
+Instead of each test creating and exercising a separate isolated instance,
 the tests will all have to share the single pair of global functions
-and hope that they are correctly resetting its state
-to achieve isolation for the next test.
+and correct resetting its state between tests to achieve isolation.
 
 Third, this approach abandons encapsulation.
 This will sound like a fuzzier complaint
@@ -93,14 +87,14 @@ then the previous two,
 but it can offend readability
 (“readability counts”)
 for a tight small system of two functions and a ``seed``
-to be splayed out as three separate names
+to be splayed out as three separate and not obviously related names
 in a module which might contain dozens of other objects.
 
 To solve the above problems, we create a Python class,
 and thereby exercise that greatest and most magnificent of all design patterns:
 the Facade.
 The two routines and their state
-will live happily bundled together:
+now get happily bundled together:
 
 .. literalinclude:: random8_with_globals.py
    :lines: 1-14
@@ -160,15 +154,17 @@ then it's more pythonic alternative Prebound Methods
 The pattern
 ===========
 
-To offer your users Prebound Methods,
-instantiate your class
-and assign that instance to a name in the global namespace of your module —
-usually to a private name
-that does not invite users to meddle with the object directly.
+To offer your users a slate of Prebound Methods:
 
-Then,
-assign each of the object’s methods
-to the same name out in the module’s global namespace
+* Instantiate your class.
+* Assign that instance to a name in the global namespace of your module;
+  usually to a private name
+  that does not invite users to meddle with the object directly.
+* Finally,
+  assign each of the object’s methods
+  to the same name
+  but out in the module’s global namespace.
+
 For the random number generator that we used as an illustration above,
 the entire module might look like this:
 
@@ -177,29 +173,30 @@ the entire module might look like this:
 
 Users will now be able to invoke each method
 as though it were a stand-alone function.
-But the methods will all be secretly sharing state
+But the methods will secretly share state
 thanks to the common instance that they are bound to,
-without requiring the user to instantiate the class
-and keep up with an explicit instance of their own.
+without requiring the user to instantiate the class themselves
+and keep up with that explicit instance on their own.
 
 When exercising this pattern,
 please be responsible about the dangers
 of instantiating an object at import time.
 This pattern is usually not appropriate
-for a classes that create files, read database configurations,
-open sockets,
-or in general that inflict side effects on the program importing them.
-In that case you will need a more complicated scheme:
-defer any actual setup
-until the first of your methods is called.
+for a class that creates files,
+reads a database configurations,
+opens sockets,
+or that in general will inflict side effects on the program importing them.
+In that case,
+you will do better to either avoid Prebound Methods entirely,
+or else to defer any actual side effects
+until one of the methods is called.
 You could even provide a ``setup()`` method
 and require application programmers to invoke it
 before they can expect any of the other routines to work.
 
 But for lightweight objects
-that need no prior configuration before being instantiated,
-and that make sense to build once,
-Prebound Methods are a very elegant way
+that can be instantiated without substantial delay or complications,
+Prebound Methods are an elegant way
 to make the stateful behavior of a class instance
 available up at a global module level.
 
@@ -209,6 +206,9 @@ had to create its own ``Random`` instance,
 each of which might have to go pull bits
 from all across the operating system
 to seed their generator.
+
+.. to find examples:
+   ag --ignore site-packages '^[a-z_]+ = [a-z_]+\.[a-z_]+$' /usr/lib/python3.6
 
 Examples of the pattern are strewn merrily across the Standard Library.
 The ``calendar.py`` module uses it::
@@ -224,7 +224,8 @@ As does the venerable old ``reprlib.py``::
  aRepr = Repr()
  repr = aRepr.repr
 
-You will also find Prebound Methods
+As do several other modules —
+you will find Prebound Methods
 bound to the Standard Library objects:
 
 * ``distutils.log._global_log``
