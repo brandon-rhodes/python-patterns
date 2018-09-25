@@ -1,6 +1,10 @@
 from datetime import datetime
 
-_seed = datetime.now().microsecond % 256
+_seed = datetime.now().microsecond % 255 + 1
+
+def set_seed(value):
+    global _seed
+    _seed = value
 
 def random():
     global _seed
@@ -8,9 +12,6 @@ def random():
     if carry:
         _seed ^= 0xb8
     return _seed
-
-def randrange(i):
-    return (random() - 1) * i // 254
 
 nums = set()
 
@@ -21,3 +22,5 @@ for i in range(2550):
 assert len(nums) == 255
 assert min(nums) == 1
 assert max(nums) == 255
+
+set_seed(1)

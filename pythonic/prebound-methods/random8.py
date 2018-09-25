@@ -1,10 +1,11 @@
 from datetime import datetime
 
 class Random8(object):
-    def __init__(self, seed=None):
-        if seed is None:
-            seed = datetime.now().microsecond % 256
-        self.seed = seed
+    def __init__(self):
+        self.set_seed(datetime.now().microsecond % 255 + 1)
+
+    def set_seed(self, value):
+        self.seed = value
 
     def random(self):
         self.seed, carry = divmod(self.seed, 2)
@@ -12,18 +13,15 @@ class Random8(object):
             self.seed ^= 0xb8
         return self.seed
 
-    def randrange(self, i):
-        return (self.random() - 1) * i // 254
-
 _instance = Random8()
 
 random = _instance.random
-randrange = _instance.randrange
+set_seed = _instance.set_seed
 
 nums = set()
 
 for i in range(2550):
-    n = _random8.random()
+    n = _instance.random()
     nums.add(n)
 
 assert len(nums) == 255
