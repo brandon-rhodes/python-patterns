@@ -31,6 +31,15 @@ You can watch for links to new material on my Twitter account:
 
 And with those preliminaries complete, here we go!
 
+Python-Specific Patterns
+========================
+
+.. toctree::
+   :maxdepth: 2
+
+   python/prebound-methods/index
+
+
 Creational Patterns
 ===================
 
