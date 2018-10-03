@@ -3,6 +3,8 @@
  Prebound Methods
 ==================
 
+*A pattern native to the Python language.*
+
 .. admonition:: Verdict
 
    A powerful technique for offering callables
