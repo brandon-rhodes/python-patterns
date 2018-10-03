@@ -27,17 +27,6 @@
 .. contents:: Contents:
    :backlinks: none
 
-.. $ a --ignore site-packages '^[a-z_]+ = [a-z_]+\.[a-z_]+$' /usr/lib/python3.6
-
-.. random
-.. calendar
-.. distutils.log?
-.. NOT threading _start_new_thread = _thread.start_new_thread
-   that instead is to pull things out of C
-.. and NOT cases where it’s a classmethod like open = TarFile.open
-.. semaphore tracker? forkserver?
-.. copy constant is another thing.
-
 .. TODO mention how for verbs, not nouns, we put methods in the global
    namespace; exmaples are random and json modules
 
@@ -73,11 +62,34 @@ constant values
 
 constants (strings.* etc) vs live objects
 
-dunder metadata
+computed constants
 
+File: Lib/unittest/test/testmock/__init__.py
+6:1:here = os.path.dirname(__file__)
+^ is this anywhere non-test?
+
+or for efficiency? ONE_SIXTH = 1.0/6.0
+
+can also be used to avoid recompute “if”:
+COPY_BUFSIZE = 1024 * 1024 if _WINDOWS else 16 * 1024
+
+“I could have done that!”
+from types.py:
+File: Lib/types.py
+12:1:FunctionType = type(_f)
+LambdaType = type(lambda: None)
+File: Lib/_collections_abc.py
+36:1:bytes_iterator = type(iter(b''))
+37:1:bytearray_iterator = type(iter(bytearray()))
+39:1:dict_keyiterator = type(iter({}.keys()))
+40:1:dict_valueiterator = type(iter({}.values()))
+41:1:dict_itemiterator = type(iter({}.items()))
+42:1:list_iterator = type(iter([]))
 
 special constants
 =================
+
+dunder metadata
 
 __all__ = ["Error", "Packer", "Unpacker", "ConversionError"]
 __version__
@@ -136,30 +148,24 @@ shutil.py
                      os.stat in os.supports_follow_symlinks)
 BARELY made sense
 
-computed constants
-==================
+sentinels
+=========
 
-File: Lib/unittest/test/testmock/__init__.py
-6:1:here = os.path.dirname(__file__)
-^ is this anywhere non-test?
+File: Lib/bz2.py
+27:1:_sentinel = object()  <--- line occurs several times
+^ token? no.
 
-or for efficiency? ONE_SIXTH = 1.0/6.0
+Lib/functools.py
+_NOT_FOUND = object()
+val = cache.get(self.attrname, _NOT_FOUND)
 
-can also be used to avoid recompute “if”:
-COPY_BUFSIZE = 1024 * 1024 if _WINDOWS else 16 * 1024
+File: Lib/configparser.py
+357:1:_UNSET = object()
 
-“I could have done that!”
-from types.py:
-File: Lib/types.py
-12:1:FunctionType = type(_f)
-LambdaType = type(lambda: None)
-File: Lib/_collections_abc.py
-36:1:bytes_iterator = type(iter(b''))
-37:1:bytearray_iterator = type(iter(bytearray()))
-39:1:dict_keyiterator = type(iter({}.keys()))
-40:1:dict_valueiterator = type(iter({}.values()))
-41:1:dict_itemiterator = type(iter({}.items()))
-42:1:list_iterator = type(iter([]))
+only for efficiency if used in only one routine
+
+action constants
+================
 
 compile re’s once
 File: Lib/glob.py
@@ -180,21 +186,6 @@ File: Lib/re.py
 
 File: Lib/json/encoder.py
 34:1:INFINITY = float('inf')
-
-sentinels
-=========
-
-search for sentinel = object() and given stat
-
-Lib/functools.py
-_NOT_FOUND = object()
-
-File: Lib/bz2.py
-27:1:_sentinel = object()
-^ token? no.
-
-File: Lib/configparser.py
-357:1:_UNSET = object()
 
 mutable objects
 ===============
