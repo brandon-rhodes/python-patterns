@@ -8,13 +8,12 @@
 .. admonition:: Verdict
 
    The core Python language,
-   the Standard Library,
+   its Standard Library,
    and many third party packages
    offer access to convenient pre-built objects
    by assigning them a name in a module’s global namespace.
-   Like the builtin module’s ``None``, ``True``, and ``False``,
-   global objects are easy to understand, easy to use,
-   and never conflict with names in other packages
+   Global objects are easy to understand, easy to use,
+   and can never conflict with identical names in other packages
    because every Python module is its own namespace.
 
 
@@ -39,22 +38,26 @@ and named tuples
 
 functions: random; dumps loads pickle? definitely json. requests?
 
-simple alias:
-operator.py __lt__ = lt
-
-you can name mod.thing
-or thing
-or renamed_thing, even built in to syntax as “from...as”
-
 does double duty:
 namespace has both the things you’re defining,
 but also the things you yourself need
+
+simple alias:
+operator.py __lt__ = lt
+
+show how to tell which functions and classes belong to the module
+
+as from . import context
+
+you can name mod.thing
+or thing
+or renamed_thing, even built in to syntax
+as “from...as”
 
 I don’t mean things imported
 it’s generally bad to use those unless specific “api” module
 pattern is BAD of having __init__.py load things
 
-aliasing by hand from . import context
 _ForkingPickler = context.reduction.ForkingPickler
 
 constant values
@@ -68,10 +71,17 @@ File: Lib/unittest/test/testmock/__init__.py
 6:1:here = os.path.dirname(__file__)
 ^ is this anywhere non-test?
 
-or for efficiency? ONE_SIXTH = 1.0/6.0
+or for efficiency or for readability? ONE_SIXTH = 1.0/6.0
+
+File: Lib/json/encoder.py
+34:1:INFINITY = float('inf')
 
 can also be used to avoid recompute “if”:
 COPY_BUFSIZE = 1024 * 1024 if _WINDOWS else 16 * 1024
+
+composite
+File: Lib/datetime.py
+2218:1:_EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
 
 “I could have done that!”
 from types.py:
@@ -86,13 +96,13 @@ File: Lib/_collections_abc.py
 41:1:dict_itemiterator = type(iter({}.items()))
 42:1:list_iterator = type(iter([]))
 
-special constants
-=================
+dunder constants
+================
 
 dunder metadata
 
+File: Lib/xdrlib.py
 __all__ = ["Error", "Packer", "Unpacker", "ConversionError"]
-__version__
 
 File: Lib/__future__.py
 50:1:all_feature_names = [
@@ -113,20 +123,18 @@ File: Lib/contextvars.py
 File: Lib/concurrent/futures/__init__.py
 20:1:__all__ = (
 
-composite
-File: Lib/datetime.py
-2218:1:_EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
+File: Lib/tkinter/font.py
+6:1:__version__ = "0.9"
+
+File: Lib/turtle.py
+103:1:_ver = "turtle 1.1b- - for Python 3.1   -  4. 5. 2009"
+
+but should it be tuple or string?
 
 File: Lib/bz2.py
 10:1:__author__ = "Nadeem Vawda <nadeem.vawda@gmail.com>"
 
 __author__ = ("Guido van Rossum <guido@python.org>, "
-
-File: Lib/turtle.py
-103:1:_ver = "turtle 1.1b- - for Python 3.1   -  4. 5. 2009"
-
-File: Lib/tkinter/font.py
-6:1:__version__ = "0.9"
 
 constant collections
 ====================
@@ -148,7 +156,7 @@ shutil.py
                      os.stat in os.supports_follow_symlinks)
 BARELY made sense
 
-sentinels
+sentinels   <----------- pull out into its own article?
 =========
 
 File: Lib/bz2.py
@@ -164,8 +172,8 @@ File: Lib/configparser.py
 
 only for efficiency if used in only one routine
 
-action constants
-================
+Precompiled globals
+===================
 
 compile re’s once
 File: Lib/glob.py
@@ -184,19 +192,25 @@ File: Lib/re.py
 262:1:Pattern = type(sre_compile.compile('', 0))
 263:1:Match = type(sre_compile.compile('', 0).match(''))
 
-File: Lib/json/encoder.py
-34:1:INFINITY = float('inf')
-
-mutable objects
+mutable globals
 ===============
 
 everything is an object BUT I MEAN:
+
+Pattern - “singleton” object
 
 File: Lib/os.py
 759:1:environ = _createenviron()
 
 217:1:default = EmailPolicy()
 ^ useful objects
+
+File: Lib/logging/__init__.py
+641:1:_defaultFormatter = Formatter()
+1156:1:_defaultLastResort = _StderrHandler(WARNING)
+1834:1:root = RootLogger(WARNING)
+
+Pattern - dispatch
 
 File: Lib/copyreg.py
 10:1:dispatch_table = {}
@@ -215,11 +229,6 @@ File: Lib/pydoc.py
 1627:1:plaintext = _PlainTextDoc()
 1628:1:html = HTMLDoc()
 2101:1:help = Helper()
-
-File: Lib/logging/__init__.py
-641:1:_defaultFormatter = Formatter()
-1156:1:_defaultLastResort = _StderrHandler(WARNING)
-1834:1:root = RootLogger(WARNING)
 
 sometimes almost to make up for the lack of builtins
 
