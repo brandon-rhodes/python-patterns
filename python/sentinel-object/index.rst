@@ -3,88 +3,50 @@
  Sentinel Object
 =================
 
-*A Python variation on the “Creational Pattern” inspired by Modula-2 and Modula-3*
+*A Python variation on a “Creational Pattern” inspired by Modula-2 and Modula-3*
 
 .. admonition:: Verdict
 
-   python’s
-
+   The Sentinel Object pattern is a standard Pythonic approach
+   that’s used both in the Standard Library and beyond.
+   The pattern usually uses the built-in ``None`` object,
+   but in situations where ``None`` might be a useful value
+   a unique sentinel ``object()`` can be used instead
+   to indicate missing or unspecified data.
 
 .. contents:: Contents:
    :backlinks: none
 
+Programming is easiest
+in problem domains where values are always specified:
+where everyone in the database is guaranteed to have a name,
+where we know the age of every employee,
+and where a datum was collected successfully
+for every second of the experiment.
 
+But the world is rarely that simple,
+and so patterns are needed for those cases
+where object attributes or whole objects are going to be missing.
+What simple mechanisms are available
+to distinguish useful data
+from placeholders that indicate data is absent?
 
-Sentinel value
+Sentinel Value
 ==============
 
-The crucial 
-
-*within* domain
-
-Nan?
-
-Empty string
-
-An older pattern dictating
- still coming in statically typed languages
-
-A traditional problem in computing
-is the need to mark a particular value as special
-in a sequence of values that which will otherwise all be taken
-as having their literal meaning.
-This need arises in two cases in particular:
-
-* To mark particular values in a sequence as “unknown” or “blank”.
-* To mark the end of a sequence with a special value.
-
-In each case,
-the solution is to designate a special “sentinel” value
-that we promise never to use as a normal value in the sequence,
-so that it can mean “unknown” (or “end”) without ambiguity.
-Whether the values are integers, floating point numbers,
-strings, or something more exotic,
-the key to the Sentinel Value pattern
-is that all code handling the values
-knows to treat the sentinel as special when it appears.
-
-There are thus two costs to the Sentinel Value:
-
-1. The range of the non-sentinel values contracts by one.
-   This isn’t a problem when the sequence by nature
-   uses only a fraction of the domain’s possible values;
-   if a numeric sequence is entirely of positive numbers,
-   for example, then choosing zero as the sentinel
-   entails no inconvenience.
-   But in the general case,
-   one less number or string will be available
-   for use in the data.
-
-2. Most the code that touches the raw sequence
-   will need to treat the sentinel values specially.
-   If the sentinel means “missing” then sums and averages
-   will need to check every value against the sentinel
-   so it doesn’t affect the result.
-   If the sentinel means “end”,
-   then every step of an iterator
-   will need to check the current value against the sentinel
-   to decide whether to proceed.
-
---
-
-The traditional practice of designating a sentinel value
-among the possible values a routine might return
+The traditional Sentinel Value pattern
 will be familiar to Python programmers
 from the
 `str.find() <https://docs.python.org/3/library/stdtypes.html#str.find>`_
 method.
-While its sibling method
+While its sibling
 `str.index() <https://docs.python.org/3/library/stdtypes.html#str.index>`_
 is more rigorous,
-raising an exception if it can’t find the substring you ask about,
-``find()`` lets you skip the exception handling
-by returning the sentinel value ``-1`` when the substring is not found.
-This often saves a line of code:
+raising an exception if it can’t find the substring you’ve asked about,
+``find()`` lets you skip writing an exception handler
+by instead returning the sentinel value ``-1``
+when the substring is not found.
+This often saves a line of code and a bit of indentation:
 
 .. testcode::
 
@@ -100,31 +62,27 @@ This often saves a line of code:
        return
 
 This is a classic example of a sentinel value.
-It is an integer,
+The value ``-1`` is simply an integer,
 just like the function’s other possible return values,
 but with a special meaning that has been agreed upon ahead of time —
-woe upon the code that uses ``find()``’s return value without checking,
-and looks for the substring at position ``-1`` in the original string!
+and woe betide the program that receives back ``-1``,
+forgets to check, and tries using it to index into the string!
+The result is never what the programmer intended.
 
 If ``find()`` had been invented today,
-it would instead have been designed to return ``None`` for “not found”
-and so would have avoided the problem of also being a possibly valid
-string index — but then we could not have used it as our example!
+it would instead have used the Sentinel Object pattern
+that we will describe below
+by simply returning ``None`` for “not found”.
+There then would have been no possibility
+of the return value being misused as an index.
 
-and even among types that lack enata number value
- like the integer and string
- recent languages like ago
- which don't make it convenient to return none if you are required to return an integer
- the less you to clear up whatever go calls an optional type
- are convincing many programmers
- that they can go much farther than they had expected without substantial confusion
- using 0 and the empty string
- where they have no more specific data to contribute
- all the python programmer will often value
- the semantic Clarity that comes with the use of none
-probably do it in situations
- where oh with in tight Sentinel value
- would satisfy as well
+Sentinel values are particularly common today in the Go language,
+which encourages a style of programming
+where routines often insist on accepting and returning strings
+with no alternative possible.
+In such circumstance programmers quickly turn to empty strings
+or, more rarely, unique sentinel string values
+when they want to communication “there’s no useful data here.”
 
 Null pointers
 =============
