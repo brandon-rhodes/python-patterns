@@ -1,0 +1,37 @@
+
+================================
+ _Refactoring_ by Martin Fowler
+================================
+
+.. raw:: html
+
+   <div style="float: right; margin: 0 0 1em 1em">
+   <a href="https://www.amazon.com/Refactoring-Improving-Design-Existing-Code/dp/0201485672/ref=as_li_ss_il?ie=UTF8&linkCode=li3&tag=letsdisthemat-20&linkId=e549473394af986311bf51e95f7a8b81&language=en_US" target="_blank"><img border="0" src="//ws-na.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=0201485672&Format=_SL250_&ID=AsinImage&MarketPlace=US&ServiceVersion=20070822&WS=1&tag=letsdisthemat-20&language=en_US" ></a><img src="https://ir-na.amazon-adsystem.com/e/ir?t=letsdisthemat-20&language=en_US&l=li3&o=1&a=0201485672" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" />
+   <div><a href="https://amzn.to/2JDGgOY"
+           ><i>Amazon Affiliate link</i></a></div>
+   <div><a href="https://www.amazon.com/Refactoring-Improving-Design-Existing-Code/dp/0201485672"
+           ><i>Amazon raw link</i></a></div>
+   </div>
+
+Martin Fowler’s *Refactoring: Improving the Design of Existing Code*
+is more heavy focused on object oriented programming
+than will typically be useful for a Python codebase,
+but it is still valuable for its practical approach to code.
+Instead of comparing grand high-level architectures,
+its habit is to explain a pattern
+by starting down in the weeds of a tangled example
+and then finding an incremental way forward
+that keeps the code running
+while making stepwise improvements to its organization.
+
+The :sect:`Null objects` pattern is the only one
+to which this Python Patterns site so far makes reference,
+but the book can still be recommended
+as a solid classic that has helped many readers
+get traction with an existing codebase
+and develop habits that makes even their own code
+easier to maintain and understand.
+
+.. raw:: html
+
+   <div style="clear: right"></div>

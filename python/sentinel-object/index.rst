@@ -16,7 +16,7 @@
 
 
 Sentinel value
---------------
+==============
 
 The crucial 
 
@@ -126,8 +126,8 @@ probably do it in situations
  where oh with in tight Sentinel value
  would satisfy as well
 
-Null pointer
-------------
+Null pointers
+=============
 
 This pattern is impossible in Python.
 Every name in Python either does not exist,
@@ -185,44 +185,68 @@ using only the single return value supported by C functions:
 The exception itself is stored elsewhere
 and can be retrieved using the Python C API.
 
-Null object
-----------------
+Null objects
+============
 
-Fowler; woolf
+My attention was drawn to this pattern
+while reading :doc:`fowler-refactoring/index`
+which credits Bobby Woolf for its explication.
+It has nothing to do with the “null pointer” explained
+in the previous section!
+Instead it describes a special kind of sentinel object.
 
- unimportant observation is made
- by Martin Fowler in his book x
+Imagine a sequence of ``Employee`` objects
+which usually have another employee as their ``manager`` attribute
+but not always.
+The default Pythonic approach to represent “no manager”
+would be to assign ``None`` to the attribute.
 
- do the actual quote
+A routine tasked with displaying an employee profile
+will have to check for the sentinel object ``None``
+before trying to invoke any methods on the manager::
 
- Choosing
- adopting the convention that a name might either refer to a useful value
- or else might bear a special value which means nothing is here
- imposes a burden upon every subsequent piece of code that must handle that value
+    for e in employees:
+        if e.manager is None:
+            m = 'no one'
+        else:
+            m = e.manager.display_name)
+        print(e.name, '-', m)
 
- to take an example
+And this pattern will be repeated in all code
+that needs to reference the attribute.
 
-E
+Woolf offers the intriguing possibility
+of replacing all of the exceptional ``None``
+values with an ``Employee`` object
+specifically designed to represent the idea of “no one”::
 
- all of the code Downstream from here
-is going to have to test whether the value is none
+    NO_PERSON = Person(name='no one')
 
-E
+Employee objects will now be assigned this ``NO_PERSON`` object asb
+their manager instead of ``None``,
+and both kinds of code touching employee managers will benefit:
 
- Martin describes an interesting alternative mentions an interesting all turn
- described by wolf
+* Code that produces simple displays or summaries
+  can simply print or tally the ``NO_ONE`` manager object
+  as though it were a normal employee object.
+  If the code can run successfully against the Null Object,
+  then the need for a special ``if`` statement disappears.
 
- Quote
+* Code that does need to specially handle the case
+  of an employee with no acting manager
+  now becomes a bit more readable —
+  instead of using the generic ``is None``
+  it will perform the check with the specific ``is NO_PERSON``
+  and will thereby gain a bit more readability.
 
- before designating a value
- that might either be a useful object or none
- if you are in a domain
- double check weather you might be in a domain
- where a functioning user object might be provided instead
- yeah
+While not appropriate in all situations —
+it can, for example, take some attention to design Null Objects
+that keep averages and other statistics valid —
+Null Objects appear even in the Python Standard Library,
+such as the ``NullHandler`` provided by the ``logging`` module.
 
-Sentinel object
-----------------------
+Sentinel objects
+================
 
 You will need a sentinel object
 in the special circumstance
