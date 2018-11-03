@@ -240,42 +240,96 @@ and both kinds of code touching employee managers will benefit:
   and will thereby gain a bit more readability.
 
 While not appropriate in all situations —
-it can, for example, take some attention to design Null Objects
+it can, for example, be difficult to design Null Objects
 that keep averages and other statistics valid —
 Null Objects appear even in the Python Standard Library,
-such as the ``NullHandler`` provided by the ``logging`` module.
+such as the ``logging`` module’s ``NullHandler``
+which is a drop-in replacement for its other handlers
+but does no actual logging.
 
 Sentinel objects
 ================
 
-You will need a sentinel object
-in the special circumstance
+The standard Python sentinel is the built-in ``None`` object,
+used wherever some alternative to an integer, float, string,
+or other meaningful value needs to be provided.
+For most programs it is entirely sufficient
+and its presence can be infallibly tested
+with::
 
-1 youre one year in Python none see not in C
+    if other_object is None:
 
-2 
+But there are two interesting circumstances
+where programs need an alternative to ``None``.
 
- the Sentinel you will want a sentinel object
- The Sentinel object 
+First,
+a general purpose data store
+doesn’t have the option of using ``None`` for missing data
+if users might themselves try to store the ``None`` object.
+Consider, for example, wrapping a function that can return ``None``
+with the least-recently-used (LRU)
+function cache offered by the Standard Library.
+The cache uses a Python dictionary as its data store,
+and might have naively attempted to retrieve a cached value with::
 
-File: Lib/bz2.py
-27:1:_sentinel = object()  <--- line occurs several times
-^ token? no.
+   result = cache_get(key)
 
-Lib/functools.py
-_NOT_FOUND = object()
-val = cache.get(self.attrname, _NOT_FOUND)
+So the ``lru_cache()`` instead uses the Sentinel Object pattern.
+Hidden inside of a closure that surrounds the wrapper that it returns
+is an utterly unique object
+created specifically for the use of each separate cache. ::
 
-File: Lib/configparser.py
-357:1:_UNSET = object()
+   sentinel = object()  # unique object used to signal cache misses
 
-only for efficiency if used in only one routine
+By providing this sentinel object
+as the second argument to ``dict.get()`` —
+here aliased to the name ``cache_get``
+in a closure-level private example
+of the :doc:`prebound-methods` pattern —
+the cache can distinguish a function call
+whose result is already cached and happened to be ``None``
+from a function call that has not yet been cached::
 
-http://www.ianbicking.org/blog/2008/12/the-magic-sentinel.html
-for optional argument, noting Python 3 thing
+   result = cache_get(key, sentinel)
+   if result is not sentinel:
+       ...
 
-http://effbot.org/zone/default-values.htm
-for optional argument
+This pattern occurs several times in the Standard Library.
 
-https://www.revsys.com/tidbits/sentinel-values-python/
-for optional argument
+* As shown above, ``functools.lru_cache()`` uses a sentinel object
+  internally.
+
+* The ``bz2`` module has a global ``_sentinel`` object.
+
+* The ``configparser`` module has a sentinal ``_UNSET``
+  also defined as a module global.
+
+The second interesting circumstance that calls for a sentinel
+is when a function or method wants to know
+whether a caller supplied an optional keyword argument or not.
+Usually Python programmers give such an argument a default of ``None``,
+which is my own experience has always worked fine.
+But if your code truly needs to know the difference,
+then a sentinel object saves the day.
+
+An early description of using sentinels for parameter defaults
+was Fredrik Lundh’s
+`“Default Parameter Values in Python” <http://effbot.org/zone/default-values.htm>`_
+which was followed over the years
+by posts by both Ian Bicking
+`“The Magic Sentinel” <http://www.ianbicking.org/blog/2008/12/the-magic-sentinel.html>`_
+and Flavio Curella
+`“Sentinel values in Python <https://www.revsys.com/tidbits/sentinel-values-python/>`_
+who both worried about their sentinel objects’ lack of a readable ``repr()``
+and came up with various fixes.
+
+But whatever the application,
+the core of the Sentinel Object pattern
+is that it is the object’s identity — *not* its value —
+that lets the surrounding code recognize its significance.
+If you are using an equality operator to detect the sentinel,
+then you are merely using the Sentinel Value pattern
+described at the top of this page.
+The Sentinel Object is defined
+by its use of the Python ``is`` operator
+to detect when the sentinel is present.
