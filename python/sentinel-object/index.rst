@@ -15,8 +15,10 @@
 
 
 
-Sentinel *value*
--------------------
+Sentinel value
+--------------
+
+The crucial 
 
 *within* domain
 
@@ -26,66 +28,88 @@ Empty string
 
 An older pattern dictating
  still coming in statically typed languages
-Is the idea of designating a sentinel value
- that lies within
- not outside of
- the range of values that can form 2-a functions type
 
- the python programmer
- will be familiar with this pattern
- from their experience with the string. Find method
- it's sibling the string. Index method
- is more rigorous
- it promises 2 + true index a real and true index
- or to never return at all
- how can a method never return
- returned why while still allowing its calling program to proceed
- only by raising an exception
+A traditional problem in computing
+is the need to mark a particular value as special
+in a sequence of values that which will otherwise all be taken
+as having their literal meaning.
+This need arises in two cases in particular:
 
-E
+* To mark particular values in a sequence as “unknown” or “blank”.
+* To mark the end of a sequence with a special value.
 
- but exceptions carry a slight expense
- and an additional level of indentation and expense must be paid
- in order to intercept them
- both are inconvenient for the collar looking for a string substring
- but they often expect not to find
- that they often expect will not be present
- the solution is the find method
- which instead of raising an exception
- returns of value
- Within the integer domain
- type typical return type
+In each case,
+the solution is to designate a special “sentinel” value
+that we promise never to use as a normal value in the sequence,
+so that it can mean “unknown” (or “end”) without ambiguity.
+Whether the values are integers, floating point numbers,
+strings, or something more exotic,
+the key to the Sentinel Value pattern
+is that all code handling the values
+knows to treat the sentinel as special when it appears.
 
-E
+There are thus two costs to the Sentinel Value:
 
- while string. Find chooses
- find have been implemented
- later in pythons history
- it is quite possible that it would have returned none as its result
- it is not unheard of for a Python program to make the mistake
- of using Vines return value as a string index
- without first checking whether it's values -1
- if only it had returned none
- an attempt to use it as a string index with raised an exception
- or if python it Chozen not to recognize negative indexes
- the use of its return value with simile have warned everyone away that exception
- would immediately have signaled a problem by causing an exception
+1. The range of the non-sentinel values contracts by one.
+   This isn’t a problem when the sequence by nature
+   uses only a fraction of the domain’s possible values;
+   if a numeric sequence is entirely of positive numbers,
+   for example, then choosing zero as the sentinel
+   entails no inconvenience.
+   But in the general case,
+   one less number or string will be available
+   for use in the data.
 
- but the combination of the use of -1
- did it come from see I will look up an example
- with a language that recognizes -1 as the index of the last character in a string
- combine to become a stumbling block
- combined become a source of frequent xxx and regrettable error in the Python language
+2. Most the code that touches the raw sequence
+   will need to treat the sentinel values specially.
+   If the sentinel means “missing” then sums and averages
+   will need to check every value against the sentinel
+   so it doesn’t affect the result.
+   If the sentinel means “end”,
+   then every step of an iterator
+   will need to check the current value against the sentinel
+   to decide whether to proceed.
 
- values are not always so dangerous
- an floating point operation that goes out of range
- or that is missing data
- can return the official IEEE floating point value not a number
- without the risk of its being confused for a real floating Point number
- indeed the pandas Library
- if faced with an integer operation
- that has holes in its input data
- will switch to floating point so that it can use not a number
+--
+
+The traditional practice of designating a sentinel value
+among the possible values a routine might return
+will be familiar to Python programmers
+from the
+`str.find() <https://docs.python.org/3/library/stdtypes.html#str.find>`_
+method.
+While its sibling method
+`str.index() <https://docs.python.org/3/library/stdtypes.html#str.index>`_
+is more rigorous,
+raising an exception if it can’t find the substring you ask about,
+``find()`` lets you skip the exception handling
+by returning the sentinel value ``-1`` when the substring is not found.
+This often saves a line of code:
+
+.. testcode::
+
+   try:
+       i = a.index(b)
+   except:
+       return
+
+   # versus
+
+   i = a.find(b)
+   if i == -1:
+       return
+
+This is a classic example of a sentinel value.
+It is an integer,
+just like the function’s other possible return values,
+but with a special meaning that has been agreed upon ahead of time —
+woe upon the code that uses ``find()``’s return value without checking,
+and looks for the substring at position ``-1`` in the original string!
+
+If ``find()`` had been invented today,
+it would instead have been designed to return ``None`` for “not found”
+and so would have avoided the problem of also being a possibly valid
+string index — but then we could not have used it as our example!
 
 and even among types that lack enata number value
  like the integer and string
@@ -103,86 +127,63 @@ probably do it in situations
  would satisfy as well
 
 Null pointer
-------------------
+------------
 
-Exceptions implemented sentinal value
-.
+This pattern is impossible in Python.
+Every name in Python either does not exist,
+or it exists and refers to an object.
+You can remove a name with ``del name``,
+or else you can assign a new object to it;
+Python offers no other alternatives.
+Behind the scenes, each name in Python is a pointer
+that stores the address of the object to which it currently refers.
+Even if the name points to an object as simple as the ``None`` object,
+it must contain a valid address for as long as it exists.
 
-Each python name
- each name that you define the python names face
- is a reference
- yields an object when you D reference it
- there are no exceptions
- unless the name is undefined
- it is guaranteed to lead to an object
+This guarantee supports an interesting sentinel pattern
+down in the C language implementation
+of the default version of the Python language.
+The C language lacks Python’s guarantee that a name —
+which C calls a “pointer” —
+will always hold the address of a valid object.
+Taking advantage of this flexibility,
+C programmers use the special address of zero
+to mean “this pointer currently doesn’t point at anything” —
+turning zero, or ``NULL`` as many C programs define it,
+into a sentinel value that code must carefully compare each pointer against
+before trying to read from that address.
+Trying to read bytes from memory location zero is usually fatal,
+the operating system stopping the process in its tracks
+and reporting a ``segmentation fault``.
 
- the object to what your name leads needs not be a very useful 1
- it might be none
- it might be an object
- which lacks any of the methods you would need
- to interact with the object you expect under that name
- but if a name exists
- then it must refer to some existing object
- python does not allow names
- to refer
- to nothing
+The fact that all Python values, even ``None`` and ``False``,
+are real objects with non-zero addresses
+means that Python functions implemented in C
+have the value ``NULL`` available to mean something special.
+And they use it:
+a zero pointer means
+“this function did _not_ complete and return a value;
+instead, it raised an exception.”
+This allows the C code beneath Python
+to avoid the two-value return pattern
+that pervades Go code::
 
- pythons approach in this instance
- Here
- is different than that of languages
- which make the concept of a pointer
- an integer that stores the location of some other object in memory
- more explicit
- in many languages where developers are invited to create and manipulate pointers
- it is explicit that a pointer
- that there is an alternative
- that for a pointer there is an alternative
- to providing the address of an object
- instead the pointer value might itself be invalid
- to represent the fact that at the moment it does not want 2 reference an object at all
+    byte_count, err := fmt.Print("Hello, world!")
+    if err != nil {
+            ...
+    }
 
-wow such language is tend to hide the official value
- meaning this does not reference an object
- this pointer
- behind a definition like null
- it is very common for the special pointer address
- which means this is not pointing at anything
- to be the address 0
- even if in a particular language model
- language and in a particular operating systems memory model
- the address 0 could name a valid memory location
- it is easy enough for the language implementation to never create an object that exactly that bite
- or even to find other another useful purpose for the data add that address
- to Forever Exempted from being used for an object
+Instead, C language routines that call Python
+can distinguish legitimate return values from an exception
+using only the single return value supported by C functions:
 
- python opted to avoid this complexity
- how do I explain this without repeating everything above
- figure it out
+    PyObject *my_repr = PyObject_Repr(obj);
+    if (my_repr == NULL) {
+         ...
+    }
 
- while all the Python language itself does not allow names
- to assume an invalid value
- which in fact prefers to No Object
- Refers
- at the sea level see python makes continuous use of the distinction
-many languages which Implement exceptions
- have to return to values at a low level from every routine
- the return value in case the routine completed successfully
- and the value of any exception that it raised instead
-
- python avoids the need for every low level C function to return two return values
- by designating the special return value know null
- again normally a 0 pointer
- as an indication that the routine has returned no useful python value
- but has instead raised an exception
- the exception
- since the return value does not specify the exception
- it must be returned out of band
- some variables set
- look it up
-
-E
-
- yeah
+The exception itself is stored elsewhere
+and can be retrieved using the Python C API.
 
 Null object
 ----------------
