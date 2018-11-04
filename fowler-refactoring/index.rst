@@ -1,6 +1,6 @@
 
 ================================
- _Refactoring_ by Martin Fowler
+ *Refactoring* by Martin Fowler
 ================================
 
 .. raw:: html

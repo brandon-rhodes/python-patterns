@@ -3,14 +3,14 @@
  Sentinel Object
 =================
 
-*A Python variation on a “Creational Pattern” inspired by Modula-2 and Modula-3*
+*A Python variation on the traditional Sentinel Value pattern*
 
 .. admonition:: Verdict
 
    The Sentinel Object pattern is a standard Pythonic approach
    that’s used both in the Standard Library and beyond.
-   The pattern usually uses the built-in ``None`` object,
-   but in situations where ``None`` might be a useful value
+   The pattern most often uses Python’s built-in ``None`` object,
+   but in situations where ``None`` might be a useful value,
    a unique sentinel ``object()`` can be used instead
    to indicate missing or unspecified data.
 
@@ -26,7 +26,7 @@ for every second of the experiment.
 
 But the world is rarely that simple,
 and so patterns are needed for those cases
-where object attributes or whole objects are going to be missing.
+where object attributes or whole objects go missing.
 What simple mechanisms are available
 to distinguish useful data
 from placeholders that indicate data is absent?
@@ -37,16 +37,24 @@ Sentinel Value
 The traditional Sentinel Value pattern
 will be familiar to Python programmers
 from the
-`str.find() <https://docs.python.org/3/library/stdtypes.html#str.find>`_
+|str.find|_
 method.
-While its sibling
-`str.index() <https://docs.python.org/3/library/stdtypes.html#str.index>`_
+While its alternative
+|str.index|_
 is more rigorous,
-raising an exception if it can’t find the substring you’ve asked about,
+raising an exception if it can’t find the substring you’re asking about,
 ``find()`` lets you skip writing an exception handler
-by instead returning the sentinel value ``-1``
+for a missing substring
+by returning the sentinel value ``-1``
 when the substring is not found.
 This often saves a line of code and a bit of indentation:
+
+.. |str.find| replace:: ``str.find()``
+.. _str.find: https://docs.python.org/3/library/stdtypes.html#str.find
+
+.. |str.index| replace:: ``str.index()``
+.. _str.index: https://docs.python.org/3/library/stdtypes.html#str.index
+
 
 .. testcode::
 
@@ -65,66 +73,81 @@ This is a classic example of a sentinel value.
 The value ``-1`` is simply an integer,
 just like the function’s other possible return values,
 but with a special meaning that has been agreed upon ahead of time —
-and woe betide the program that receives back ``-1``,
-forgets to check, and tries using it to index into the string!
-The result is never what the programmer intended.
+and woe betide the program that is returned ``-1``,
+forgets to check, and tries using it as an index into the string!
+The result will not be what the programmer intended.
 
-If ``find()`` had been invented today,
+If |str.find|_ had been invented today,
 it would instead have used the Sentinel Object pattern
 that we will describe below
 by simply returning ``None`` for “not found”.
-There then would have been no possibility
-of the return value being misused as an index.
+That would have left no possibility
+of the return value being used accidentally as an index.
 
 Sentinel values are particularly common today in the Go language,
-which encourages a style of programming
-where routines often insist on accepting and returning strings
-with no alternative possible.
-In such circumstance programmers quickly turn to empty strings
-or, more rarely, unique sentinel string values
-when they want to communication “there’s no useful data here.”
+which encourages a programming style
+that always returns strings
+instead of mere references to them —
+forcing the programmer to choose some particular string,
+like the empty string or a special unique sentinel,
+to indicate that no data was collected or is present.
+
+In Python, the Django framework is famous
+for contradicting several decades of database practice
+by recommending that you
+“`Avoid using null on string-based fields <https://docs.djangoproject.com/en/dev/ref/models/fields/#null>`_” —
+with the frequent result that, as in Go,
+code becomes simpler;
+checks for the empty string replace checks for ``None``;
+and the program no longer crashes
+when later code tries invoking a string method
+on what turns out to be ``None``.
 
 Null pointers
 =============
 
-This pattern is impossible in Python.
+This pattern is impossible in Python,
+but worth mentioning to outline the difference between Python
+and languages that complicate their data model
+with ``nil`` or ``NULL`` pointers.
+
 Every name in Python either does not exist,
-or it exists and refers to an object.
+or exists and refers to an object.
 You can remove a name with ``del name``,
 or else you can assign a new object to it;
 Python offers no other alternatives.
 Behind the scenes, each name in Python is a pointer
 that stores the address of the object to which it currently refers.
 Even if the name points to an object as simple as the ``None`` object,
-it must contain a valid address for as long as it exists.
+it will contain a valid address.
 
 This guarantee supports an interesting sentinel pattern
-down in the C language implementation
-of the default version of the Python language.
+down in the default C language implementation of Python.
 The C language lacks Python’s guarantee that a name —
 which C calls a “pointer” —
 will always hold the address of a valid object.
 Taking advantage of this flexibility,
-C programmers use the special address of zero
+C programmers use an address of zero
 to mean “this pointer currently doesn’t point at anything” —
-turning zero, or ``NULL`` as many C programs define it,
-into a sentinel value that code must carefully compare each pointer against
-before trying to read from that address.
-Trying to read bytes from memory location zero is usually fatal,
-the operating system stopping the process in its tracks
-and reporting a ``segmentation fault``.
+which makes zero, or ``NULL`` as many C programs define it,
+a sentinel value.
+Pointers which might be ``NULL``
+need to be checked before being used,
+or the program will die with a ``segmentation fault``.
 
 The fact that all Python values, even ``None`` and ``False``,
 are real objects with non-zero addresses
 means that Python functions implemented in C
-have the value ``NULL`` available to mean something special.
-And they use it:
-a zero pointer means
-“this function did _not_ complete and return a value;
+have the value ``NULL`` available to mean something special:
+a ``NULL`` pointer means
+“this function did *not* complete and return a value;
 instead, it raised an exception.”
 This allows the C code beneath Python
 to avoid the two-value return pattern
 that pervades Go code::
+
+    # Go needs to separately represent “the return value”
+    # and “did this die with an error.”
 
     byte_count, err := fmt.Print("Hello, world!")
     if err != nil {
@@ -133,7 +156,10 @@ that pervades Go code::
 
 Instead, C language routines that call Python
 can distinguish legitimate return values from an exception
-using only the single return value supported by C functions:
+using only the single return value supported by C functions::
+
+    # The pointer to a Python object instead means
+    # “an exception was raised” if its value is NULL.
 
     PyObject *my_repr = PyObject_Repr(obj);
     if (my_repr == NULL) {
@@ -147,10 +173,10 @@ Null objects
 ============
 
 My attention was drawn to this pattern
-while reading :doc:`fowler-refactoring/index`
+while reading the book :doc:`/fowler-refactoring/index`
 which credits Bobby Woolf for its explication.
-It has nothing to do with the “null pointer” explained
-in the previous section!
+Note that this pattern has nothing to do
+with the “null pointer” explained in the previous section!
 Instead it describes a special kind of sentinel object.
 
 Imagine a sequence of ``Employee`` objects
@@ -167,46 +193,48 @@ before trying to invoke any methods on the manager::
         if e.manager is None:
             m = 'no one'
         else:
-            m = e.manager.display_name)
+            m = e.manager.display_name()
         print(e.name, '-', m)
 
-And this pattern will be repeated in all code
-that needs to reference the attribute.
+And this pattern will need to be repeated
+everywhere that code touches the manager attribute.
 
-Woolf offers the intriguing possibility
-of replacing all of the exceptional ``None``
-values with an ``Employee`` object
+Woolf offers the intriguing alternative
+of replacing all of the ``None``
+manager values with an object
 specifically designed to represent the idea of “no one”::
 
-    NO_PERSON = Person(name='no one')
+    NO_MANAGER = Person(name='no acting manager')
 
-Employee objects will now be assigned this ``NO_PERSON`` object asb
-their manager instead of ``None``,
+Employee objects will now be assigned this ``NO_MANAGER`` object
+instead of ``None``,
 and both kinds of code touching employee managers will benefit:
 
 * Code that produces simple displays or summaries
-  can simply print or tally the ``NO_ONE`` manager object
+  can simply print or tally the ``NO_MANAGER`` manager object
   as though it were a normal employee object.
   If the code can run successfully against the Null Object,
   then the need for a special ``if`` statement disappears.
 
 * Code that does need to specially handle the case
   of an employee with no acting manager
-  now becomes a bit more readable —
-  instead of using the generic ``is None``
-  it will perform the check with the specific ``is NO_PERSON``
+  now becomes a bit more readable.
+  Instead of using the generic ``is None``
+  it will perform the check with the specific ``is NO_MANAGER``
   and will thereby gain a bit more readability.
 
 While not appropriate in all situations —
 it can, for example, be difficult to design Null Objects
 that keep averages and other statistics valid —
-Null Objects appear even in the Python Standard Library,
-such as the ``logging`` module’s ``NullHandler``
+Null Objects appear even in the Python Standard Library:
+the ``logging`` module has a ``NullHandler``
 which is a drop-in replacement for its other handlers
 but does no actual logging.
 
-Sentinel objects
+Sentinel Objects
 ================
+
+Finally we come to the pattern itself.
 
 The standard Python sentinel is the built-in ``None`` object,
 used wherever some alternative to an integer, float, string,

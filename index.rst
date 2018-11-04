@@ -38,7 +38,7 @@ Python-Specific Patterns
    :maxdepth: 2
 
    python/prebound-methods/index
-
+   python/sentinel-object/index
 
 Creational Patterns
 ===================
@@ -75,3 +75,4 @@ Bibliography
    :maxdepth: 2
 
    gang-of-four/index
+   fowler-refactoring/index
