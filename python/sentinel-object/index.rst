@@ -234,16 +234,17 @@ but does no actual logging.
 Sentinel Objects
 ================
 
-Finally we come to the pattern itself.
+Finally we come to the Sentinel Object pattern itself.
 
 The standard Python sentinel is the built-in ``None`` object,
-used wherever some alternative to an integer, float, string,
-or other meaningful value needs to be provided.
-For most programs it is entirely sufficient
+used wherever some alternative needs to be provided
+to an integer, float, string, or other meaningful value.
+For most programs it is entirely sufficient,
 and its presence can be infallibly tested
 with::
 
     if other_object is None:
+        ...
 
 But there are two interesting circumstances
 where programs need an alternative to ``None``.
@@ -252,18 +253,12 @@ First,
 a general purpose data store
 doesn’t have the option of using ``None`` for missing data
 if users might themselves try to store the ``None`` object.
-Consider, for example, wrapping a function that can return ``None``
-with the least-recently-used (LRU)
-function cache offered by the Standard Library.
-The cache uses a Python dictionary as its data store,
-and might have naively attempted to retrieve a cached value with::
 
-   result = cache_get(key)
-
-So the ``lru_cache()`` instead uses the Sentinel Object pattern.
-Hidden inside of a closure that surrounds the wrapper that it returns
-is an utterly unique object
-created specifically for the use of each separate cache. ::
+As an example,
+the Python Standard Library’s ``functools.lru_cache()``
+uses the Sentinel Object pattern internally.
+Hidden inside of a closure is an utterly unique object
+that it creates separately for each separate instance of the cache::
 
    sentinel = object()  # unique object used to signal cache misses
 
@@ -271,7 +266,7 @@ By providing this sentinel object
 as the second argument to ``dict.get()`` —
 here aliased to the name ``cache_get``
 in a closure-level private example
-of the :doc:`prebound-methods` pattern —
+of the :doc:`/python/prebound-methods/index` pattern —
 the cache can distinguish a function call
 whose result is already cached and happened to be ``None``
 from a function call that has not yet been cached::
@@ -293,19 +288,18 @@ This pattern occurs several times in the Standard Library.
 The second interesting circumstance that calls for a sentinel
 is when a function or method wants to know
 whether a caller supplied an optional keyword argument or not.
-Usually Python programmers give such an argument a default of ``None``,
-which is my own experience has always worked fine.
+Usually Python programmers give such an argument a default of ``None``.
 But if your code truly needs to know the difference,
-then a sentinel object saves the day.
+then a sentinel object will allow you to detect it.
 
 An early description of using sentinels for parameter defaults
 was Fredrik Lundh’s
 `“Default Parameter Values in Python” <http://effbot.org/zone/default-values.htm>`_
-which was followed over the years
-by posts by both Ian Bicking
+which over the years was followed
+by posts from Ian Bicking
 `“The Magic Sentinel” <http://www.ianbicking.org/blog/2008/12/the-magic-sentinel.html>`_
 and Flavio Curella
-`“Sentinel values in Python <https://www.revsys.com/tidbits/sentinel-values-python/>`_
+`“Sentinel values in Python” <https://www.revsys.com/tidbits/sentinel-values-python/>`_
 who both worried about their sentinel objects’ lack of a readable ``repr()``
 and came up with various fixes.
 
@@ -318,4 +312,4 @@ then you are merely using the Sentinel Value pattern
 described at the top of this page.
 The Sentinel Object is defined
 by its use of the Python ``is`` operator
-to detect when the sentinel is present.
+to detect whether the sentinel is present.
