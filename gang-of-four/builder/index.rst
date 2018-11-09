@@ -119,7 +119,7 @@ TransformedBbox(
                  [  0. 100.   0.]
                  [  0.   0.   1.]]))))
 
-While matplotlib will let us providing more keyword arguments
+While matplotlib will let us provide more keyword arguments
 or make additional calls to customize the plot,
 ``pyplot`` is happy to insulate us from all of the details
 of how plots are represented as objects.
@@ -184,7 +184,7 @@ chapter on the Builder:
 While this stipulation focuses on the difference between the Builder
 and the :doc:`Abstract Factory </gang-of-four/abstract-factory/index>`,
 it makes clear that — for the Gang of Four —
-both patterns are supposed conclude
+both patterns are supposed to conclude
 with the return of the constructed object to the caller.
 Absent the crucial final step of returning the object that has been built,
 the Builder arguably devolves into the Facade pattern instead.
@@ -355,7 +355,7 @@ that Python programmers take for granted,
 programmers facing this situation
 can supplement each class they write with a second class
 that serves as a builder for the first.
-The differences between the builder and the class is constructs are that:
+The differences between the builder and the class it constructs are that:
 
 * The Builder class carries all the same attributes as the target class.
 
