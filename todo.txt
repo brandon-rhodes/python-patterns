@@ -7,8 +7,12 @@ Creational Patterns
 x Abstract Factory
 x Builder
 x Factory Method
-  Prototype
+X Prototype
   Singleton
+    X Prebound Methods
+    X Sentinel Object
+      Module Globals - OR Singleton Objects
+     (Flyweight, below)
 
 Structural Patterns
 
