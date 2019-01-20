@@ -5,56 +5,53 @@
 
 *A “Creational Pattern” from the* :doc:`/gang-of-four/index`
 
-I’ve just ordered coffee and breakfast here at the coffee shop.
-Imagine rendering my receipt as a JSON string:
+.. admonition:: Verdict
+
+   The Abstract Factory is an awkward workaround
+   for the lack of first-class functions and classes
+   in less powerful programming languages.
+   It is a poor fit for Python,
+   where we can instead simply pass a class or a factory function
+   when a library needs to create objects on our behalf.
+
+The Python Standard Library’s ``json`` module
+is a good example of a library
+that needs to instantiate objects on behalf of its caller.
+Consider a JSON string like this one:
 
 .. testcode::
 
     text = '{"total": 9.61, "items": ["Americano", "Omelet"]}'
 
-To represent this in Python,
-the ``json`` module from the Python Standard Library
-needs to perform a bit of impedance matching
-because each datum will need to be represented
-by a native Python object.
-Its defaults are such reasonable ones
-that many users never override them —
-``unicode`` for strings like ``"Americano"``,
-``float`` for ``9.61``,
-``list`` for the sequence of items,
+By default, the ``json`` module
+will create ``unicode`` objects for strings like ``"Americano"``,
+a ``float`` for ``9.61``,
+a ``list`` for the sequence of items,
 and a ``dict`` for the main object’s keys and values,
 
-But some users aren’t content with the ``json`` module’s defaults.
+But some users aren’t content with these defaults.
 For example, an accountant would probably be unhappy
-with the ``json`` module’s choice
-to represent an exact amount like “9 dollars 61 cents”
-as the approximate floating point number 9.61.
-Even though JSON, like the JavaScript language on which it’s based,
-formally specifies that ``9.61`` represents a floating point number,
-a Python programmer would much prefer to keep dollars and cents exact
-by using a ``Decimal`` instance instead.
+with the ``json`` module’s
+representing an exact amount like “9 dollars 61 cents”
+with an approximate floating point number,
+and would prefer to use a ``Decimal`` instance instead.
 
-More broadly, this desire to have the ``json`` module use a different class
-for representing numbers
-is a specific example of a frequent problem
-in software engineering:
+This is a specific instance of a general problem:
 
 * In the course of performing its duties,
   a routine is going to need to create a number of objects
   on behalf of the caller.
 
-* While a reasonable default might exist
-  for what class to use for each object,
-  the default does not adequately cover all possible cases.
+* A reasonable default might exist
+  for which class to use for each object,
+  but the default does not cover all possible cases.
 
 * So instead of hard-coding those default classes
   and making customization impossible,
   the routine wants to let the caller specify which classes
   it will instantiate.
 
-It is easiest to understand the Abstract Factory pattern
-by approaching it in a series of steps.
-First, we’ll tackle how we would normally solve this problem in Python.
+First, we’ll look at the Pythonic approach to this problem.
 Then we’ll start placing a series of restrictions on our Python code
 to more closely model legacy object oriented languages,
 until the Abstract Factory pattern emerges
@@ -63,23 +60,22 @@ as an elegant solution within the bounds set by those limitations.
 The Pythonic approach: callable factories
 =========================================
 
-In Python, a callable —
-a routine ``f`` that can be invoked using the syntax ``f(a, b, c)``
+In Python, a “callable” —
+any routine ``f`` that can be invoked using the syntax ``f(a, b, c)``
 to run its code with the arguments listed in the parentheses —
 is a first-class object.
-This means that callables can be passed as parameters,
-can be the return value of other routines,
-and can even be stored in data structures like lists and dictionaries.
+This means that a callable can be passed as a parameter,
+returned as a return value,
+and can even be stored in a data structure
+like a list or dictionary.
 
 First-class callables offer a powerful mechanism
-for implementing object “factories”:
+for implementing object “factories” —
 a fancy term for routines that build and return new objects.
-Call the factory with arguments,
-and it builds and returns a new object.
 
 A beginning Python programmer might expect
 that each time they need to supply a factory,
-they will be responsible for writing a little function:
+they will be responsible for writing a function:
 
 .. testcode::
 
@@ -128,9 +124,9 @@ you will discover that ``load()`` is simply a wrapper
 around the ``JSONDecoder`` class.
 How is the decoder instance itself customized
 when we provide this alternative factory?
-The answer is that its init method
+The answer is that its initialization method
 stores its ``parse_float`` argument
-on the class as an instance attribute —
+on the class as an instance attribute,
 defaulting to Python’s built-in ``float`` type if no override was specified::
 
     self.parse_float = parse_float or float
