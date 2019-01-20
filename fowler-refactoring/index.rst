@@ -24,7 +24,7 @@ and then finding an incremental way forward
 that keeps the code running
 while making stepwise improvements to its organization.
 
-The :sect:`Null objects` pattern is the only one
+The :ref:`null-object` is the only one
 to which this Python Patterns site so far makes reference,
 but the book can still be recommended
 as a solid classic that has helped many readers

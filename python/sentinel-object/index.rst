@@ -55,8 +55,7 @@ This often saves a line of code and a bit of indentation:
 .. |str.index| replace:: ``str.index()``
 .. _str.index: https://docs.python.org/3/library/stdtypes.html#str.index
 
-
-.. testcode::
+::
 
    try:
        i = a.index(b)
@@ -85,7 +84,7 @@ That would have left no possibility
 of the return value being used accidentally as an index.
 
 Sentinel values are particularly common today in the Go language,
-which encourages a programming style
+whose design encourages a programming style
 that always returns strings
 instead of mere references to them —
 forcing the programmer to choose some particular string,
@@ -103,10 +102,10 @@ and the program no longer crashes
 when later code tries invoking a string method
 on what turns out to be ``None``.
 
-Null pointers
-=============
+The Null Pointer Pattern
+========================
 
-This pattern is impossible in Python,
+The null pointer pattern is impossible in Python,
 but worth mentioning to outline the difference between Python
 and languages that complicate their data model
 with ``nil`` or ``NULL`` pointers.
@@ -169,9 +168,14 @@ using only the single return value supported by C functions::
 The exception itself is stored elsewhere
 and can be retrieved using the Python C API.
 
-Null objects
-============
+.. _null-object:
 
+The Null Object Pattern
+=======================
+
+“Null objects” are real, valid objects
+that happen to represent
+a blank value or an item that does not exist.
 My attention was drawn to this pattern
 while reading the book :doc:`/fowler-refactoring/index`
 which credits Bobby Woolf for its explication.
@@ -213,8 +217,8 @@ and both kinds of code touching employee managers will benefit:
 * Code that produces simple displays or summaries
   can simply print or tally the ``NO_MANAGER`` manager object
   as though it were a normal employee object.
-  If the code can run successfully against the Null Object,
-  then the need for a special ``if`` statement disappears.
+  When code can run successfully against the Null Object,
+  the need for a special ``if`` statement disappears.
 
 * Code that does need to specially handle the case
   of an employee with no acting manager
