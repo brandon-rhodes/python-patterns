@@ -156,22 +156,6 @@ shutil.py
                      os.stat in os.supports_follow_symlinks)
 BARELY made sense
 
-sentinels   <----------- pull out into its own article?
-=========
-
-File: Lib/bz2.py
-27:1:_sentinel = object()  <--- line occurs several times
-^ token? no.
-
-Lib/functools.py
-_NOT_FOUND = object()
-val = cache.get(self.attrname, _NOT_FOUND)
-
-File: Lib/configparser.py
-357:1:_UNSET = object()
-
-only for efficiency if used in only one routine
-
 Precompiled globals
 ===================
 
