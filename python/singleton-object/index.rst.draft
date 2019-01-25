@@ -19,7 +19,7 @@ technically
 you can test for object identity
 
 even where used, discouraged: singleton *object* used instead
-we say “None” not “NoneType()”
+we say “None” not “NoneType()”  <--- wait, it's not even possible!
 
 ellipsis
 None
