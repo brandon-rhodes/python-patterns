@@ -77,13 +77,6 @@ Constants
 
 Modules often assign useful numbers, strings, and other values
 to names in their global scope.
-Sometimes the intention is for these constants to be imported and used,
-while in other cases they are solely for the convenience
-of the module’s own routines —
-in which case you might expect them to start with an underscore,
-but Python programmers seem less careful about marking values as private
-than they are about marking code.
-
 The Standard Library includes many such assignments,
 from which we can excerpt a few examples.
 
@@ -96,33 +89,93 @@ from which we can excerpt a few examples.
 
 By calling them “constants”
 we merely indicate that the objects themselves are immutable.
-If you import ``January`` from the ``calendar`` module,
+If you import ``WARNING`` from the ``logging`` module,
 the ``int`` object you receive back
-will always have the value ``1``.
+will always have the value ``30``.
 But always beware that the names themselves are not constants —
 the Python language does not protect them from reassignment.
 
->>> import calendar
->>> calendar.January = 2
->>> print(calendar.January)
-2
+>>> import logging
+>>> logging.WARNING = 32
+>>> print(logging.WARNING)
+32
 
-Constants can also be constructed from immutable containers
+Constants can also be immutable containers,
 like tuples and frozen sets::
 
   all_errors = (Error, OSError, EOFError)  # ftplib
   bytes_types = (bytes, bytearray)         # pickle
   DIGITS = frozenset("0123456789")         # sre_parse
 
-Specialized data types like dates also qualify:
+Even more specialized immutable data types also serve as constants:
 
-  _EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)  # datetime
+  # From the datetime module:
+  _EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
 
-why
+Constants are often introduced as a refactoring:
+the programmer notices that the same value ``60.0``
+is appearing repeatedly in their code,
+and so introduces a constant ``SSL_HANDSHAKE_TIMEOUT``
+for the value instead.
+Each use will now incur the slight cost of search into the global scope
+where an immediate literal value stood before,
+but this is balanced by a couple of advantages.
+The constant’s name now documents the value’s meaning,
+enhancing the code’s readability.
+And the constant’s assignment statement
+now provides a single location
+where the value can be edited in the future
+without needing to hunt through the code for each place ``60.0`` was used.
 
-first: available anywhere
+These advantages are weighty enough
+that a constant is sometimes introduced
+even for a value that’s used only once,
+hoisting a literal that was hidden deep in the code
+up into visibility as a global.
+Some programmers place constant assignments
+close to the code that use them,
+while others them all at the top of the file.
+Unless a constant is placed so close to its code
+that it will always be in view of human readers,
+it can be more friendly to put constants at the top of the module
+for the easy reference of readers
+who haven’t yet configured their editors to support jump-to-definition.
+
+Another kind of constant is not directed inwards,
+towards the code in the module itself,
+but outwards as part of the module’s advertised API.
+A constant like ``WARNING`` from the ``logging`` module
+offers the advantages of a constant to the caller:
+code will be more readable,
+and the constant’s value could be adjusted later
+without every caller needing to edit their code.
+
+You might expect that a constant intended for the module’s own use,
+but not intended for callers,
+would always start with an underscore to mark it as private —
+but Python programmers are not as consistent in marking constants private
+as they are with functions and classes.
+After all,
+the cost of needing to keep a constant around
+because a caller decided to start using it is trivial
+compared to the cost of being unable to refactor a private function.
+
+
+
+underscore
+
+Sometimes the intention is for these constants to be imported and used,
+while in other cases they are solely for the convenience
+of the module’s own routines —
+in which case you might expect them to start with an underscore,
+but Python programmers seem less careful about marking values as private
+than they are about marking code.
+
+
+outside
 
 second: advertised obvious up at top for other programmers
+but readability
 
 extreme prog might be happy to say `a = 1` locally
 but most folks just want to do the assignment once
