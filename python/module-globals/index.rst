@@ -3,8 +3,8 @@
  Global Objects
 ================
 
-*An anti-pattern in the :doc:`/gang-of-four/index`
-that Python redeems with per-module global scopes,
+*An anti-pattern in the* :doc:`/gang-of-four/index`
+*that Python redeems with per-module global scopes,
 inspired by the design of Modula-2 and Modula-3*
 
 .. admonition:: Verdict
@@ -14,7 +14,8 @@ inspired by the design of Modula-2 and Modula-3*
    and general purpose objects for other modules to import.
    This pattern was not available
    in the languages considered by the :doc:`/gang-of-four/index`,
-   which suggests the Singleton Pattern instead.
+   which instead dumped all globals into a single namespace;
+   they suggest using the Singleton Pattern instead.
 
 .. TODO Add this one I do the singleton:
    Module globals are more common in Python
@@ -26,7 +27,7 @@ inspired by the design of Modula-2 and Modula-3*
    namespace; exmaples are random and json modules
 
 Every Python module is a separate namespace.
-Thus, a module like ``json`` can offer a ``loads()`` function
+A module like ``json`` can offer a ``loads()`` function
 without conflicting with, replacing, or overwriting
 the completely different ``loads()`` function
 defined over in the ``pickle`` module.
@@ -38,11 +39,13 @@ by keeping your attention focused on the module in front of you —
 a line of code might use, or accidentally conflict with,
 a name defined anywhere else in the Standard Library
 or a third-party module you have installed.
+Upgrading a third-party module could break your entire program
+if the new version defined a new global that conflicted with yours.
 Programmers forced to code in a language without namespaces
 soon find themselves festooning names
 with prefixes, suffixes, and extra punctuation
 in a desperate race to keep names from conflicting
-with similar names defined in other files and libraries.
+with similar names in other libraries.
 
 While every function and class defined in a module is,
 technically, an object,
@@ -71,13 +74,15 @@ This article will cover some other common cases.
 
 .. underscore ForkingPickler = context.reduction.ForkingPickler
 
-Constants
-=========
+The Constants Pattern
+=====================
 
 Modules often assign useful numbers, strings, and other values
 to names in their global scope.
 The Standard Library includes many such assignments,
 from which we can excerpt a few examples.
+
+::
 
   January = 1                   # calendar.py
   WARNING = 30                  # logging.py
@@ -88,7 +93,7 @@ from which we can excerpt a few examples.
 
 They are “constants” only in the sense
 that the objects themselves are immutable.
-The names can still be reassigned.
+But the names can still be reassigned.
 
 .. testcode::
 
@@ -114,22 +119,24 @@ Or deleted, for that matter.
     AttributeError: module 'calendar' has no attribute 'January'
 
 In addition to integers, floats, and strings,
-values are also crafted from immutable containers like tuples and frozen sets::
+constants are also crafted
+from immutable containers like tuples and frozen sets::
 
   all_errors = (Error, OSError, EOFError)  # ftplib.py
   bytes_types = (bytes, bytearray)         # pickle.py
   DIGITS = frozenset("0123456789")         # sre_parse.py
 
-Even more specialized immutable data types also serve as constants:
+More specialized immutable data types also serve as constants::
 
   _EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)  # datetime
 
 On rare occasion a module global
 which the code clearly intends to never modify
 uses a mutable data structure anyway.
-Sets are common in code that pre-dates the invention of the ``frozenset``,
+Plain mutable sets
+are common in code that pre-dates the invention of the ``frozenset``,
 while dictionaries are still used today
-because, alas, no frozen dictionary exists in Python.
+because, alas, no frozen dictionary exists in the base Python language.
 
 ::
 
@@ -170,7 +177,7 @@ up into visibility as a global.
 
 Some programmers place constant assignments
 close to the code that use them,
-while others them all at the top of the file.
+while others all constants at the top of the file.
 Unless a constant is placed so close to its code
 that it will always be in view of human readers,
 it can be more friendly to put constants at the top of the module
@@ -189,15 +196,17 @@ without every caller needing to edit their code.
 You might expect that a constant intended for the module’s own use,
 but not intended for callers,
 would always start with an underscore to mark it as private.
-But the cost of needing to keep a constant around
-because a caller decided to start using it is small
-compared to the cost of having a function or class’s API forever locked up,
-so Python programmers are not as consistent in marking constants private.
+But Python programmers are not consistent in marking constants private,
+perhaps because the cost of needing to keep a constant around forever,
+because a caller might have decided to start using it,
+is small
+compared to the cost of having
+a helper function or class’s API forever locked up.
 
 Sometimes constants are introduced for efficiency,
 to avoid recomputing a value every time code is called.
 Even though math operations involving literal numbers
-are in fact pre-computed in all modern Python implementations,
+are in fact optimized away in all modern Python implementations,
 developers often still feel more comfortable
 making it explicit that the math should be done at import time
 by assignment to a module global::
@@ -206,7 +215,7 @@ by assignment to a module global::
   ZIP_FILECOUNT_LIMIT = (1 << 16) - 1
 
 When the math expression is complicated,
-assigning a name like this can also enhance the code’s readability.
+assigning a name also enhances the code’s readability.
 
 There exist special floating point values
 that cannot be written in Python as literals;
@@ -230,18 +239,19 @@ to avoid re-evaluating it each time the value is needed.
 
 My favorite example of computed constants in the Standard Library
 is the ``types`` module.
-I had always assumed it implemented in C,
+I had always assumed it was implemented in C,
 to gain special access to built-in type objects like ``FunctionType``
 and ``LambdaType`` that are defined by the language implementation itself.
 
 It turns out?
-I was wrong.
+
+I was wrong!
 
 The ``types`` module is written in plain Python.
 Without any special access to language internals,
 it does what anyone else would have to do
-to learn what type functions have.
-It creates a function. Then, it asks its type!
+to learn what type functions have:
+it creates a function, then asks its type!
 
 ::
 
@@ -277,7 +287,7 @@ are “dunder” constants whose names start and end with double underscores.
 Several dunder constants are set by the language itself.
 For the official list,
 look for the “Modules” subheading in the Python Reference’s section on
-`The standard type hierarchy <https://docs.python.org/3/reference/datamodel.html#the-standard-type-hierarchy>`_.
+`the standard type hierarchy <https://docs.python.org/3/reference/datamodel.html#the-standard-type-hierarchy>`_.
 The two encountered most often are ``__name__``,
 which programs need to check because of Python’s awful design decision
 to assign the fake name ``'__main__'``
@@ -285,9 +295,11 @@ to the module invoked from the command line,
 and ``__file__``,
 the full filesystem path to the module’s Python file itself —
 which is almost universally used to find data files included in a package,
-even though we the official recommendation these days is to use
-`pkgutil.get_data() <https://docs.python.org/3/library/pkgutil.html#pkgutil.get_data>`_
-instead.
+even though we the official recommendation these days
+is to use |pkgutil_get_data|_ instead.
+
+.. |pkgutil_get_data| replace:: ``pkgutil.get_data()``
+.. _pkgutil_get_data: https://docs.python.org/3/library/pkgutil.html#pkgutil.get_data>
 
 ::
 
@@ -331,14 +343,52 @@ about what type ``__author__`` should have.
   __author__ = ('Ka-Ping Yee <ping@lfw.org>',
                 'Yury Selivanov <yselivanov@sprymix.com>')
 
-Why not ``author`` and ``version`` instead?
-An early reader probably misread the dunders,
-which really meant “special to the Python language,”
-as indicating that a value was metadata about the module itself
-rather than a useful constant used by its code.
+Why not ``author`` and ``version`` instead, without the dunders?
+An early reader probably misunderstood dunders,
+which really meant “special to the Python language runtime,”
+as a vague indication
+that a value was module metadata rather than module code.
+A few Standard Library modules offer their version without dunders.
+But without agreeing on the capitalization.
 
-General Global Objects
-======================
+::
+
+  VERSION = "1.3.0"  # etree/ElementTree.py
+  version = "0.20"   # sax/expatreader.py
+  version = "0.9.0"  # tarfile.py
+
+To avoid the inconsistencies surrounding
+these informal and ad-hoc metadata conventions,
+a package that expects to be installed with ``pip``
+can learn the names and versions of other installed packages
+directly from the Python package installation system.
+More information is available in the |pkg_resources module|_.
+
+.. |pkg_resources module| replace:: setuptools documentation on the ``pkg_resources`` module
+.. _pkg_resources module: https://setuptools.readthedocs.io/en/latest/pkg_resources.html
+
+The Global Object Pattern
+=========================
+
+In the full-fledged Global Object pattern,
+an author is not content to have defined a useful class
+that callers can construct for themselves if they please.
+Instead, the module goes builds an instance of the class at import time
+and assigns it to name in the module’s global scope.
+
+The Constant Pattern described above
+is a special case of the Global Object,
+the difference being roughly
+that the Constant Pattern is concerned with providing nouns,
+whereas the Global Object pattern is concerned with supplying verbs —
+the object is interesting because of the operations it can perform,
+not simply for its value.
+
+The trade-offs
+
+involves adding objects  the module global
+
+verb
 
 compile re’s once
 File: Lib/glob.py

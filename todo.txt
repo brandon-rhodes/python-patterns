@@ -85,3 +85,18 @@ smaller piece of string? it’s a string too!
 'a'
 >>> type(s[4])
 <class 'str'>
+
+
+What should be at top of file; what order functions should go in.
+
+
+Mention modules that prevent import * from subordinate modules
+so the main package is where you import * its classes instead?
+Probably import * just isn’t important enough today to mention:
+  # multiprocessing/context.py
+  __all__ = ()
+
+
+Mention this someday?
+/home/brandon/cpython/Lib/_collections_abc.py
+27:__name__ = "collections.abc"
