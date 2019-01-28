@@ -222,28 +222,44 @@ modules often build such values only once as module globals.
   INFINITY = float('inf')
 
 A constant can also capture the result of a conditional
-and avoid the need to re-evaluate it each time the value is needed.
+to avoid re-evaluating it each time the value is needed.
 
 ::
 
   # shutil.py
   COPY_BUFSIZE = 1024 * 1024 if _WINDOWS else 16 * 1024
 
+My favorite example of computed constants in the Standard Library
+is the ``types`` module.
+I had always assumed it implemented in C,
+to gain special access to built-in type objects like ``FunctionType``
+and ``LambdaType`` that are defined by the language implementation itself.
 
+It turns out?
+I was wrong.
 
-“I could have done that!”
+The ``types`` module is written in plain Python.
+Without any special access to language internals,
+it does what anyone else would have to do
+to learn what type functions have.
+It creates a function. Then, it asks its type!
 
-from types.py:
-File: Lib/types.py
-12:1:FunctionType = type(_f)
-LambdaType = type(lambda: None)
-File: Lib/_collections_abc.py
-36:1:bytes_iterator = type(iter(b''))
-37:1:bytearray_iterator = type(iter(bytearray()))
-39:1:dict_keyiterator = type(iter({}.keys()))
-40:1:dict_valueiterator = type(iter({}.values()))
-41:1:dict_itemiterator = type(iter({}.items()))
-42:1:list_iterator = type(iter([]))
+::
+
+  # types.py
+  def _f(): pass
+  FunctionType = type(_f)
+
+On the one hand,
+this makes the ``types`` module seem almost superfluous —
+you could always use the same trick to discover ``FunctionType`` yourself.
+But on the other hand,
+importing it from ``types`` lets both major benefits of the constant shine:
+code becomes more readable,
+because ``FunctionType`` will have the same name everywhere;
+and more efficient,
+because the constant only needs to be computed once
+no matter how many dozen modules in a large system might use it.
 
 constant collections
 ====================
