@@ -1,21 +1,20 @@
 
 ================
- Module Globals
+ Global Objects
 ================
 
-*A “Creational Pattern” inspired by Modula-2 and Modula-3*
+*An anti-pattern in the :doc:`/gang-of-four/index`
+that Python redeems with per-module global scopes,
+inspired by the design of Modula-2 and Modula-3*
 
 .. admonition:: Verdict
 
-   The Module Global pattern is the universal mechanism
-   by which a Python module offers functions, classes, constants,
-   pre-built objects, and metadata
-   for other modules to import.
+   The Global Object pattern is the universal mechanism
+   by which each Python module offers functions, classes, constants,
+   and general purpose objects for other modules to import.
    This pattern was not available
-   in the programming languages considered by the :doc:`/gang-of-four/index`,
-   which instead offered only program-wide globals —
-   which the Gang of Four condemns as an anti-pattern
-   and recommends the Singleton Pattern instead.
+   in the languages considered by the :doc:`/gang-of-four/index`,
+   which suggests the Singleton Pattern instead.
 
 .. TODO Add this one I do the singleton:
    Module globals are more common in Python
@@ -261,28 +260,85 @@ and more efficient,
 because the constant only needs to be computed once
 no matter how many dozen modules in a large system might use it.
 
-constant collections
-====================
+.. This might be my favorite constant computation in the Standard Library.
+   Not sure it belongs in the text, though.
 
-File: Parser/asdl.py
-builtin_types = {'identifier', 'string', 'bytes', 'int', 'object', 'singleton',
+ _use_fd_functions = ({os.open, os.stat, os.unlink, os.rmdir} <=
+                      os.supports_dir_fd and
+                      os.scandir in os.supports_fd and
+                      os.stat in os.supports_follow_symlinks)
 
-File: Lib/asyncore.py
-60:1:_DISCONNECTED = frozenset({ECONNRESET, ENOTCONN, ESHUTDOWN, ECONNABORTED, EPIPE,
+Dunder Constants
+================
 
-Lib/asyncore.py
-60:1:_DISCONNECTED = frozenset({ECONNRESET, ENOTCONN, ESHUTDOWN, ECONNABORTED, EPIPE,
-^ differing levels of effort to make it constant
+A special case of constants defined at a module’s global level
+are “dunder” constants whose names start and end with double underscores.
 
-shutil.py
-585:1:_use_fd_functions = ({os.open, os.stat, os.unlink, os.rmdir} <=
-                     os.supports_dir_fd and
-                     os.scandir in os.supports_fd and
-                     os.stat in os.supports_follow_symlinks)
-BARELY made sense
+Several dunder constants are set by the language itself.
+For the official list,
+look for the “Modules” subheading in the Python Reference’s section on
+`The standard type hierarchy <https://docs.python.org/3/reference/datamodel.html#the-standard-type-hierarchy>`_.
+The two encountered most often are ``__name__``,
+which programs need to check because of Python’s awful design decision
+to assign the fake name ``'__main__'``
+to the module invoked from the command line,
+and ``__file__``,
+the full filesystem path to the module’s Python file itself —
+which is almost universally used to find data files included in a package,
+even though we the official recommendation these days is to use
+`pkgutil.get_data() <https://docs.python.org/3/library/pkgutil.html#pkgutil.get_data>`_
+instead.
 
-Precompiled globals
-===================
+::
+
+  here = os.path.dirname(__file__)
+
+Beyond the dunder constants set by the language runtime,
+there is one Python recognizes if a module chooses to set it:
+if ``__all__`` is assigned a sequence of identifiers,
+then only those names will be imported into another module
+that chooses to ``from … import *`` from the module.
+It seems to have appeared more often in the early days of Python
+when ``import *`` was popular and not yet recognized as an anti-pattern.
+
+Even though most modules never plan to modify ``__all__``,
+they inexplicably specify it as a Python list.
+It is more elegant to use a tuple.
+
+Beyond these official dunder constants,
+some modules —
+despite how many people consider dunder names unattractive —
+indulge in the creation of even more.
+Assignments to names like ``__author__`` and ``__version__``,
+are scattered across the Standard Library and beyond.
+While they don’t appear consistently enough
+that tooling can assume their presence,
+occasional readers probably find them informative,
+and they’re easier to get to than official package metadata.
+
+Beware that there does not seem to be agreement,
+even within the Standard Library,
+about what type ``__author__`` should have.
+
+::
+
+  # bz2.py
+  :__author__ = "Nadeem Vawda <nadeem.vawda@gmail.com>"
+
+::
+
+  # inspect.py
+  __author__ = ('Ka-Ping Yee <ping@lfw.org>',
+                'Yury Selivanov <yselivanov@sprymix.com>')
+
+Why not ``author`` and ``version`` instead?
+An early reader probably misread the dunders,
+which really meant “special to the Python language,”
+as indicating that a value was metadata about the module itself
+rather than a useful constant used by its code.
+
+General Global Objects
+======================
 
 compile re’s once
 File: Lib/glob.py
@@ -300,62 +356,6 @@ File: Lib/email/header.py
 File: Lib/re.py
 262:1:Pattern = type(sre_compile.compile('', 0))
 263:1:Match = type(sre_compile.compile('', 0).match(''))
-
-dunder constants
-================
-
-dunder metadata
-
-__all__
-__author__
-__version__
-_ver
-
-File: Lib/unittest/test/testmock/__init__.py
-6:1:here = os.path.dirname(__file__)
-^ is this anywhere non-test?
-
-
-File: Lib/xdrlib.py
-__all__ = ["Error", "Packer", "Unpacker", "ConversionError"]
-
-File: Lib/__future__.py
-50:1:all_feature_names = [
-63:1:__all__ = ["all_feature_names"] + all_feature_names
-128:1:print_function = _Feature((2, 6, 0, "alpha", 2),
-??
-
-not constant at all
-not only can you reassign, BUT often not even immutable data structs
-why list?
-doing tuple for all saves at least 16 bytes? and level of indirection
-File: Lib/multiprocessing/context.py
-8:1:__all__ = ()
-
-Lib/asyncio/*.py use tuple for all
-File: Lib/contextvars.py
-4:1:__all__ = ('Context', 'ContextVar', 'Token', 'copy_context')
-File: Lib/concurrent/futures/__init__.py
-20:1:__all__ = (
-
-File: Lib/tkinter/font.py
-6:1:__version__ = "0.9"
-
-File: Lib/turtle.py
-103:1:_ver = "turtle 1.1b- - for Python 3.1   -  4. 5. 2009"
-
-but should it be tuple or string?
-
-File: Lib/bz2.py
-10:1:__author__ = "Nadeem Vawda <nadeem.vawda@gmail.com>"
-
-__author__ = ("Guido van Rossum <guido@python.org>, "
-
-/home/brandon/cpython/Lib/_collections_abc.py
-27:__name__ = "collections.abc"
-
-mutable globals
-===============
 
 everything is an object BUT I MEAN:
 

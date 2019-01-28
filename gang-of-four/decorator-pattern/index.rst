@@ -181,7 +181,7 @@ It tackled the Python file object as a general example
 of a class that needed to be wrapped,
 instead of studying the how file objects work to look for shortcuts:
 
-* File objects are implemented in the C language and do not,
+* File objects are implemented in the C language and don’t,
   in fact, permit deletion of any of their attributes.
   So our wrapper could have omitted all 6 deleter methods
   without any consequence, since the default behavior of a property
@@ -402,7 +402,7 @@ and the decorator object you have in fact given it instead.
 Well-written application code would never do such things, of course —
 they are necessary only when implementing a developer tool
 like a framework, test harness, or debugger.
-But as you do not always have the option
+But as you don’t always have the option
 of dealing solely with well-written libraries,
 be prepared to see and work around
 any symptoms of intrusive introspection
