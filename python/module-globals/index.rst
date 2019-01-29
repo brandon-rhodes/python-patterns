@@ -259,6 +259,12 @@ it creates a function, then asks its type!
   def _f(): pass
   FunctionType = type(_f)
 
+.. amazingly, the “re” module also has to learn its own types empirically!
+
+   Lib/re.py
+   Pattern = type(sre_compile.compile('', 0))
+   Match = type(sre_compile.compile('', 0).match(''))
+
 On the one hand,
 this makes the ``types`` module seem almost superfluous —
 you could always use the same trick to discover ``FunctionType`` yourself.
@@ -371,18 +377,81 @@ The Global Object Pattern
 =========================
 
 In the full-fledged Global Object pattern,
-an author is not content to have defined a useful class
-that callers can construct for themselves if they please.
-Instead, the module goes builds an instance of the class at import time
+a module is not content to define a useful class
+for callers to construct themselves if they please.
+Instead, the module goes ahead
+and builds an instance of the class, right import time,
 and assigns it to name in the module’s global scope.
 
 The Constant Pattern described above
 is a special case of the Global Object,
-the difference being roughly
+with the difference
 that the Constant Pattern is concerned with providing nouns,
-whereas the Global Object pattern is concerned with supplying verbs —
-the object is interesting because of the operations it can perform,
-not simply for its value.
+whereas the Global Object pattern is concerned with supplying verbs.
+Constants can be referenced to provide useful values;
+Global Objects can be called upon to perform useful actions.
+
+The simplest Global Objects are immutable.
+A common example is a compiled regular expression —
+here are a few Standard Library examples::
+
+  escapesre = re.compile(r'[\\"]')       # email/utils.py
+  magic_check = re.compile('([*?[])')    # glob.py
+  commentclose = re.compile(r'--\s*>')   # html/parser.py
+  HAS_UTF8 = re.compile(b'[\x80-\xff]')  # json/encoder.py
+
+This achieves an elegant and safe transfer of expense.
+The tradeoffs are:
+
+* The import time for the module increases
+  by the cost of compiling the regular expression
+  (plus the tiny cost of assigning it to a global name).
+
+* The import time cost
+  is now borne by every program that imports the module.
+  Even if only a fraction of the programs that import ``json``
+  invoke the particular JSON code that uses the regular expression,
+  they all pay for the cost of compiling it to a ``Pattern``.
+  (Plot twist: in Python 3, the pattern is no longer used in the code!
+  But its name is not marked private with a leading underscore,
+  so I suppose it was not safe to remove —
+  so every ``import json`` now gets to pay its cost forever?)
+
+* But functions and methods that do, in fact,
+  need to use the regular expression
+  will no longer incur a repeated cost its compilation:
+  the ``Pattern`` will be ready to start scanning a string immediately!
+  If the pattern is used frequently,
+  especially in inner loops during costly operations like parsing,
+  the savings can be considerable.
+  (In return, the calling code does pay a tiny additional cost
+  to reference a global where previously it referenced a local.)
+
+* The global name will make calling code more readable
+  than if the regular expression, when used locally,
+  is used anonymously in a larger expression.
+  (If readability is the only concern, though,
+  remember that you can define the regular expression’s string as a global
+  but skip the cost of compiling it at module level.)
+
+This list of tradeoffs is about the same, by the way,
+if you move a regular expression to a class attribute
+instead of moving it all the way out to a Global Object.
+When I finally get around to writing about Python and classes,
+I’ll link from here to further thoughts on class attributes.
+
+
+
+could do this with class attribute
+
+.. TODO talk sometime about Global Objects vs class attributes
+
+The ``Pattern`` object returned by ``re.compile()``
+
+
+
+It contains frozen inner state
+that let its methods perform 
 
 The trade-offs
 
@@ -391,21 +460,14 @@ involves adding objects  the module global
 verb
 
 compile re’s once
-File: Lib/glob.py
-142:1:magic_check = re.compile('([*?[])')
 
-File: Lib/email/policy.py
-23:1:linesep_splitter = re.compile(r'\n|\r')
+
 
 File: Lib/signal.py
 6:1:_globals = globals()
 
 File: Lib/email/header.py
 31:1:USASCII = Charset('us-ascii')
-
-File: Lib/re.py
-262:1:Pattern = type(sre_compile.compile('', 0))
-263:1:Match = type(sre_compile.compile('', 0).match(''))
 
 everything is an object BUT I MEAN:
 
