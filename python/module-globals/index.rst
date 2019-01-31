@@ -377,55 +377,50 @@ The Global Object Pattern
 =========================
 
 In the full-fledged Global Object pattern,
-a module is not content to define a useful class
-for callers to construct themselves if they please.
-Instead, the module goes ahead
-and builds an instance of the class, right import time,
-and assigns it to name in the module’s global scope.
-
-The Constant Pattern described above
-is a special case of the Global Object,
-with the difference
-that the Constant Pattern is concerned with providing nouns,
-whereas the Global Object pattern is concerned with supplying verbs.
-Constants can be referenced to provide useful values;
-Global Objects can be called upon to perform useful actions.
+as in the Constant pattern,
+a module instantiates an object at import time
+and assigns it a name at the module’s global scope.
+But the object does not simply serve as data;
+it is not merely an integer, string, or data structure.
+Instead, the object is made available
+for the sake of the methods it offers — to offers actions, verbs.
 
 The simplest Global Objects are immutable.
 A common example is a compiled regular expression —
-here are a few Standard Library examples::
+here are a few examples from the Standard Library::
 
   escapesre = re.compile(r'[\\"]')       # email/utils.py
   magic_check = re.compile('([*?[])')    # glob.py
   commentclose = re.compile(r'--\s*>')   # html/parser.py
   HAS_UTF8 = re.compile(b'[\x80-\xff]')  # json/encoder.py
 
-This achieves an elegant and safe transfer of expense.
+Compiling a regular expression as a module global
+achieves an elegant and safe transfer of expense
+from later in a program’s runtime to import time instead.
 The tradeoffs are:
 
-* The import time for the module increases
+* The cost of importing the module increases
   by the cost of compiling the regular expression
   (plus the tiny cost of assigning it to a global name).
 
-* The import time cost
-  is now borne by every program that imports the module.
-  Even if only a fraction of the programs that import ``json``
-  invoke the particular JSON code that uses the regular expression,
-  they all pay for the cost of compiling it to a ``Pattern``.
-  (Plot twist: in Python 3, the pattern is no longer used in the code!
+* The import-time cost is now borne by every program that imports the module.
+  Even if a program doesn’t happen to call any code
+  that uses the ``HAS_UTF8`` regular expression,
+  it will incur the expense of compiling it
+  whenever it imports the ``json`` module.
+  (Plot twist: in Python 3, the pattern is no longer used in the module!
   But its name is not marked private with a leading underscore,
-  so I suppose it was not safe to remove —
+  so I suppose it’s not safe to remove —
   so every ``import json`` now gets to pay its cost forever?)
 
 * But functions and methods that do, in fact,
   need to use the regular expression
-  will no longer incur a repeated cost its compilation:
-  the ``Pattern`` will be ready to start scanning a string immediately!
-  If the pattern is used frequently,
-  especially in inner loops during costly operations like parsing,
+  will no longer incur a repeated cost for its compilation:
+  the compiled regular expression
+  is be ready to start scanning a string immediately!
+  If the regular expression is used frequently,
+  like in the inner loop of a costly operation like parsing,
   the savings can be considerable.
-  (In return, the calling code does pay a tiny additional cost
-  to reference a global where previously it referenced a local.)
 
 * The global name will make calling code more readable
   than if the regular expression, when used locally,
@@ -435,83 +430,78 @@ The tradeoffs are:
   but skip the cost of compiling it at module level.)
 
 This list of tradeoffs is about the same, by the way,
-if you move a regular expression to a class attribute
+if you move a regular expression out into a class attribute
 instead of moving it all the way out to a Global Object.
 When I finally get around to writing about Python and classes,
 I’ll link from here to further thoughts on class attributes.
 
-
-
-could do this with class attribute
-
 .. TODO talk sometime about Global Objects vs class attributes
 
-The ``Pattern`` object returned by ``re.compile()``
+but can also be mutable
+point of coordination
+problem
 
-
-
-It contains frozen inner state
-that let its methods perform 
-
-The trade-offs
-
-involves adding objects  the module global
-
-verb
-
-compile re’s once
-
-
-
-File: Lib/signal.py
-6:1:_globals = globals()
-
-File: Lib/email/header.py
-31:1:USASCII = Charset('us-ascii')
-
-everything is an object BUT I MEAN:
-
-Pattern - “singleton” object
-
-File: Lib/os.py
-759:1:environ = _createenviron()
-
-217:1:default = EmailPolicy()
-^ useful objects
-
-File: Lib/logging/__init__.py
-641:1:_defaultFormatter = Formatter()
-1156:1:_defaultLastResort = _StderrHandler(WARNING)
-1834:1:root = RootLogger(WARNING)
-
-Pattern - dispatch
-
-File: Lib/copyreg.py
-10:1:dispatch_table = {}
-^ global mutable registry
-
-don’t do I/O at top level to create object
-if you really need to have a separate init or setup routine for it
+example: when system imposes uniqueness
+when keeping track of unique external resources
 
 private globals - somewhat different from ones that we want to share
 File: Lib/multiprocessing/process.py
 363:1:_current_process = _MainProcess()
 364:1:_process_counter = itertools.count(1)
 
-File: Lib/pydoc.py
-1626:1:text = TextDoc()
-1627:1:plaintext = _PlainTextDoc()
-1628:1:html = HTMLDoc()
-2101:1:help = Helper()
+File: Lib/os.py
+759:1:environ = _createenviron()
 
-sometimes almost to make up for the lack of builtins
+mention singleton?
 
-File: Lib/smtpd.py
-106:1:DEBUGSTREAM = Devnull()
-^ where messages are sent by default; you can replace with NOT:
-class Devnull:
-    def write(self, msg): pass
-    def flush(self): pass
+File: Lib/logging/__init__.py
+641:1:_defaultFormatter = Formatter()
+1156:1:_defaultLastResort = _StderrHandler(WARNING)
+1834:1:root = RootLogger(WARNING)
 
-/home/brandon/cpython/Lib/turtledemo/turtle.cfg
-8:fillcolor = ""
+problems
+
+impossible to have 2 callers see different globals
+unless you intercept calls and inspect stack
+
+do you need this? might be lack of Clean Architecture.
+
+don’t do I/O at top level to create object
+if you really need to have a separate init or setup routine for it
+lazy instantiation or lazy calls
+or have them call something first to be less magic
+
+
+
+
+
+.. Some other examples
+
+   File: Lib/signal.py
+   6:1:_globals = globals()
+
+   File: Lib/email/header.py
+   31:1:USASCII = Charset('us-ascii')
+
+   217:1:default = EmailPolicy()
+   ^ useful objects
+
+   File: Lib/copyreg.py
+   10:1:dispatch_table = {}
+   ^ global mutable registry
+
+   File: Lib/pydoc.py
+   1626:1:text = TextDoc()
+   1627:1:plaintext = _PlainTextDoc()
+   1628:1:html = HTMLDoc()
+   2101:1:help = Helper()
+
+   File: Lib/smtpd.py
+   106:1:DEBUGSTREAM = Devnull()
+   ^ where messages are sent by default; you can replace with NOT:
+   class Devnull:
+       def write(self, msg): pass
+       def flush(self): pass
+
+   /home/brandon/cpython/Lib/turtledemo/turtle.cfg
+   8:fillcolor = ""
