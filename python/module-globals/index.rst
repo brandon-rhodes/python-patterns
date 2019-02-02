@@ -383,7 +383,7 @@ and assigns it a name at the module’s global scope.
 But the object does not simply serve as data;
 it is not merely an integer, string, or data structure.
 Instead, the object is made available
-for the sake of the methods it offers — to offers actions, verbs.
+for the sake of the methods it offers — for the actions it can perform.
 
 The simplest Global Objects are immutable.
 A common example is a compiled regular expression —
@@ -408,10 +408,10 @@ The tradeoffs are:
   that uses the ``HAS_UTF8`` regular expression,
   it will incur the expense of compiling it
   whenever it imports the ``json`` module.
-  (Plot twist: in Python 3, the pattern is no longer used in the module!
-  But its name is not marked private with a leading underscore,
+  (Plot twist: in Python 3, the pattern is no longer even used in the module!
+  But its name was not marked private with a leading underscore,
   so I suppose it’s not safe to remove —
-  so every ``import json`` now gets to pay its cost forever?)
+  and every ``import json`` now gets to pay its cost forever?)
 
 * But functions and methods that do, in fact,
   need to use the regular expression
@@ -431,15 +431,32 @@ The tradeoffs are:
 
 This list of tradeoffs is about the same, by the way,
 if you move a regular expression out into a class attribute
-instead of moving it all the way out to a Global Object.
+instead of moving it all the way out to the global scope.
 When I finally get around to writing about Python and classes,
 I’ll link from here to further thoughts on class attributes.
 
 .. TODO talk sometime about Global Objects vs class attributes
 
+Mutable Global Objects
+======================
+
+But what about Global Objects that are mutable?
+
+It is usually best to avoid them.
+
+because they create coupling
+
+
+
 but can also be mutable
 point of coordination
-problem
+
+“singleton”
+
+cost
+testing
+can only have one of them
+
 
 example: when system imposes uniqueness
 when keeping track of unique external resources
@@ -451,8 +468,6 @@ File: Lib/multiprocessing/process.py
 
 File: Lib/os.py
 759:1:environ = _createenviron()
-
-mention singleton?
 
 File: Lib/logging/__init__.py
 641:1:_defaultFormatter = Formatter()
@@ -471,6 +486,48 @@ if you really need to have a separate init or setup routine for it
 lazy instantiation or lazy calls
 or have them call something first to be less magic
 
+
+
+
+Import-time I/O
+===============
+
+The worst Global Objects are those
+that perform file or network I/O at import time.
+They not only impose the cost of that I/O
+on every library, script, and test that need the module,
+but expose them to failure if a file or network is not available.
+
+Module authors have an unfortunate tendency to make assumptions like
+“the file ``/etc/hosts`` will always exist”
+when they in fact cannot even imagine the environments
+their code will one day face —
+maybe an embedded system that in fact lacks that file;
+maybe a continuous integration environment
+spinning up containers that lack any network configuration at all.
+
+Even when faced with this possibility,
+a module author might still try to defend their import-time I/O:
+“But delaying the I/O until after import time
+simply postpones the inevitable —
+if the system doesn’t have ``/etc/hosts``
+then the user will get exactly the same exception anyway
+when they try using my library later.”
+The attempt to make this excuse reveals three misunderstandings:
+
+1. Errors at import time are far more serious than errors at runtime.
+   Remember that at the moment your package is imported,
+   the program’s main routine has probably not even started running —
+   the caller is still up in the middle of the stack of ``import`` statements
+   at the top of their file.
+   They have probably not yet set up logging and,
+
+
+2. some operations
+
+3. might not be
+
+.. TODO do lazy mechanisms deserve their own page?
 
 
 
