@@ -444,6 +444,9 @@ But what about Global Objects that are mutable?
 
 It is usually best to avoid them.
 
+
+urllib3 connection pool
+
 because they create coupling
 
 
@@ -492,7 +495,7 @@ or have them call something first to be less magic
 Import-time I/O
 ===============
 
-The worst Global Objects are those
+Many of the worst Global Objects are those
 that perform file or network I/O at import time.
 They not only impose the cost of that I/O
 on every library, script, and test that need the module,
@@ -502,35 +505,61 @@ Module authors have an unfortunate tendency to make assumptions like
 “the file ``/etc/hosts`` will always exist”
 when they in fact cannot even imagine the environments
 their code will one day face —
-maybe an embedded system that in fact lacks that file;
+maybe a tiny embedded system that in fact lacks that file;
 maybe a continuous integration environment
 spinning up containers that lack any network configuration at all.
 
 Even when faced with this possibility,
-a module author might still try to defend their import-time I/O:
+a module author might still try to defend their import-time I/O.
 “But delaying the I/O until after import time
 simply postpones the inevitable —
 if the system doesn’t have ``/etc/hosts``
-then the user will get exactly the same exception anyway
-when they try using my library later.”
+then the user will get exactly the same exception later.”
 The attempt to make this excuse reveals three misunderstandings:
 
 1. Errors at import time are far more serious than errors at runtime.
    Remember that at the moment your package is imported,
    the program’s main routine has probably not even started running —
-   the caller is still up in the middle of the stack of ``import`` statements
-   at the top of their file.
-   They have probably not yet set up logging and,
+   the caller is usually still up in the middle
+   of the stack of ``import`` statements at the top of their file.
+   They have probably not yet set up logging
+   and have not yet entered their application’s main ``try…except``
+   block that catches and reports failures,
+   so any errors during import
+   will probably print directly to the standard output
+   instead of getting properly reported.
 
+2. Applications are often written
+   to survive the failure of some operations
+   so that in an emergency they can still perform other functions.
+   Even if features that need your library will now hit an exception,
+   the application might have others it can continue to offer —
+   which will be impossible if you instead throw the I/O error at import time.
 
-2. some operations
+3. Finally, library authors need to keep in mind
+   that a Python program that imports their library
+   might not even use it!
+   Never assume that simply because your code has been imported,
+   it will be used —
+   there are many situations where a module gets imported incidentally,
+   as the dependency of yet further modules,
+   to support code paths that don’t wind up using
+   all of the modules that have been imported.
+   By performing I/O at import time,
+   you could be adding expense and risk to hundreds of programs and tests
+   that don’t even need or care about your network port,
+   connection pool, or open file.
 
-3. might not be
+For all of these reasons,
+it is best for your global objects
+to wait until they’re first called
+before opening files and creating sockets —
+because it’s at the moment of that first call
+that the library knows the main program is now up and running,
+and knows that its services are in fact definitely needed
+in this particular run of this program.
 
 .. TODO do lazy mechanisms deserve their own page?
-
-
-
 
 .. Some other examples
 
