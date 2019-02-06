@@ -110,7 +110,7 @@ Or deleted, for that matter.
 
 .. testcode::
 
-   calendar.January = 7
+   del calendar.January
    print(calendar.January)
 
 .. testoutput::
@@ -467,34 +467,33 @@ by a correspondingly global Python object::
 Through this global object,
 the various routines, and perhaps threads, in your program
 coordinate their access to and updates of this process-wide resource.
-A change made by one part of your program::
+A change made by one part of your program:
 
 .. testcode::
 
+    import os
     os.environ['TERM'] = 'xterm'
 
-.. testoutput::
-
-    7
-
 — will be immediately visible to other parts of your program
-that read that environment key::
+that read that environment key:
 
 .. testcode::
 
-    print('hi')
     print(os.environ['TERM'])
 
 .. testoutput::
 
-    7
-
-.. testoutput::
-
-    'xterm'
+    xterm
 
 but can also be mutable
 point of coordination
+
+problems:
+can’t test
+tests can share state by accident
+tests have to coordinate access
+can’t rely
+have to use locks
 
 “singleton”
 
