@@ -18,6 +18,7 @@ inspired by the design of Modula-2 and Modula-3*
    they suggest using the Singleton Pattern instead.
 
 .. TODO Add this one I do the singleton:
+   These are sometimes called “singletons.”
    Module globals are more common in Python
    than the Gang of Four’s :doc:`gang-of-four/singleton`,
    which was a trick to avoid creating any more global names than necessary
@@ -109,14 +110,14 @@ Or deleted, for that matter.
 
 .. testcode::
 
-   del calendar.January
+   calendar.January = 7
    print(calendar.January)
 
 .. testoutput::
 
-    Traceback (most recent call last):
-      ..
-    AttributeError: module 'calendar' has no attribute 'January'
+   Traceback (most recent call last):
+     ...
+   AttributeError: module 'calendar' has no attribute 'January'
 
 In addition to integers, floats, and strings,
 constants are also crafted
@@ -405,13 +406,13 @@ The tradeoffs are:
 
 * The import-time cost is now borne by every program that imports the module.
   Even if a program doesn’t happen to call any code
-  that uses the ``HAS_UTF8`` regular expression,
+  that uses the ``HAS_UTF8`` regular expression shown above,
   it will incur the expense of compiling it
   whenever it imports the ``json`` module.
   (Plot twist: in Python 3, the pattern is no longer even used in the module!
   But its name was not marked private with a leading underscore,
   so I suppose it’s not safe to remove —
-  and every ``import json`` now gets to pay its cost forever?)
+  and every ``import json`` gets to pay its cost forever?)
 
 * But functions and methods that do, in fact,
   need to use the regular expression
@@ -437,24 +438,67 @@ I’ll link from here to further thoughts on class attributes.
 
 .. TODO talk sometime about Global Objects vs class attributes
 
-Mutable Global Objects
-======================
+Global Objects that are mutable
+===============================
 
 But what about Global Objects that are mutable?
 
-It is usually best to avoid them.
+They are easiest to justify when they wrap system resources
+that are by their natural also global to your program and unique.
+One example in the Standard Library itself is the ``environ`` object
+that shows your Python program the
+`“environment” <https://docs.python.org/3/library/os.html#os.environ>`_ —
+the text key-values supplying your timezone, terminal type, so forth —
+that were passed to your Python program from its parent process.
 
+Now,
+it is arguable whether your program
+should really be writing new values into the environment as it runs,
+instead of passing those new values directly when launching new processes
+through the ``env`` parameter of whatever ``subprocess`` routine it’s calling.
+But if your program does need to manipulate this global resource
+shared by all the threads in your process,
+then it makes sense for that access to be mediated
+by a correspondingly global Python object::
 
-urllib3 connection pool
+    # os.py
+    environ = _createenviron()
 
-because they create coupling
+Through this global object,
+the various routines, and perhaps threads, in your program
+coordinate their access to and updates of this process-wide resource.
+A change made by one part of your program::
 
+.. testcode::
 
+    os.environ['TERM'] = 'xterm'
+
+.. testoutput::
+
+    7
+
+— will be immediately visible to other parts of your program
+that read that environment key::
+
+.. testcode::
+
+    print('hi')
+    print(os.environ['TERM'])
+
+.. testoutput::
+
+    7
+
+.. testoutput::
+
+    'xterm'
 
 but can also be mutable
 point of coordination
 
 “singleton”
+
+.. TODO link this to the Singleton when I write it, and link back here
 
 cost
 testing
@@ -468,9 +512,6 @@ private globals - somewhat different from ones that we want to share
 File: Lib/multiprocessing/process.py
 363:1:_current_process = _MainProcess()
 364:1:_process_counter = itertools.count(1)
-
-File: Lib/os.py
-759:1:environ = _createenviron()
 
 File: Lib/logging/__init__.py
 641:1:_defaultFormatter = Formatter()
@@ -489,6 +530,7 @@ if you really need to have a separate init or setup routine for it
 lazy instantiation or lazy calls
 or have them call something first to be less magic
 
+because they create coupling
 
 
 
