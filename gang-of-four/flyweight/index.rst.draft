@@ -1,5 +1,51 @@
 
+===================
+ Flyweight Pattern
+===================
+
+*A “Structural Pattern” from the* :doc:`/gang-of-four/index`
+
+.. admonition:: Verdict
+
+   Flyweight objects are crucial to Python’s design.
+   In a language where “everything is an object” —
+   where even integers, characters, and Boolean values
+   are represented by full-fledged objects —
+   it is common for classes to build popular values ahead of time.
+   Most famously,
+   no matter how many times the ``bool()`` constructor is called
+   it always returns one of the two objects ``True`` or ``False``;
+   new ``bool()`` objects are always
+   
+
+   
+   
+   a separate object every integer and floating point value
+   
+   When everything is an object,
+   
+
+.. contents:: Contents:
+   :backlinks: none
 
 A flyweight object (... “that is returned by constructor”?)
 
+None?
+
+>>> type(NotImplemented)()
+NotImplemented
+
+The Flyweight pattern is usually only appropriate
+for classes whose instances are immutable;
+if an instance’s value could be updated later
+
+definition: pool of immutable objects
+
+confused with “singleton”
+
+
+
+
+
+weakref.WeakValueDictionary
 

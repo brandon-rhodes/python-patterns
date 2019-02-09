@@ -1,0 +1,36 @@
+
+===================
+ Singleton Pattern
+===================
+
+*A “Creational Pattern” from the* :doc:`/gang-of-four/index`
+
+.. admonition:: Verdict
+
+   Code that needs repeated access to a single unique object
+   should consider simply instantiating the object
+   and passing it to each routine that needs it.
+   It is always a compromise
+
+   avoid side effects
+   It is best to avoid the Singleton pattern in Python
+   #can be accomplished more simply in Python
+   and instead provide a module global
+   
+   by providing a 
+   The Singleton pattern subverts the usual semantics class invocation
+   by returning the same object instance each time the class is called.
+   It is an awkward attempt to disguise the use of a global
+   
+
+.. contents:: Contents:
+   :backlinks: none
+
+The Builder pattern has a most interesting history.
+Its primary intent,
+
+if someone does a singleton
+just subclass
+
+
+Modules are singletons!
