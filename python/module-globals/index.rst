@@ -465,73 +465,121 @@ by a correspondingly global Python object::
     environ = _createenviron()
 
 Through this global object,
-the various routines, and perhaps threads, in your program
-coordinate their access to and updates of this process-wide resource.
-A change made by one part of your program:
+the various routines, and perhaps threads, in a Python program
+coordinate their access to this process-wide resource.
+Any change:
 
 .. testcode::
 
     import os
     os.environ['TERM'] = 'xterm'
 
-— will be immediately visible to other parts of your program
-that read that environment key:
+— will be immediately visible to any other part of the program
+that reads that environment key:
 
 .. testcode::
 
-    print(os.environ['TERM'])
+    os.environ['TERM']
 
 .. testoutput::
 
-    xterm
+    'xterm'
 
-but can also be mutable
-point of coordination
+The problems with coupling distant parts of your codebase,
+even unrelated parts of different libraries,
+through a unique global object are well known.
 
-problems:
-can’t test
-tests can share state by accident
-tests have to coordinate access
-can’t rely
-have to use locks
+* Tests that were previously independent
+  are suddenly coupled through the global object
+  and can no longer safely be run in parallel.
+  If one test sets ``environ['PATH']``
+  just before another test launches a binary with ``subprocess``,
+  the binary will inherit the test value of ``$PATH`` —
+  possibly causing an error.
 
-“singleton”
+* You can sometimes serialize access to the global object through a lock.
+  But unless you do a thorough scan
+  of all of the modules your code imports,
+  and continue to review them when upgrading to new versions,
+  it can be very difficult to even know which tests
+  touch a particular global object like ``environ``.
+
+* Even tests run serially, not in parallel, will now wind up coupled
+  if one test fails to restore ``environ`` to its original state
+  before the next test runs.
+  This can, it’s true, be mitigated with teardown routines
+  or with mocks that automatically restore state.
+  But unless every single test is perfectly cautious,
+  your test suite can still suffer from exceptions
+  that depend on random test ordering
+  or on whether a test succeeded or exited early.
+
+* These dangers beset not only tests but production runs as well.
+  Even if your application does not launch multiple threads
+  and embrace all of the special dangers of parallel execution,
+  there can be surprising cases
+  where a refactoring winds up calling code
+  that performs one operation on ``environ``
+  right in the middle of another routine
+  that was also in the middle of transforming its state.
+
+Even in the Standard Library,
+the Mutable Global pattern is not limited to ``environ`` —
+both public globals and private ones litter its modules.
+Some correspond to unique resources at the system level::
+
+    #: Lib/multiprocessing/process.py
+    :_current_process = _MainProcess()
+    :_process_counter = itertools.count(1)
+
+Others correspond to no outside resource
+but instead serve as single points of coordination
+for a process-wide activity like logging::
+
+    # Lib/logging/__init__.py
+    root = RootLogger(WARNING)
+
+Third-party libraries can supply dozens of more examples,
+from global HTTP thread pools and database connections
+to objects that accumulate the details of elaborate diagrams.
+But in every case,
+the Mutable Global courts all of the dangers listed above
+in return for the convenience
+of putting a resource where every module can reach it.
+
+My advice, to the extent that you can,
+is to write code that accepts arguments
+and returns values computed from them.
+Failing that, try passing database connections or open sockets
+to code that will need to interact with the outside world.
+It is a compromise
+for code that finds itself stranded from the resources it needs
+to resort to accessing a global.
+
+The glory of Python, of course,
+is that it usually makes even anti-patterns and compromises
+read fairly elegantly in code.
+An assignment statement at the global level of a module
+is as easy to write and read as any other assignment statement,
+with the slight complication that it will run
+before any of the functions or classes below it have been defined;
+and callers can access the Mutable Global
+through exactly the same import statement
+they use for functions and classes.
+
+By re-using its standard assignment and import syntaxes for global objects,
+Python keeps language complexity in this case to an absolute minimum
+so that you can focus on being careful in how you deploy and use
+the Global Module pattern.
 
 .. TODO link this to the Singleton when I write it, and link back here
 
-cost
-testing
-can only have one of them
+.. TODO link to the Clean Architecture once I have examples of avoiding globals
 
-
-example: when system imposes uniqueness
-when keeping track of unique external resources
-
-private globals - somewhat different from ones that we want to share
-File: Lib/multiprocessing/process.py
-363:1:_current_process = _MainProcess()
-364:1:_process_counter = itertools.count(1)
-
-File: Lib/logging/__init__.py
-641:1:_defaultFormatter = Formatter()
-1156:1:_defaultLastResort = _StderrHandler(WARNING)
-1834:1:root = RootLogger(WARNING)
-
-problems
-
-impossible to have 2 callers see different globals
-unless you intercept calls and inspect stack
-
-do you need this? might be lack of Clean Architecture.
-
-don’t do I/O at top level to create object
-if you really need to have a separate init or setup routine for it
-lazy instantiation or lazy calls
-or have them call something first to be less magic
-
-because they create coupling
-
-
+   don’t do I/O at top level to create object
+   if you really need to have a separate init or setup routine for it
+   lazy instantiation or lazy calls
+   or have them call something first to be less magic
 
 Import-time I/O
 ===============
