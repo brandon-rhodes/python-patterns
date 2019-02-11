@@ -197,7 +197,7 @@ To rescue my example in case anyone decides to press the point,
 I can ask for a reference to the plot
 and ask the plot itself to save a rendered image to a file.
 
-.. testcode::
+::
 
    plt.plot(x, np.sin(x))
    sine_figure = plt.gcf()  # “gcf” = “get current figure”
