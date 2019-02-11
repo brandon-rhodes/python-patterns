@@ -37,6 +37,7 @@ Python-Specific Patterns
 .. toctree::
    :maxdepth: 2
 
+   python/module-globals/index
    python/prebound-methods/index
    python/sentinel-object/index
 

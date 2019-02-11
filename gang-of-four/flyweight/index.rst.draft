@@ -25,8 +25,11 @@
    When everything is an object,
    
 
-.. contents:: Contents:
-   :backlinks: none
+.. TODO mention that this is confused with “singleton” once the
+   Disambiguation section is written
+
+
+
 
 A flyweight object (... “that is returned by constructor”?)
 
@@ -41,11 +44,23 @@ if an instance’s value could be updated later
 
 definition: pool of immutable objects
 
-confused with “singleton”
-
-
-
+intern()
 
 
 weakref.WeakValueDictionary
+
+"State that a flyweight needs to function must be characterized as
+either intrinsic or extrinsic. Intrinsic state is stored in the
+ConcreteFlyweight object; extrinsic state is stored or computed by
+Client objects. Clients pass this state to the flyweight when they
+invoke its operations."
+
+but they don't use constructor
+
+int, str, bool
+
+lazy vs ahead of time
+
+outside of stdlib?
+
 
