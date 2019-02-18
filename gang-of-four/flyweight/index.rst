@@ -20,6 +20,11 @@ Each time you ask for the same string,
 exactly the same object is returned —
 it keeps only one copy of each string object in memory.
 
+Let’s compute the string ``'python'`` two different ways
+(to make it likely that any given Python implementation
+will really give us two different strings)
+and pass them to the intern function:
+
 .. |intern| replace:: ``intern()``
 .. _intern: https://docs.python.org/3/library/sys.html#sys.intern
 
@@ -27,7 +32,7 @@ it keeps only one copy of each string object in memory.
 .. _sys: https://docs.python.org/3/library/sys.html
 
 >>> from sys import intern  # not necessary in Python 2
->>> a = intern('Python'.lower())
+>>> a = intern('py' + 'thon')
 >>> b = intern('PYTHON'.lower())
 >>> a
 'python'
@@ -91,10 +96,57 @@ had considerably simpler code.
 Factory or Constructor
 ======================
 
-The Gang of Four 
-  The Gang of Four  “extrinsic” state
+The Gang of Four only imagined using a factory function like |intern|
+for managing a collection of flyweights,
+but Python often moves the logic into a class’s constructor instead.
 
+The simplest example in Python is the ``bool`` type.
+It has exactly two instances.
+While they can be accessed
+through their builtin names ``True`` and ``False``,
+they are also returned by their class
+when it is passed an object to test for truthiness or falsehood.
 
+>>> bool(0)
+False
+>>> bool('')
+False
+>>> bool(12)
+True
+
+As an implementation detail,
+the default C language version of Python
+also treats the integers −5 through 256 as flyweights:
+those integers are created ahead of time as the interpreter launches,
+and are always reused when an integer with one of those values is needed.
+Computing any other integer value
+results in a unique object from each computation.
+
+>>> 1 + 4 is 2 + 3
+True
+>>> 100 + 400 is 200 + 300
+False
+
+There are a few other flyweights hiding in the Standard Library
+for very common immutable objects,
+like the empty string and the empty tuple.
+
+>>> str() is ''
+True
+>>> tuple([]) is ()
+True
+
+But remember that not every object pre-built by the interpreter
+qualifies as a flyweight.
+The ``None`` object, for example, does not qualify:
+it’s the only instance of ``NoneType``,
+but the Flyweight Pattern
+requires there to be a collection of objects.
+
+Dynamic Flyweights
+==================
+
+Some Flyweight systems 
 
 
 Usually I write my own introduction to each design pattern,
@@ -189,9 +241,6 @@ height width x y    vs   x y  ->   height width
 A flyweight object (... “that is returned by constructor”?)
 
 None?
-
->>> type(NotImplemented)()
-NotImplemented
 
 The Flyweight pattern is usually only appropriate
 for classes whose instances are immutable;

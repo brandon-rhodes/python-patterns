@@ -32,5 +32,8 @@ Its primary intent,
 if someone does a singleton
 just subclass
 
+>>> type(NotImplemented)()
+NotImplemented
+
 
 Modules are singletons!
