@@ -60,6 +60,7 @@ Structural Patterns
 
    gang-of-four/composite/index
    gang-of-four/decorator-pattern/index
+   gang-of-four/flyweight/index
 
 Behavioral Patterns
 ===================

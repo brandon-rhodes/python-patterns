@@ -1,7 +1,7 @@
 
-================
- Global Objects
-================
+===========================
+ The Global Object Pattern
+===========================
 
 .. admonition:: Verdict
 
@@ -308,7 +308,7 @@ even though we the official recommendation these days
 is to use |pkgutil_get_data|_ instead.
 
 .. |pkgutil_get_data| replace:: ``pkgutil.get_data()``
-.. _pkgutil_get_data: https://docs.python.org/3/library/pkgutil.html#pkgutil.get_data>
+.. _pkgutil_get_data: https://docs.python.org/3/library/pkgutil.html#pkgutil.get_data
 
 ::
 
