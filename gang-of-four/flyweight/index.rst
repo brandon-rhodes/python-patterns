@@ -11,6 +11,9 @@
    that the language itself uses the pattern
    for values like integers, strings, and Boolean true and false.
 
+.. TODO mention that this is confused with “singleton” once the
+   Disambiguation section is written
+
 A perfect example of the Flyweight Pattern
 is the Python |intern|_ function.
 (It’s a builtin in Python 2,
@@ -143,128 +146,15 @@ it’s the only instance of ``NoneType``,
 but the Flyweight Pattern
 requires there to be a collection of objects.
 
-Dynamic Flyweights
-==================
+Implementing a Flyweight
+========================
 
-Some Flyweight systems 
+plain factory
+static range 1 10
+dynamic
 
-
-Usually I write my own introduction to each design pattern,
-but let’s celebrate how well this pattern fits Python
-with a direct quote from the :doc:`/gang-of-four/index`.
-They recommend the pattern when:
-
-* “An application uses a large number of objects.”
-* “Storage costs are high because of the sheer quantity of objects.”
-* “Most object state can be made extrinsic.”
-* “Many groups of objects may be replaced by relatively few shared
-  objects once extrinsic state is removed.”
-* “The application doesn't depend on object identity. Since flyweight
-  objects may be shared, identity tests will return true for
-  conceptually distinct objects.”
-
-It’s easy for a Python program to satisfy the first two criteria:
-in Python, everything is an object.
-
-The key is their concept of “extrinsic” state.
-
-
-
-The key is what, in their third criterion, they call “extrinsic” state.
-In Python we would express the same idea by asking
-whether some of an object’s attributes
-could be split off into an immutable object
-that could serve as a shared value.
-Imagine a document
-
-
-Instead of copying the height, width, and  of a 
-
-
-Their final criteria
-
-
-
-The Flyweight pattern was invented
-when objects were an expensive luxury.
-While you might have used an object to represent a paragraph or sentence,
-you would not represent each individual character with an object.
-
-This expense could be 
-
-and 
-was originally developed
-to make objects 
-in a language
-
-
-not the None object
-
-originated in languages
-where 
-
-   Flyweight objects are crucial to Python’s design.
-   In a language where “everything is an object” —
-   where even integers, characters, and Boolean values
-   are represented by full-fledged objects —
-   it is common for classes to build popular values ahead of time.
-   Most famously,
-   no matter how many times the ``bool()`` constructor is called
-   it always returns one of the two objects ``True`` or ``False``;
-   new ``bool()`` objects are always
-   
-
-Prebuilt Objects
-================
-
-
-Interning
-=========
-
-
-
-height width x y    vs   x y  ->   height width
-
-
-   
-   a separate object every integer and floating point value
-   
-   When everything is an object,
-   
-
-.. TODO mention that this is confused with “singleton” once the
-   Disambiguation section is written
-
-
-
-
-A flyweight object (... “that is returned by constructor”?)
-
-None?
-
-The Flyweight pattern is usually only appropriate
-for classes whose instances are immutable;
-if an instance’s value could be updated later
-
-definition: pool of immutable objects
-
-intern()
-
+weak factory
 
 weakref.WeakValueDictionary
 
-"State that a flyweight needs to function must be characterized as
-either intrinsic or extrinsic. Intrinsic state is stored in the
-ConcreteFlyweight object; extrinsic state is stored or computed by
-Client objects. Clients pass this state to the flyweight when they
-invoke its operations."
-
-but they don't use constructor
-
-int, str, bool
-
-lazy vs ahead of time
-
-outside of stdlib?
-
-
+either with class __new__
