@@ -146,14 +146,64 @@ it’s the only instance of ``NoneType``,
 but the Flyweight Pattern
 requires there to be a collection of objects.
 
-Implementing a Flyweight
-========================
+Implementing Flyweights
+=======================
 
-plain factory
-static range 1 10
-dynamic
+The simplest flyweights are allocated ahead of time.
+A simple system for assigning letter grades
+might use flyweights for the grades themselves:
 
-weak factory
+.. testcode::
+
+   class Grade(object):
+       def __init__(self, minimum, maximum, name):
+           self.value = value
+
+   _grades = [letter + suffix for letter in 'ABCDF'
+                              for suffix in ('+', '', '-')]
+
+   def compute_grade(percent):
+       percent = max(50, min(99, percent))
+       return _grades[(99 - percent) * 3 // 10]
+
+   print(compute_grade(55))
+   print(compute_grade(89))
+   print(compute_grade(90))
+
+.. testoutput::
+
+    F
+    B+
+    A-
+
+Factories that need to build a flyweight population dynamically
+are more complicated:
+they’ll need a dynamic data structure
+in which to enroll the flyweights
+so they can find them again.
+A dictionary is the typical choice:
+
+.. testcode::
+
+   _strings = {}
+
+   def my_intern(string):
+       s = _strings.setdefault(string, string)
+       return s
+
+   a1 = my_intern('A')
+   b1 = my_intern('B')
+   a2 = my_intern('A')
+
+   print(a1 is b1)
+   print(a1 is a2)
+
+.. testoutput::
+
+   False
+   True
+
+should you keep them all?
 
 weakref.WeakValueDictionary
 
