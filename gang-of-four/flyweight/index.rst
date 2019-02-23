@@ -150,20 +150,17 @@ Implementing Flyweights
 =======================
 
 The simplest flyweights are allocated ahead of time.
-A simple system for assigning letter grades
+A system for assigning letter grades
 might use flyweights for the grades themselves:
 
 .. testcode::
 
-   class Grade(object):
-       def __init__(self, minimum, maximum, name):
-           self.value = value
-
-   _grades = [letter + suffix for letter in 'ABCDF'
-                              for suffix in ('+', '', '-')]
+   _grades = [letter + suffix
+              for letter in 'ABCD'
+              for suffix in ('+', '', '-')] + ['F']
 
    def compute_grade(percent):
-       percent = max(50, min(99, percent))
+       percent = max(59, min(99, percent))
        return _grades[(99 - percent) * 3 // 10]
 
    print(compute_grade(55))
@@ -179,9 +176,8 @@ might use flyweights for the grades themselves:
 Factories that need to build a flyweight population dynamically
 are more complicated:
 they’ll need a dynamic data structure
-in which to enroll the flyweights
-so they can find them again.
-A dictionary is the typical choice:
+in which to enroll the flyweights and find them again later.
+A dictionary is a typical choice:
 
 .. testcode::
 
@@ -203,8 +199,94 @@ A dictionary is the typical choice:
    False
    True
 
-should you keep them all?
+One danger of dynamically allocated flyweights
+is the possibility of eventually exhausting memory,
+if the number of possible values is very large
+and callers might request a large number of unique values
+over a program’s runtime.
+In such cases you might consider using a |WeakValueDictionary|
+from the ``weakref`` module.
 
-weakref.WeakValueDictionary
+.. |WeakValueDictionary| replace:: ``WeakValueDictionary``
+.. _WeakValueDictionary: https://docs.python.org/3/library/weakref.html#weakref.WeakValueDictionary
 
-either with class __new__
+Weak references wouldn’t work in the simple example given above,
+because ``my_intern`` uses each interned string
+not only as a value but also as the corresponding key.
+But it should work fine in the more common case
+where the indexes are simple values
+and the keys more complicated object instances.
+
+The Gang of Four define the Flyweight Pattern as using a factory function,
+but Python provides another possibility:
+a class can implement the pattern right in its constructor,
+just like ``bool()`` and ``int()``.
+Rewriting the above example as a class —
+and, for the sake of example, allocating objects on-demand
+instead of building them ahead of time —
+would produce something like:
+
+.. testcode::
+
+   class Grade(object):
+       _instances = {}
+
+       def __new__(cls, percent):
+           percent = max(50, min(99, percent))
+           letter = 'FDCBA'[(percent - 50) // 10]
+           self = cls._instances.get(letter)
+           if self is None:
+               self = cls._instances[letter] = object.__new__(Grade)
+               self.letter = letter
+           return self
+
+       def __repr__(self):
+           return 'Grade {!r}'.format(self.letter)
+
+
+   print(Grade(55), Grade(85), Grade(95), Grade(100))
+   print(len(Grade._instances))
+   print(Grade(95) is Grade(100))
+   print(len(Grade._instances))
+
+.. testoutput::
+
+    Grade 'F' Grade 'B' Grade 'A' Grade 'A'
+    3
+    True
+    3
+
+Once a ``Grade`` object for A has been created,
+all further requests for it receive the same object;
+the instances dictionary does not grow any further.
+
+Note that we don’t define a ``__init__()`` method
+in a class like this
+whose ``__new__()`` might return an existing object.
+That’s because Python always calls for initialization
+on the object received back from ``__new__()``
+(as long as the object is an instance of the class itself),
+which would be useful the first time we returned a new object
+but redundant on all of the subsequent occasions
+when we were simply returning it from the ``_instances`` cache.
+So instead we simply do the work of initialization manually
+right in the middle of ``__new__()``::
+
+               self.letter = letter
+
+.. TODO mention here “for the same reason as the Singleton” once it’s written
+
+Having illustrated this possibility,
+I recommend against it
+because it produces code whose behavior does not match its spelling.
+When a Python programmer sees ``Grade(95)``,
+they are going to think “new object instance”
+along with all of the consequences,
+unless they are in on the secret that ``__new__()`` has been overridden —
+and even in that case, they might at some point forget
+that the ``Grades`` class is special.
+
+Whereas a factory ``get_grade_for_percent()``
+will be less likely to trigger assumptions
+like “this call always builds a new object”
+and in any case is simpler both to implement and debug.
