@@ -1,7 +1,7 @@
 
-===================
- Composite Pattern
-===================
+=======================
+ The Composite Pattern
+=======================
 
 *A “Structural Pattern” from the* :doc:`/gang-of-four/index`
 

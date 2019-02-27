@@ -1,7 +1,7 @@
 
-=================
- Sentinel Object
-=================
+=============================
+ The Sentinel Object Pattern
+=============================
 
 *A Python variation on the traditional Sentinel Value pattern*
 

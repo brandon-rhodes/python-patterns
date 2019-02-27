@@ -1,7 +1,7 @@
 
-===================
- Flyweight Pattern
-===================
+=======================
+ The Flyweight Pattern
+=======================
 
 *A “Structural Pattern” from the* :doc:`/gang-of-four/index`
 

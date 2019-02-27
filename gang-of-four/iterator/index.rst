@@ -1,7 +1,7 @@
 
-==================
- Iterator Pattern
-==================
+======================
+ The Iterator Pattern
+======================
 
 *A “Behavioral Pattern” from the* :doc:`/gang-of-four/index`
 

@@ -1,7 +1,7 @@
 
-=================
- Builder Pattern
-=================
+=====================
+ The Builder Pattern
+=====================
 
 *A “Creational Pattern” from the* :doc:`/gang-of-four/index`
 

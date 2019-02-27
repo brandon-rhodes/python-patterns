@@ -1,6 +1,6 @@
-================
- Factory Method
-================
+============================
+ The Factory Method Pattern
+============================
 
 *A “Creational Pattern” from the* :doc:`/gang-of-four/index`
 

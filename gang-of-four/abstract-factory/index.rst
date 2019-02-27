@@ -1,7 +1,7 @@
 
-==========================
- Abstract Factory Pattern
-==========================
+==============================
+ The Abstract Factory Pattern
+==============================
 
 *A “Creational Pattern” from the* :doc:`/gang-of-four/index`
 
