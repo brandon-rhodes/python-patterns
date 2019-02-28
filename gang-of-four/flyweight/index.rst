@@ -8,22 +8,33 @@
 .. admonition:: Verdict
 
    Flyweight objects are such a perfect fit for Python
-   that the language itself uses the pattern
-   for values like integers, strings, and Boolean true and false.
+   that the language itself uses the pattern for such popular values
+   as identifiers, some integers, and Boolean true and false.
 
 .. TODO mention that this is confused with “singleton” once the
    Disambiguation section is written
 
 A perfect example of the Flyweight Pattern
 is the Python |intern|_ function.
-(It’s a builtin in Python 2,
-but was moved into the |sys|_ module in Python 3.)
-It keeps exactly one copy of each string you pass.
-Each time you ask for the same string,
-exactly the same object is returned —
-it keeps only one copy of each string object in memory.
+It’s a builtin in Python 2
+which was moved into the |sys|_ module in Python 3.
+When you pass it a string,
+it returns an exactly equal string.
+Its advantage is that it saves space:
+no matter how many different string objects you pass it
+for a particular value like ``'xyzzy'``,
+it returns the same ``'xyzzy'`` object each time.
 
-Let’s compute the string ``'python'`` two different ways
+It’s used internally in Python to save memory.
+As Python parses your program
+it’s likely to encounter a given identifier like ``range``
+several times.
+Instead of storing each of them as a separate string object,
+it uses ``intern()`` so that all mentions of ``range`` in your code
+can share a single string object in memory that represents them all.
+
+We can see its behavior
+by computing the string ``'python'`` two different ways
 (to make it likely that any given Python implementation
 will really give us two different strings)
 and pass them to the intern function:
@@ -44,32 +55,28 @@ and pass them to the intern function:
 >>> a is b
 True
 
-Python uses the |intern|_ function internally when parsing source code
-to eliminate the cost of names that are repeated several times,
-and you can use it yourself when tackling data sets
-that involve repeated strings.
-Strings have all three of the key properties of a flyweight object:
+Strings are natural candidates for the Flyweight Pattern
+because they have all three of the key properties of a flyweight object:
 
 * Python strings are immutable,
   which makes them safe to share.
   Otherwise a routine that decided to change one of the string’s characters
-  would affect the single copy shared with all of the other users
-  of |intern|_.
+  would affect the single copy shared with everyone else.
 
-* A python string carries no context about how it is being used.
+* A Python string carries no context about how it is being used.
   If it needed to maintain a reference back
   to the list, dictionary, or other object that was using it,
   then each string could only serve in one context at a time.
 
 * Strings are important for their value,
   not their object identity.
-  We compare them with ``==`` instead of with the ``is`` keyword;
-  a well-written Python program will not even notice
-  whether the string ``"brandon"`` used as a directory name
-  and ``"brandon"`` used somewhere else in the code as a username
+  We compare them with ``==`` instead of with the ``is`` keyword.
+  A well-written Python program will not even notice
+  whether the string ``"brandon"`` used in one place as a directory name
+  and somewhere else as a username
   are the same object or two different objects.
 
-The Gang of Four describe these requirements a bit differently
+The Gang of Four describe these same requirements a bit differently
 when they require that, “Most object state can be made extrinsic.”
 They imagine starting with an object that’s a mix
 of what they call “extrinsic” and “intrinsic” state::
@@ -78,20 +85,25 @@ of what they call “extrinsic” and “intrinsic” state::
     a2 = Glyph(width=6, ascent=9, descent=3, x=8, y=60)
 
 Given a typeface and size,
-each copy of a given letter — say, the letter ``a`` —
-will have the same width, ascent above the baseline, and descent below it.
+each occurrence of a given letter — say, the letter *M* —
+will have the same width,
+the same ascent above the baseline,
+and the same descent below it.
 The Gang of Four call these attributes “intrinsic”
-to what it means to be the letter ``a``.
-But each ``a`` on a page will have a different ``x`` and ``y`` coordinate;
-that state is “extrinsic” and varies from one object to another.
+to what it means to be the letter *M.*
+But each *M* on a page will have a different ``x`` and ``y`` coordinate;
+that state is “extrinsic” and varies
+from one occurrence of the letter to another.
 
-They would then arrive at the Flyweight by refactoring::
+Given an object that mixes intrinsic and extrinsic state,
+the Gang of Four arrives at the Flyweight by refactoring
+to separate the two kinds of state::
 
     a = Glyph(width=6, ascent=9, descent=3)
     a1 = DrawnGlyph(glyph=a, x=32, y=8)
-    a1 = DrawnGlyph(glyph=a, x=8, y=60)
+    a2 = DrawnGlyph(glyph=a, x=8, y=60)
 
-Not only can the space savings can be considerable,
+Not only can the space savings from the Flyweight Pattern be considerable,
 but the `original 1990 paper introducing Flyweights <https://www.researchgate.net/profile/Mark_Linton2/publication/220877079_Glyphs_flyweight_objects_for_user_interfaces/links/58adbb6345851503be91e1dc/Glyphs-flyweight-objects-for-user-interfaces.pdf?origin=publication_detail>`_
 found that a document editor written using the pattern
 had considerably simpler code.
@@ -117,11 +129,12 @@ False
 >>> bool(12)
 True
 
+Another example is integers.
 As an implementation detail,
 the default C language version of Python
-also treats the integers −5 through 256 as flyweights:
-those integers are created ahead of time as the interpreter launches,
-and are always reused when an integer with one of those values is needed.
+treats the integers −5 through 256 as flyweights.
+Those integers are created ahead of time as the interpreter launches,
+and are returned when an integer with one of those values is needed.
 Computing any other integer value
 results in a unique object from each computation.
 
@@ -139,12 +152,11 @@ True
 >>> tuple([]) is ()
 True
 
-But remember that not every object pre-built by the interpreter
+Note that not every object pre-built by the interpreter
 qualifies as a flyweight.
 The ``None`` object, for example, does not qualify:
-it’s the only instance of ``NoneType``,
-but the Flyweight Pattern
-requires there to be a collection of objects.
+a class needs more than one instance to be a true Flyweight,
+but ``None`` is the only instance of ``NoneType``.
 
 Implementing Flyweights
 =======================
@@ -215,7 +227,7 @@ because ``my_intern`` uses each interned string
 not only as a value but also as the corresponding key.
 But it should work fine in the more common case
 where the indexes are simple values
-and the keys more complicated object instances.
+but the keys are more complicated object instances.
 
 The Gang of Four define the Flyweight Pattern as using a factory function,
 but Python provides another possibility:
@@ -243,11 +255,10 @@ would produce something like:
        def __repr__(self):
            return 'Grade {!r}'.format(self.letter)
 
-
    print(Grade(55), Grade(85), Grade(95), Grade(100))
-   print(len(Grade._instances))
-   print(Grade(95) is Grade(100))
-   print(len(Grade._instances))
+   print(len(Grade._instances))    # number of instances
+   print(Grade(95) is Grade(100))  # ask for ‘A’ two more times
+   print(len(Grade._instances))    # number stayed the same?
 
 .. testoutput::
 
@@ -256,37 +267,36 @@ would produce something like:
     True
     3
 
-Once a ``Grade`` object for A has been created,
+You can see that once a ``Grade`` object for *A* has been created,
 all further requests for it receive the same object;
-the instances dictionary does not grow any further.
+the instances dictionary doesn’t continue to grow.
 
-Note that we don’t define a ``__init__()`` method
-in a class like this
+Note that we don’t define ``__init__()`` in a class like this
 whose ``__new__()`` might return an existing object.
-That’s because Python always calls for initialization
+That’s because Python always calls ``__init__()``
 on the object received back from ``__new__()``
 (as long as the object is an instance of the class itself),
-which would be useful the first time we returned a new object
-but redundant on all of the subsequent occasions
-when we were simply returning it from the ``_instances`` cache.
-So instead we simply do the work of initialization manually
+which would be useful the first time we returned a new Flyweight object,
+but redundant on subsequent occasions
+when we returned the already-initialized object.
+So we instead do the work of initialization
 right in the middle of ``__new__()``::
 
                self.letter = letter
 
 .. TODO mention here “for the same reason as the Singleton” once it’s written
 
-Having illustrated this possibility,
+Having illustrated the possibility
+of hiding your Flyweight Pattern factory inside of ``__init__()``,
 I recommend against it
 because it produces code whose behavior does not match its spelling.
 When a Python programmer sees ``Grade(95)``,
 they are going to think “new object instance”
 along with all of the consequences,
-unless they are in on the secret that ``__new__()`` has been overridden —
-and even in that case, they might at some point forget
-that the ``Grades`` class is special.
+unless they are in on the secret that ``__new__()`` has been overridden
+and always remember that fact when reading code.
 
-Whereas a factory ``get_grade_for_percent()``
+A traditional Flyweight Pattern factory function
 will be less likely to trigger assumptions
-like “this call always builds a new object”
+like “this code is building a new object”
 and in any case is simpler both to implement and debug.
