@@ -8,7 +8,7 @@ Welcome!
 It’s time for me to start writing up, in one place,
 my ideas about Python programming patterns
 that are currently scattered across all of my
-`talks <http://rhodesmill.org/brandon/talks/>`_
+`Python conference talks <http://rhodesmill.org/brandon/talks/>`_
 and
 `writing <http://rhodesmill.org/brandon/all/>`_.
 

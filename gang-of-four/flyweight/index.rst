@@ -287,7 +287,7 @@ right in the middle of ``__new__()``::
 .. TODO mention here “for the same reason as the Singleton” once it’s written
 
 Having illustrated the possibility
-of hiding your Flyweight Pattern factory inside of ``__init__()``,
+of hiding your Flyweight Pattern factory inside of ``__new__()``,
 I recommend against it
 because it produces code whose behavior does not match its spelling.
 When a Python programmer sees ``Grade(95)``,
