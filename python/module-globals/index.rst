@@ -56,14 +56,14 @@ that are given names at the global level of a module.
 Two patterns use Module Globals
 but are important enough to warrant their own articles:
 
-* :doc:`/python/prebound-methods/index`
+* :doc:`Prebound Methods </python/prebound-methods/index>`
   are generated when a module builds an object
   and then assigns one or more of the object’s bound methods
   to names at the module’s global level.
   The names can be used to call the methods later
   without needing to find the object itself.
 
-* While a :doc:`/python/sentinel-object/index`
+* While a :doc:`Sentinel Object </python/sentinel-object/index>`
   doesn’t have to live in a module’s global namespace —
   some sentinel objects are defined as class attributes,
   while others are private and live inside of a closure —

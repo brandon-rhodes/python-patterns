@@ -270,7 +270,7 @@ By providing this sentinel object
 as the second argument to ``dict.get()`` —
 here aliased to the name ``cache_get``
 in a closure-level private example
-of the :doc:`/python/prebound-methods/index` pattern —
+of the :doc:`Prebound Methods </python/prebound-methods/index>` pattern —
 the cache can distinguish a function call
 whose result is already cached and happened to be ``None``
 from a function call that has not yet been cached::

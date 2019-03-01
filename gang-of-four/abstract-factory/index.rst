@@ -134,7 +134,8 @@ defaulting to Python’s built-in ``float`` type if no override was specified::
 If you are interested in variations on this pattern —
 where a class uses its instance attributes
 to remember how it’s supposed to create a specific kind of object —
-then try reading about the :doc:`/gang-of-four/factory-method/index`
+then try reading about
+the :doc:`Factory Method </gang-of-four/factory-method/index>`
 which explores several variations on this maneuver.
 
 But to arrive at the Abstract Factory pattern,
@@ -234,7 +235,7 @@ and pass the resulting object:
 
 Note again the difference
 between this pattern
-and the :doc:`/gang-of-four/factory-method/index`.
+and the :doc:`Factory Method </gang-of-four/factory-method/index>`.
 Here, we are neither asked nor required to subclass ``Loader`` itself
 in order to customize the objects it creates.
 Instead, object creation is entirely parametrized

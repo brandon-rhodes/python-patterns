@@ -1,11 +1,31 @@
 
-===================
- Singleton Pattern
-===================
+=======================
+ The Singleton Pattern
+=======================
 
 *A “Creational Pattern” from the* :doc:`/gang-of-four/index`
 
 .. admonition:: Verdict
+
+   The Singleton Pattern is a stunt.
+   It wasn’t necessary in its original context,
+   and is a poor fit for the Python language.
+   When you must offer global access to a singleton object,
+   use :doc:`python/module-globals/index` instead.
+
+
+   When our software’s architecture
+   has failed to provide our code
+   with references to all of the Python objects it needs,
+   
+   from passing a Python object to its users as an argument,
+   
+   In Python we normally offer access to an object
+   that many different
+   a Global Object quite simply,
+   by giving it through its name.
+   The Singleton Pattern takes
+   
 
    Code that needs repeated access to a single unique object
    should consider simply instantiating the object
