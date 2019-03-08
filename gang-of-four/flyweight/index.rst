@@ -294,7 +294,7 @@ When a Python programmer sees ``Grade(95)``,
 they are going to think “new object instance”
 along with all of the consequences,
 unless they are in on the secret that ``__new__()`` has been overridden
-and always remember that fact when reading code.
+and unless they always remember that fact when reading code.
 
 A traditional Flyweight Pattern factory function
 will be less likely to trigger assumptions

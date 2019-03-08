@@ -8,104 +8,79 @@
 .. admonition:: Verdict
 
    The Singleton Pattern is a stunt.
-   It wasn’t necessary in its original context,
+   It wasn’t even necessary in its original context
    and is a poor fit for the Python language.
    When you must offer global access to a singleton object,
-   use :doc:`python/module-globals/index` instead.
+   use :doc:`/python/module-globals/index` instead.
+
+When our software’s architecture
+has failed to provide a line of code
+with a reference to an object it needs,
+a common workaround in Python
+is :doc:`/python/module-globals/index`:
+
+``None`` not ``NoneType()``
+
+py2
+
+::
+
+>>> type(None)
+<type 'NoneType'>
+>>> type(None)()
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: cannot create 'NoneType' instances
+>>> 
+
+py3 without error
+
+.. TODO add to Global Object that the Python FAQ calls it a singleton object
+   https://docs.python.org/3/faq/programming.html#how-do-i-share-global-variables-across-modules
+
+Disambiguation
+==============
 
 
-   When our software’s architecture
-   has failed to provide our code
-   with references to all of the Python objects it needs,
+
+1. A tuple of length one.
+   This definition is introduced when the Python Tutorial’s
+   `Data Structures <https://docs.python.org/3/tutorial/datastructures.html>`_
+   chapter calls its example one-element tuple ``singleton``
+   and is repeated elsewhere in Python’s documentation.
+   When the `Extending and Embedding <https://docs.python.org/3/extending/extending.html#calling-python-functions-from-c>`_
+   guide says,
+   “To call the Python function with no arguments,
+   pass in NULL, or an empty tuple;
+   to call it with one argument, pass a singleton tuple,”
+   it means a tuple containing exactly one item.
+
+2. An object offered through :doc:`/python/module-globals/index`.
    
-   from passing a Python object to its users as an argument,
-   
-   In Python we normally offer access to an object
-   that many different
-   a Global Object quite simply,
-   by giving it through its name.
-   The Singleton Pattern takes
-   
-
-   Code that needs repeated access to a single unique object
-   should consider simply instantiating the object
-   and passing it to each routine that needs it.
-   It is always a compromise
-
-   avoid side effects
-   It is best to avoid the Singleton pattern in Python
-   #can be accomplished more simply in Python
-   and instead provide a module global
-   
-   by providing a 
-   The Singleton pattern subverts the usual semantics class invocation
-   by returning the same object instance each time the class is called.
-   It is an awkward attempt to disguise the use of a global
-   
-
-.. contents:: Contents:
-   :backlinks: none
-
-The Builder pattern has a most interesting history.
-Its primary intent,
-
-if someone does a singleton
-just subclass
-
->>> type(NotImplemented)()
-NotImplemented
-
-
-Modules are singletons!
-
-
-
-what singleton means
-
-“one-item tuple”
 
 A flyweight object (... “that is returned by constructor”?)
+“CPython's empty tuple is a singleton and cached in” - NO, that’s a flyweight
+True False are flyweights
+.. “call frozenset() to get the empty frozenset singleton”
 
-A singleton object accessed by name
+Modules are singletons!
+what singleton means
 
 The one unique object that is ever returned
 from a class that implements the Gang of Four’s Singleton Pattern.
-
-
+object of which there is only one instance
+ellipsis
+Doc/library/marshal.rst:46:singletons :const:`None`, :const:`Ellipsis` and :exc:`StopIteration` can also be
+None
+NotImplemented
 
 Lib/pydoc_data/topics.py
 
-technically
-you can test for object identity
-
-even where used, discouraged: singleton *object* used instead
-we say “None” not “NoneType()”  <--- wait, it's not even possible!
-
-ellipsis
-None
-NotImplemented
-(X,) x
-UTC
-singleton SearchDialog” etc in IDLE, turtle, distutil
-string ('') are singletons and cannot be cloned.
-Make sure response tuple is a singleton
-“CPython's empty tuple is a singleton and cached in” - NO, that’s a flyweight
-Python/Python-ast.c:928:    Del_singleton = PyType_GenericNew(Del_type, NULL, NULL); etc
-/* call frozenset() to get the empty frozenset singleton */
-Objects/unicodeobject.c:1803:unicode_is_singleton(PyObject *unicode)
-Objects/bytesobject.c:92:    /* empty byte string singleton */
-Objects/codeobject.c:504:    /* Py_None and Py_Ellipsis are singletons. */
-Objects/codeobject.c:541:        /* use True, False and None singleton as tags for the real and imag
-Objects/setobject.c:1063:/* The empty frozenset is a singleton */
-Include/datetime.h:158:    /* singletons */
 Doc/faq/programming.rst:283:Note that using a module is also the basis for implementing the Singleton design
-Doc/reference/datamodel.rst:310:            pair: singleton; tuple
 Doc/c-api/module.rst:258:singletons: if the *sys.modules* entry is removed and the module is re-imported,
 Doc/c-api/module.rst:452:Single-phase initialization creates singleton modules that can be looked up
-Doc/library/turtle.rst:63:   The function :func:`Screen` returns a singleton object of a
+
 Doc/library/stdtypes.rst:4646:``None`` (a built-in name).  ``type(None)()`` produces the same singleton.
 Doc/library/stdtypes.rst:4673:``type(NotImplemented)()`` produces the singleton instance.
+
 Doc/library/enum.rst:1026:The most interesting thing about Enum members is that they are singletons.
-Doc/library/unittest.mock.rst:549:        mock and unless the function returns the :data:`DEFAULT` singleton the
-Doc/library/marshal.rst:46:singletons :const:`None`, :const:`Ellipsis` and :exc:`StopIteration` can also be
-Doc/whatsnew/3.6.rst:2405:The ``PyExc_RecursionErrorInst`` singleton that was part of the public API
