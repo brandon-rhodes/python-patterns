@@ -11,7 +11,7 @@ X Prototype
   Singleton
     X Prebound Methods
     X Sentinel Object
-      Module Globals - OR Singleton Objects
+    X Module Globals
      (Flyweight, below)
 
 Structural Patterns
