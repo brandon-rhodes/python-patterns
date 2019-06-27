@@ -14,7 +14,7 @@
    </div>
 
 It can be hard to remember,
-but Object Oriented programming was all the rage back in the roaring 1990s.
+but object oriented programming was all the rage back in the roaring 1990s.
 Instead of talking about the power of first-class functions
 and general-purpose data structures,
 many programmers were festooning their code

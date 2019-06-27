@@ -359,7 +359,7 @@ I myself tend to enjoy interfaces more
 when there is as much symmetry as possible.
 
 If you study the Tkinter library —
-which is perhaps the most classic Object Oriented module
+which is perhaps the most classic object oriented module
 in the entire Python Standard Library —
 you will find several more instances
 where a method that could have been limited to a few widgets

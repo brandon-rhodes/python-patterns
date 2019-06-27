@@ -259,5 +259,5 @@ The Prototype Pattern is not as convenient
 as the mechanisms available in the Python language,
 but this clever simplification made it much easier
 for the Gang of Four to accomplish parametrized object creation
-in some of the underpowered Object Oriented languages
+in some of the underpowered object oriented languages
 that were popular last century.
