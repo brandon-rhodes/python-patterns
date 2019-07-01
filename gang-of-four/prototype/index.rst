@@ -168,8 +168,8 @@ and are therefore eligible to be passed as arguments
 and stored in data structures
 just like any other objects.
 
-The pattern itself
-------------------
+Implementing
+------------
 
 But the Gang of Four
 did not have the luxury of such easy circumstances

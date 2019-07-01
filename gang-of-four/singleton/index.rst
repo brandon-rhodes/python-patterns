@@ -91,9 +91,10 @@ so we should start by distinguishing its several meanings.
    The ``True`` and ``False`` objects are a pair of flyweights
    because neither is the sole instance of ``bool``.
 
-Implementations
-===============
+Implementing
+============
 
+The 
 
 Singleton Pattern was a step towards Python:
 substituted factory for syntactic instantiation.

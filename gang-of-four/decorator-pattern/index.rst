@@ -101,8 +101,8 @@ It can be wrapped around a plain old file object any time you want,
 without the need for you be in control
 when the wrapped object was created.
 
-Implement: Static wrapper
--------------------------
+Implementing: Static wrapper
+----------------------------
 
 First, let’s learn the drudgery
 of creating the kind of decorator class you would write in C++ or Java.
@@ -172,8 +172,8 @@ any methods, arguments, or attributes.
 
 .. TODO explain why I did both write methods and how I chose to do it
 
-Implement: Tactical wrapper
----------------------------
+Implementing: Tactical wrapper
+------------------------------
 
 The wrapper in the previous section
 might have struck you as ridiculous.
@@ -231,8 +231,8 @@ to decide where to draw the line
 between the magnificent pedantry of wrapping every possible method
 and the danger of not wrapping enough.
 
-Implement: Dynamic wrapper
---------------------------
+Implementing: Dynamic wrapper
+-----------------------------
 
 A very common approach to the Decorator Pattern in Python
 is the dynamic wrapper.

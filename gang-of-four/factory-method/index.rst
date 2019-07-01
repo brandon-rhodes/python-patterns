@@ -317,8 +317,8 @@ and not limiting yourself to just providing classes,
 whether you are using the Class Attribute Factory
 or an Instance Attribute Factory.
 
-Pattern: Factory Method
-=======================
+Implementing
+============
 
 Having described the happy alternatives,
 I should finish by showing you the Factory Method itself.

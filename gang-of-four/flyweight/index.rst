@@ -158,8 +158,8 @@ The ``None`` object, for example, does not qualify:
 a class needs more than one instance to be a true Flyweight,
 but ``None`` is the only instance of ``NoneType``.
 
-Implementing Flyweights
-=======================
+Implementing
+============
 
 The simplest flyweights are allocated ahead of time.
 A system for assigning letter grades
