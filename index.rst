@@ -51,6 +51,7 @@ Creational Patterns
    gang-of-four/builder/index
    gang-of-four/factory-method/index
    gang-of-four/prototype/index
+   gang-of-four/singleton/index
 
 Structural Patterns
 ===================

@@ -18,8 +18,7 @@
 
 The topic of singletons in Python is a complicated one
 because Python had already existed for 5 years
-when the :doc:`gang-of-four/singleton` was published,
-introducing its own meaning for “Singleton”
+when the :doc:`gang-of-four` introduced its own meaning for “Singleton Pattern”
 on the design patterns community.
 
 We will therefore launch this topic
@@ -94,10 +93,84 @@ so we should start by distinguishing its several meanings.
 Implementing
 ============
 
-The 
+Some languages that the Gang of Four were targeting
+imposed a distinct syntax on object creation,
+that looked something like::
 
-Singleton Pattern was a step towards Python:
-substituted factory for syntactic instantiation.
+    # Object creation in a language
+    # with a “new” keyword.
+
+    log = new Logger()
+
+This syntax destroys any chance of using the Singleton Pattern.
+If the programmer can use ``new``
+to create a new object whenever they please,
+then a class obviously cannot control how many instances are created.
+
+The Gang of Four’s implementation of the Singleton Pattern
+invited programmers to, essentially, take a step towards Python,
+by calling a factory each time they wanted a new object
+instead of indulging in the ``new`` keyword.
+Since as classes were not themselves callable in their target languages,
+they needed something besides the class — a function or method —
+for users to call instead.
+They recommended a class method,
+to avoid creating extra global names.
+Their code looked something like::
+
+    # The Singleton Pattern in a language
+    # with a “new” keyword.
+
+    class Logger:
+        _instance = None
+        ...
+        @classmethod
+        def instance(cls):
+            if cls._instance is None:
+                cls._instance = new cls()
+            return cls._instance
+        ...
+
+By making normal ``Logger`` instantiation off-limits
+for code outside of the class itself,
+the Gang of Four guaranteed
+that users could only get a ``Logger`` by calling ``instance()``,
+which in turn was only ever willing to create a single class instance:
+
+    log = Logger.instance()
+
+In Python, the situation is simpler.
+
+First, Python lacks a ``new`` keyword,
+which decouples client code
+from any knowledge of whether a new instance is getting created or not.
+Second, Python not only allows object initialization to be customized
+through the ``__init__()`` method,
+but object creation itself through the ``__new__()`` method.
+Thanks to these two features,
+calling code will not need to be rewritten
+because a Python class decides to switch to the Singleton Pattern.
+
+The Web is replete with
+
+.. testcode::
+
+    class Logger(object):
+        _instance = None
+
+        def __new__(cls):
+            if cls._instance is None:
+                cls._instance = super(Logger, cls).__new__(cls)
+            return cls._instance
+
+    log1 = Logger()
+    log2 = Logger()
+    print(log1 is log2)
+
+.. testoutput::
+
+    True
+
 
 
 Examples
