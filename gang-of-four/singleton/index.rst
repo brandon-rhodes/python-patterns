@@ -3,6 +3,9 @@
  The Singleton Pattern
 =======================
 
+.. TODO add to Global Object that the Python FAQ calls it a singleton object
+   https://docs.python.org/3/faq/programming.html#how-do-i-share-global-variables-across-modules
+
 *A “Creational Pattern” from the* :doc:`/gang-of-four/index`
 
 .. admonition:: Verdict
@@ -76,14 +79,25 @@ so we should start by distinguishing its several meanings.
    For example, a comment inside the Standard Library’s ``itertoolsmodule.c``
    asserts that “CPython’s empty tuple is a singleton” —
    meaning that only a single empty tuple object is ever created,
-   which gets returned every time ``tuple()`` is passed a zero-length sequence.
+   which ``tuple()`` returns over and over again
+   every time it’s passed a zero-length sequence.
    A comment in ``marshal.c`` similarly refers
    to the “empty frozenset singleton.”
    But neither of these singleton objects
    is an example of the Gang of Four’s Singleton Pattern,
-   because neither object is the sole instance of its class —
-   ``tuple`` lets you build more tuple objects besides the empty tuple,
-   and ``frozenset`` will lets you build other frozen sets.
+   because neither object is the sole instance of its class;
+   ``tuple`` lets you build other tuple objects besides the empty tuple,
+   and ``frozenset`` lets you build other frozen sets.
+   The ``True`` and ``False`` objects are a pair of flyweights
+   because neither is the sole instance of ``bool``.
+
+Implementations
+===============
+
+
+Singleton Pattern was a step towards Python:
+substituted factory for syntactic instantiation.
+
 
 Examples
 ========
@@ -107,58 +121,27 @@ Neither of their type objects is callable:
 ::
 
    >>> # Python 2
-   >>> type(None)()
+   >>> type(None)
+   <type 'NoneType'>
+   >>> NoneType = type(None)
+   >>> NoneType()
    TypeError: cannot create 'NoneType' instances
    >>> type(Ellipsis)()
    TypeError: cannot create 'ellipsis' instances
 
+py3 without error
 
 
-“CPython's empty tuple is a singleton and cached in” - NO, that’s a flyweight
-True False are flyweights
-
-The one unique object that is ever returned
-from a class that implements the Gang of Four’s Singleton Pattern.
-object of which there is only one instance
-
-Doc/library/marshal.rst:46:singletons :const:`None`,  and :exc:`StopIteration` can also be
-None
-NotImplemented
 
 Lib/pydoc_data/topics.py
 
-Doc/c-api/module.rst:258:singletons: if the *sys.modules* entry is removed and the module is re-imported,
 
-Doc/library/stdtypes.rst:4646:``None`` (a built-in name).  ``type(None)()`` produces the same singleton.
-but not Python 2
-Doc/library/stdtypes.rst:4673:``type(NotImplemented)()`` produces the singleton instance.
-
-Doc/library/enum.rst:1026:The most interesting thing about Enum members is that they are singletons.
+.. Doc/library/marshal.rst:46:singletons :const:`None`, and :exc:`StopIteration` can also be
+   Doc/c-api/module.rst:258:singletons: if the *sys.modules* entry is removed and the module is re-imported,
+   Doc/library/enum.rst:1026:The most interesting thing about Enum members is that they are singletons.
 
 When our software’s architecture
 has failed to provide a line of code
 with a reference to an object it needs,
 a common workaround in Python
 is :doc:`/python/module-globals/index`:
-
-``None`` not ``NoneType()``
-
-py2
-
-::
-
->>> type(None)
-<type 'NoneType'>
->>> type(None)()
-Traceback (most recent call last):
-  File "<stdin>", line 1, in <module>
-TypeError: cannot create 'NoneType' instances
->>> 
-
-py3 without error
-
-.. TODO add to Global Object that the Python FAQ calls it a singleton object
-   https://docs.python.org/3/faq/programming.html#how-do-i-share-global-variables-across-modules
-
-Singleton Pattern was a step towards Python:
-substituted factory for syntactic instantiation.
