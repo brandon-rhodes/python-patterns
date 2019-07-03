@@ -100,3 +100,7 @@ Probably import * just isn’t important enough today to mention:
 Mention this someday?
 /home/brandon/cpython/Lib/_collections_abc.py
 27:__name__ = "collections.abc"
+
+
+Discuss the happy fact that Python lacks any concept of a ``protected``
+or ``private`` method.

@@ -100,8 +100,8 @@ of “singleton” in Python:
    Which Python objects qualify?
    See the next section for the pattern’s formal definition.
 
-Definition
-==========
+Original implementation
+=======================
 
 The C++ language that the Gang of Four were targeting
 imposed a distinct syntax on object creation,
@@ -113,15 +113,17 @@ that looked something like::
     log = new Logger()
 
 In the presence of this special syntax,
-how were they going to offer singleton objects?
+how did they manage to offer singleton objects?
 
 1. The Gang of Four did not take the easy way out
    and use :doc:`/python/module-globals/index`
    because it did not work particularly well
    in early versions of the C++ language.
    There, global names all shared a single crowded global namespace,
-   so elaborate naming conventions were necessary
+   and elaborate naming conventions were necessary
    to prevent names from different libraries from colliding.
+   So the Gang judged that adding both a class and its singleton instance
+   to the global namespace was excessive.
    And since C++ programmers couldn’t control the order
    in which global objects were initialized,
    no global object could depend upon being able to call any other.
@@ -129,18 +131,112 @@ how were they going to offer singleton objects?
 2. There was no way to override the meaning of ``new`` in C++
    so an alternative syntax was necessary
    if all clients were to receive the same object.
-   It was at least possible to make it a compile-time error
-   for client code to call ``new``,
+   It was, though, at least possible to make it a compile-time error
+   for client code to call ``new`` and create additional instances,
    by marking the class constructor as either ``protected`` or ``private``.
 
-3. So the Gang of Four wound up pivoting in the direction of Python’s design,
-   and having clients invoke a callable to ask for an object.
+3. So the Gang of Four wound up pivoting
+   in the same direction Python pivoted for its own object design,
+   by having clients invoke a callable to ask for the singleton object.
    They chose a class method as their preferred callable.
    Unlike a global function,
    a class method avoids adding yet another name to the global namespace,
    and unlike a static method,
    it can be used to instantiate subclasses of the main singleton class.
 
+How could Python code illustrate their approach?
+Python lacks the complicated concepts of ``protected`` or ``private`` methods,
+but an alternative would be to simply raise an exception in ``__init__()``
+to make normal object instantiation impossible.
+The class method can then use a trick
+to create the object while skipping initialization:
+
+.. testcode::
+
+    # What the Gang of Four’s actual Singleton Pattern
+    # might look like in Python.
+
+    class Logger(object):
+        _instance = None
+
+        def __init__(self):
+            raise RuntimeError('Call instance() instead')
+
+        @classmethod
+        def instance(cls):
+            if cls._instance is None:
+                print('Creating new instance')
+                cls._instance = cls.__new__(cls)
+                # Put any initialization here.
+            return cls._instance
+
+.. testcode::
+   :hide:
+
+   def fake_repr(self):
+       return '<Logger object at 0x7f0ff5e7c080>'
+
+   Logger.__repr__ = fake_repr
+
+This successfully prevents clients
+from accidentally creating new instances
+by calling the class:
+
+.. testcode::
+
+    log = Logger()
+
+.. testoutput::
+
+    Traceback (most recent call last):
+      ...
+    RuntimeError: Call instance() instead
+
+Instead, they are directed to use the class method,
+which does successfully return an object:
+
+.. testcode::
+
+    log1 = Logger.instance()
+    print(log1)
+
+.. testoutput::
+
+    Creating new instance
+    <Logger object at 0x7f0ff5e7c080>
+
+Subsequent calls to ``instance()`` simply return the singleton
+without repeating the initialization step,
+exactly as the Gang of Four intended:
+
+.. testcode::
+
+    log2 = Logger.instance()
+    print(log2)
+    print('Are they the same object?', log1 is log2)
+
+.. testoutput::
+
+    <Logger object at 0x7f0ff5e7c080>
+    Are they the same object? True
+
+There are more complicated schemes that I can imagine
+for implementing the original Gang of Four class method —
+for example, some magic could be added to ``__init__()``
+that checks the stack
+and performs initialization instead of raising an exception
+if its caller is the ``instance()`` method.
+That would allow ``instance()`` to call ``Logger()`` normally
+without making a manual call to ``__new__()``.
+
+But the above example does the best job, I think,
+of illustrating the original scheme with the least magic possible.
+As the original approach is not a good fit for Python anyway,
+I’ll resist the temptation to iterate on it
+and move along to a more likely implementation of the pattern in Python.
+
+Pythonic Implementation
+=======================
 
 Second, Python not only allows object initialization to be customized
 through the ``__init__()`` method,
