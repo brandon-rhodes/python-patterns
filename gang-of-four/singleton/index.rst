@@ -146,10 +146,10 @@ how did they manage to offer singleton objects?
 
 How could Python code illustrate their approach?
 Python lacks the complicated concepts of ``protected`` or ``private`` methods,
-but an alternative would be to simply raise an exception in ``__init__()``
+but one alternative is to raise an exception in ``__init__()``
 to make normal object instantiation impossible.
-The class method can then use a trick
-to create the object while skipping initialization:
+The class method can then use a dunder method trick
+to create the object but skip initialization:
 
 .. testcode::
 
@@ -179,8 +179,7 @@ to create the object while skipping initialization:
    Logger.__repr__ = fake_repr
 
 This successfully prevents clients
-from accidentally creating new instances
-by calling the class:
+from creating new instances by calling the class:
 
 .. testcode::
 
@@ -192,8 +191,8 @@ by calling the class:
       ...
     RuntimeError: Call instance() instead
 
-Instead, they are directed to use the class method,
-which does successfully return an object:
+Instead, they are directed to use the ``instance()`` class method,
+which does successfully create and return an object:
 
 .. testcode::
 
@@ -206,7 +205,8 @@ which does successfully return an object:
     <Logger object at 0x7f0ff5e7c080>
 
 Subsequent calls to ``instance()`` simply return the singleton
-without repeating the initialization step,
+without repeating the initialization step
+(note that “Creating new instance” is never printed again),
 exactly as the Gang of Four intended:
 
 .. testcode::
@@ -221,31 +221,51 @@ exactly as the Gang of Four intended:
     Are they the same object? True
 
 There are more complicated schemes that I can imagine
-for implementing the original Gang of Four class method —
-for example, some magic could be added to ``__init__()``
+for implementing the original Gang of Four class method.
+For example, some magic could be added to ``__init__()``
 that checks the stack
 and performs initialization instead of raising an exception
 if its caller is the ``instance()`` method.
-That would allow ``instance()`` to call ``Logger()`` normally
-without making a manual call to ``__new__()``.
+That would let ``instance()`` call ``Logger()`` normally
+and avoid the manual call to ``__new__()``.
 
-But the above example does the best job, I think,
+But the example above does the best job, I think,
 of illustrating the original scheme with the least magic possible.
-As the original approach is not a good fit for Python anyway,
-I’ll resist the temptation to iterate on it
+Since the original approach is not a good fit for Python anyway,
+I’ll resist the temptation to iterate on it,
 and move along to a more likely implementation of the pattern in Python.
 
 Pythonic Implementation
 =======================
 
-Second, Python not only allows object initialization to be customized
-through the ``__init__()`` method,
-but object creation itself through the ``__new__()`` method.
-Thanks to these two features,
-calling code will not need to be rewritten
-because a Python class decides to switch to the Singleton Pattern.
+In one sense,
+Python started out better prepared than C++ for the Singleton Pattern
+because Python instantiation always uses the syntax of a simple call::
 
-The Web is replete with
+    log = Logger()
+
+While C++ code that originally asked for a ``new Logger``
+would all need to be rewritten to call a factory
+if the ``Logger`` made a switch to the Singleton Pattern,
+Python object creation has always takes the form of a factory call.
+
+But renaming the class
+and putting a factory function named ``Logger`` in its place,
+while it would fool the above line of code,
+would break code that expected ``isinstance()`` to work with ``Logger``
+or that tried to subclass it.
+So Python 2.4 added the ``__new__()`` dunder method
+to support object creation patterns
+like the Singleton Pattern and :doc:`/gang-of-four/flyweight/index`.
+
+The Web is replete with Singleton Pattern recipes featuring ``__new__()``
+that each propose a more or less complicated mechanism
+for working around the method’s biggest quirk:
+the fact that ``__init__()`` gets called
+on whatever value ``__new__()`` returns
+whether it’s a new object or not.
+I will instead simply not define an ``__init__()`` method
+and thus avoid having to work around it.
 
 .. testcode::
 
@@ -254,26 +274,43 @@ The Web is replete with
 
         def __new__(cls):
             if cls._instance is None:
-                print('new')
+                print('Creating the object')
                 cls._instance = super(Logger, cls).__new__(cls)
             return cls._instance
 
-        def __init__(self):
-            print('init')
+.. testcode::
+   :hide:
 
-    print('First call')
+   def fake_repr(self):
+       return '<Logger object at 0x7fa8e9cf7f60>'
+
+   Logger.__repr__ = fake_repr
+
+The object is created on the first call to the class:
+
+.. testcode::
+
     log1 = Logger()
-    print('Second call')
+    print(log1)
+
+.. testoutput::
+
+    Creating the object
+    <Logger object at 0x7fa8e9cf7f60>
+
+But no further objects are created on the second and subsequent calls.
+The message “Creating the object” does not print
+nor is a different object returned:
+
+.. testcode::
+
     log2 = Logger()
+    print(log2)
     print('Are they the same object?', log1 is log2)
 
 .. testoutput::
 
-    First call
-    new
-    init
-    Second call
-    init
+    <Logger object at 0x7fa8e9cf7f60>
     Are they the same object? True
 
 Um
