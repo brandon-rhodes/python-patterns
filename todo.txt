@@ -1,5 +1,8 @@
 
 
+* Clean up references to the “Module Global” pattern,
+  since I apparently titled it “Global Object” pattern instead.
+
 Remaining GoF patterns:
 
 Creational Patterns

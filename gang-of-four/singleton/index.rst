@@ -90,9 +90,43 @@ of “singleton” in Python:
 
 5. Finally, Python programmers on a few rare occasions
    do actually mean “The Singleton Pattern”
-   when they call an object a “singleton”.
-   Which Python objects qualify?
-   See the next section for the pattern’s formal definition.
+   when they call an object a “singleton”:
+   an object whose class returns the same object
+   every time it’s called.
+
+The Python 2 Standard Library included no examples of the Singleton Pattern.
+While it did feature singleton objects like ``None`` and ``Ellipsis``,
+the language provided access to them through the more Pythonic
+:doc:`Global Object Pattern </python/module-globals/index>`
+by giving them names in the ``__builtin__`` module.
+Their classes were not callable:
+
+::
+
+    >>> type(None)
+    <type 'NoneType'>
+    >>> NoneType = type(None)
+    >>> NoneType()
+    TypeError: cannot create 'NoneType' instances
+    >>> type(Ellipsis)()
+    TypeError: cannot create 'ellipsis' instances
+
+But in Python 3, the classes were upgraded to use the Singleton Pattern:
+
+>>> result = type(None)()
+>>> print(result)
+None
+>>> type(Ellipsis)()
+Ellipsis
+
+This makes life easier for programmers
+needing a quick callable that always returns ``None``,
+but such occasions are rare.
+In most Python projects these classes are never called
+and the benefit remains purely theoretical.
+When Python programmers need ``None``
+they use :doc:`/python/module-globals/index`
+and simply type its name.
 
 Gang of Four implementation
 ===========================
@@ -322,37 +356,6 @@ behind what reads like normal class instantiation.
 
 Examples
 ========
-
-Python 3 has elevated several objects
-to full-fledged examples of the Singleton Pattern
-that previously had simply been “singletons”
-in the sense of unique module globals.
-
-Both ``None`` and ``Ellipsis`` in Python 2
-are examples of :doc:`/python/module-globals/index`
-where the interpreter provides access to an object
-by assigning a name to it,
-in this case in the ``__builtin__`` module.
-But the objects are not available
-through the objected oriented Singleton Pattern,
-because Python doesn’t offer a callable constructor
-by which either of them can be created.
-Neither of their type objects is callable:
-
-::
-
-   >>> # Python 2
-   >>> type(None)
-   <type 'NoneType'>
-   >>> NoneType = type(None)
-   >>> NoneType()
-   TypeError: cannot create 'NoneType' instances
-   >>> type(Ellipsis)()
-   TypeError: cannot create 'ellipsis' instances
-
-py3 without error
-
-
 
 Lib/pydoc_data/topics.py
 
