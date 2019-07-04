@@ -13,18 +13,12 @@
    Python programmers almost never implement the Singleton Pattern
    as described in the :doc:`/gang-of-four/index`,
    where an object forbids normal instantiation
-   and forces callers to invoke a class method instead.
-   Instead, Python programmers are more likely to rig ``__new__()``
-   so it always returns the same instance.
+   and makes a single instance available through a class method.
+   Instead, a Python class can simply rig its ``__new__()`` method
+   to always return the same instance.
    But an even more Pythonic approach,
    if your design forces you to offer global access to a singleton object,
    is to use :doc:`/python/module-globals/index` instead.
-
-should you?
-does it really need to be unique?
-use test-driven development.
-you might be locking people in.
-you make syntax ambiguous.
 
 Disambiguation
 ==============
@@ -100,8 +94,8 @@ of “singleton” in Python:
    Which Python objects qualify?
    See the next section for the pattern’s formal definition.
 
-Original implementation
-=======================
+Gang of Four implementation
+===========================
 
 The C++ language that the Gang of Four were targeting
 imposed a distinct syntax on object creation,
@@ -112,8 +106,11 @@ that looked something like::
 
     log = new Logger()
 
+A line of code that performed the ``new`` operation
+would always return a new class instance —
+never a singleton.
 In the presence of this special syntax,
-how did they manage to offer singleton objects?
+what were their options for offering singleton objects?
 
 1. The Gang of Four did not take the easy way out
    and use :doc:`/python/module-globals/index`
@@ -126,7 +123,9 @@ how did they manage to offer singleton objects?
    to the global namespace was excessive.
    And since C++ programmers couldn’t control the order
    in which global objects were initialized,
-   no global object could depend upon being able to call any other.
+   no global object could depend upon being able to call any other,
+   so the responsibility for initializing a global
+   would often have fallen on client code.
 
 2. There was no way to override the meaning of ``new`` in C++
    so an alternative syntax was necessary
@@ -149,11 +148,11 @@ Python lacks the complicated concepts of ``protected`` or ``private`` methods,
 but one alternative is to raise an exception in ``__init__()``
 to make normal object instantiation impossible.
 The class method can then use a dunder method trick
-to create the object but skip initialization:
+to create the object without triggering ``__init__()`` and its exception:
 
 .. testcode::
 
-    # What the Gang of Four’s actual Singleton Pattern
+    # What the Gang of Four’s original Singleton Pattern
     # might look like in Python.
 
     class Logger(object):
@@ -206,7 +205,7 @@ which does successfully create and return an object:
 
 Subsequent calls to ``instance()`` simply return the singleton
 without repeating the initialization step
-(note that “Creating new instance” is never printed again),
+(note that “Creating new instance” isn’t printed again),
 exactly as the Gang of Four intended:
 
 .. testcode::
@@ -222,36 +221,30 @@ exactly as the Gang of Four intended:
 
 There are more complicated schemes that I can imagine
 for implementing the original Gang of Four class method.
-For example, some magic could be added to ``__init__()``
-that checks the stack
-and performs initialization instead of raising an exception
-if its caller is the ``instance()`` method.
+For example, instead of always raising an exception in ``__init__()``,
+it could introspect the stack and skip raising the exception
+if it’s being called from ``instance()`` method.
 That would let ``instance()`` call ``Logger()`` normally
 and avoid the manual call to ``__new__()``.
 
-But the example above does the best job, I think,
+But the above example does the best job, I think,
 of illustrating the original scheme with the least magic possible.
 Since the original approach is not a good fit for Python anyway,
-I’ll resist the temptation to iterate on it,
-and move along to a more likely implementation of the pattern in Python.
+I’ll resist the temptation to iterate on it further,
+and instead move on to how the pattern is best supported in Python.
 
 Pythonic Implementation
 =======================
 
 In one sense,
 Python started out better prepared than C++ for the Singleton Pattern
-because Python instantiation always uses the syntax of a simple call::
+because Python instantiation always uses the syntax of calling a factory::
 
     log = Logger()
 
-While C++ code that originally asked for a ``new Logger``
-would all need to be rewritten to call a factory
-if the ``Logger`` made a switch to the Singleton Pattern,
-Python object creation has always takes the form of a factory call.
-
 But renaming the class
 and putting a factory function named ``Logger`` in its place,
-while it would fool the above line of code,
+while successfully pivoting the above line of code,
 would break code that expected ``isinstance()`` to work with ``Logger``
 or that tried to subclass it.
 So Python 2.4 added the ``__new__()`` dunder method
@@ -261,11 +254,10 @@ like the Singleton Pattern and :doc:`/gang-of-four/flyweight/index`.
 The Web is replete with Singleton Pattern recipes featuring ``__new__()``
 that each propose a more or less complicated mechanism
 for working around the method’s biggest quirk:
-the fact that ``__init__()`` gets called
-on whatever value ``__new__()`` returns
-whether it’s a new object or not.
+the fact that ``__init__()`` gets called on its return value
+whether it returns a new object or not.
 I will instead simply not define an ``__init__()`` method
-and thus avoid having to work around it.
+and thus avoid having to work around it:
 
 .. testcode::
 
@@ -276,6 +268,7 @@ and thus avoid having to work around it.
             if cls._instance is None:
                 print('Creating the object')
                 cls._instance = super(Logger, cls).__new__(cls)
+                # Put any initialization here.
             return cls._instance
 
 .. testcode::
@@ -299,7 +292,7 @@ The object is created on the first call to the class:
     <Logger object at 0x7fa8e9cf7f60>
 
 But no further objects are created on the second and subsequent calls.
-The message “Creating the object” does not print
+The message “Creating the object” does not print,
 nor is a different object returned:
 
 .. testcode::
@@ -313,7 +306,19 @@ nor is a different object returned:
     <Logger object at 0x7fa8e9cf7f60>
     Are they the same object? True
 
-Um
+The example above opts for simplicity,
+at the expense of making two ``cls._instance`` class attribute lookups
+in the common case;
+if singleton access were in a program’s critical path,
+a local name or other connivance could eliminate the double lookup.
+Or the method could consist of a single ``return`` statement
+that short circuits to returning the instance if it already exists,
+``or`` calls another method to construct and store it.
+
+But however elaborately tweaked,
+the above pattern is the basis of every Python class
+that hides a singleton object
+behind what reads like normal class instantiation.
 
 Examples
 ========
@@ -361,3 +366,9 @@ has failed to provide a line of code
 with a reference to an object it needs,
 a common workaround in Python
 is :doc:`/python/module-globals/index`:
+
+should you?
+does it really need to be unique?
+use test-driven development.
+you might be locking people in.
+you make syntax ambiguous.
