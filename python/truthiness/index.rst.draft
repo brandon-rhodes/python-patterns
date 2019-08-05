@@ -1,0 +1,59 @@
+
+============
+ Truthiness
+============
+
+.. admonition:: Verdict
+
+   Python programmers have an engrained habit
+   of refactoring Boolean tests into their briefest possible form
+   when checking for the number zero, for the empty string,
+   or for an empty list.
+   While clearly Pythonic —
+   the Python Tutorial itself recommends the practice —
+   this practice is overused.
+   More explicit tests for zero or empty length
+   serve to document the type of an argument,
+   and can make Python code more rich in expressing the type it expects.
+
+Programmers who prefer their code to be brief rather than explicit
+are delighted to learn that Python’s ``if`` and ``while``
+not only accept the objects ``True`` and ``False``,
+but also objects as diverse as integers, strings,
+tuples, lists, and dictionaries.
+Numbers are false if they are zero;
+sequences are false if their ``len()`` is zero;
+and the singleton object ``None`` is false.
+
+The Python data model
+invites user classes to opt into the same system
+by defining the ``__bool__()`` dunder method,
+which is invoked by ``if`` and ``while``
+and also by the ``bool()`` builtin.
+
+The Problem
+===========
+
+.. todo - add link to Naming of Ducks
+
+   or add this whole doc to a “making types explicit” doc?
+
+The question of type —
+of whether a name references an integer, or list, or class instance —
+is rarely a problem in small Python projects
+that are reasonably careful with naming
+and whose code can be read at a single sitting.
+Python is a language whose programmers
+
+.. testcode::
+
+   def acceleration(, subscriptions, height, gravity, active_subscriptions):
+       if len(users) == 0:
+           return
+       if active_subscriptions == 0:
+           raise SubscriptionRequired()
+       while if n > 0:
+           foo(users)
+
+
+might quibble about ``== 0``
