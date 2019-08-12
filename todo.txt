@@ -42,7 +42,7 @@ x Iterator
   Visitor
 
 
-
+Talk about private and protected methods.
 
 Zope security: "principle" instead of "user"?
 Zope: not know the difference between an abstraction
@@ -107,3 +107,22 @@ Mention this someday?
 
 Discuss the happy fact that Python lacks any concept of a ``protected``
 or ``private`` method.
+
+“>>>”
+chapters 8,9,10 move earlier, between 4/5
+closure vs class with __call__.
+
+PEP-8 says “if not somelist”
+Walrus; comprehensions
+star unpacking
+does dict-like stay ordered
+setdefault is hard to read and can lead to throwing away new objects
+do linters check for inner function local names that shadow names further out?
+“private” attributes
+
+mix-in classes “use mix-ins like this”
+“throw”? “ticks remaining”
+“often more heavyweight”
+“class registration”?!
+__set_name__
+subprocess.run

@@ -344,8 +344,8 @@ nor is a different object returned:
 
 The example above opts for simplicity,
 at the expense of making two ``cls._instance`` class attribute lookups
-in the common case;
-if singleton access were in a program’s critical path,
+in the common case.
+If singleton access were in a program’s critical path,
 a local name or other connivance could eliminate the double lookup.
 Or the method could consist of a single ``return`` statement
 that short circuits to returning the instance if it already exists,
@@ -356,24 +356,63 @@ the above pattern is the basis of every Python class
 that hides a singleton object
 behind what reads like normal class instantiation.
 
-Examples
-========
+Verdict
+=======
 
-Lib/pydoc_data/topics.py
+While the Gang of Four’s original Singleton Pattern is a poor fit
+for a language like Python
+that lacks the concept of “private” and “protected” methods,
+it’s not as easy to dismiss the pattern when it’s built atop ``__new__()`` —
+after all, singletons were part of the reason the method was introduced.
 
+A first objection is that the Singleton Pattern’s implementation
+is difficult for many Python programmers to read.
+The alternative, :doc:`/python/module-globals/index`,
+is straightforward:
+it’s simply the familiar assignment statement,
+placed at a module’s top level.
+But a Python programmer reading a ``__new__()`` method for the first time
+is likely to require documentation
+to understand what the method is trying to accomplish.
 
-.. Doc/library/marshal.rst:46:singletons :const:`None`, and :exc:`StopIteration` can also be
+A second objection is that the Singleton Pattern
+makes calls to the class look
+misleading to programmers reading the code.
+Unless the designer has put “Singleton”
+or some other hint in the class name,
+and the reader knows design patterns well enough to understand the hint,
+the code will read as though a new instance is being created and returned.
+
+A third objection is that the Singleton Pattern forces a design commitment
+that the :doc:`/python/module-globals/index` does not.
+The assumption “we will only ever need one instance of this class”
+can break down as a system evolves.
+The Gang of Four TODO,
+but the day can arrive when system requirements
+demand that your system host a second independent print spool.
+And if your system adopts modern testing practices,
+you will often be grateful for the chance to create
+a new print spool object
+for each successive test
+rather than trying to reset the singleton object
+back to a known good state.
+
+Why, then, would you use the Singleton Pattern in Python?
+
+The one situation which would really demand the pattern
+would be an existing class that,
+because of a new requirement,
+will now operate best if designed as a single instance.
+If it’s not possible to simply migrate all the client code at once
+to using a module global,
+then using the Singeton Pattern to subvert the instantiations
+and return a single instance would be a natural approach.
+
+But, otherwise, the pattern is best avoided.
+
+.. See also
+
+   Lib/pydoc_data/topics.py
+   Doc/library/marshal.rst:46:singletons :const:`None`, and :exc:`StopIteration` can also be
    Doc/c-api/module.rst:258:singletons: if the *sys.modules* entry is removed and the module is re-imported,
    Doc/library/enum.rst:1026:The most interesting thing about Enum members is that they are singletons.
-
-When our software’s architecture
-has failed to provide a line of code
-with a reference to an object it needs,
-a common workaround in Python
-is :doc:`/python/module-globals/index`:
-
-should you?
-does it really need to be unique?
-use test-driven development.
-you might be locking people in.
-you make syntax ambiguous.
