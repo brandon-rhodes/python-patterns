@@ -16,7 +16,7 @@
    and instead offers a class method that returns the singleton instance.
    Python is more elegant,
    and lets a class continue to support the normal syntax for instantiation
-   by defining a custom ``__new__()`` method
+   while defining a custom ``__new__()`` method
    that returns the singleton instance.
    But an even more Pythonic approach,
    if your design forces you to offer global access to a singleton object,
