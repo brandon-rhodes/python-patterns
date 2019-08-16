@@ -12,10 +12,12 @@
 
    Python programmers almost never implement the Singleton Pattern
    as described in the :doc:`/gang-of-four/index`,
-   where a class forbids normal instantiation
-   and makes a single instance available through a class method.
-   Instead, a Python class can keep supporting normal instantiation syntax
-   while rigging its ``__new__()`` method to always return the same instance.
+   whose Singleton class forbids normal instantiation
+   and instead offers a class method
+   that returns the single instance.
+   Instead, Python lets a class offer what looks like normal instantiation
+   that actually returns a singleton instance
+   through a custom ``__new__()`` method.
    But an even more Pythonic approach,
    if your design forces you to offer global access to a singleton object,
    is to use :doc:`/python/module-globals/index` instead.
@@ -23,37 +25,37 @@
 Disambiguation
 ==============
 
-Python was already using the term “singleton”
+Python was already using the term *singleton*
 before the “Singleton Pattern” was defined by
 the object oriented design pattern community.
 So we should start by distinguishing the several meanings
-of “singleton” in Python:
+of “singleton” in Python.
 
-1. A “singleton” is a tuple of length one.
+1. A tuple of length one is called a *singleton.*
    While this definition might surprise some programmers,
-   it reflects the original definition of a “singleton” in mathematics:
+   it reflects the original definition of a singleton in mathematics:
    a set containing exactly one element.
    The Python Tutorial itself introduces newcomers to this definition
    when its chapter on `Data Structures
    <https://docs.python.org/3/tutorial/datastructures.html>`_
-   calls an example one-element tuple a “singleton”,
-   and through the rest of Python’s documentation
-   “singleton” continues to be used to mean a 1-element tuple.
+   calls a one-element tuple a “singleton”,
+   and the word continues to be used in that sense
+   through the rest of Python’s documentation.
    When the `Extending and Embedding <https://docs.python.org/3/extending/extending.html#calling-python-functions-from-c>`_
    guide says,
    “To call the Python function … with one argument,
    pass a singleton tuple,”
    it means a tuple containing exactly one item.
 
-2. Modules are “singletons”
-   because ``import`` creates each module’s object
-   only when it is first imported,
-   then returns that same object on each subsequent import of the same module.
-   When the `Module Objects <https://docs.python.org/3/c-api/module.html>`_
+2. Modules are “singletons” in Python
+   because ``import`` only creates a single copy of each module;
+   subsequent imports of the same name keep returning the same module object.
+   For example,
+   when the `Module Objects <https://docs.python.org/3/c-api/module.html>`_
    chapter of the Python/C API Reference Manual
    asserts that “Single-phase initialization creates singleton modules,”
-   it means by “singleton module” a module
-   for which only one module object is ever created.
+   it means by a “singleton module” a module
+   for which only one object is ever created.
 
 3. A “singleton” is a class instance that has been assigned a global name
    through :doc:`/python/module-globals/index`.
@@ -91,7 +93,7 @@ of “singleton” in Python:
 5. Finally, Python programmers on a few rare occasions
    do actually mean “The Singleton Pattern”
    when they call an object a “singleton”:
-   an object returned by its class
+   the lone object returned by its class
    every time the class is called.
 
 The Python 2 Standard Library included no examples of the Singleton Pattern.
@@ -125,12 +127,12 @@ who need a quick callable that always returns ``None``,
 though such occasions are rare.
 In most Python projects these classes are never called
 and the benefit remains purely theoretical.
-When Python programmers need ``None`` itself
+When Python programmers need the ``None`` object
 they use :doc:`/python/module-globals/index`
 by simply typing its name.
 
-Gang of Four implementation
-===========================
+The Gang of Four’s implementation
+=================================
 
 The C++ language that the Gang of Four were targeting
 imposed a distinct syntax on object creation,
@@ -158,8 +160,8 @@ what were their options for offering singleton objects?
    to the global namespace was excessive.
    And since C++ programmers couldn’t control the order
    in which global objects were initialized,
-   no global object could depend upon being able to call any other,
-   so the responsibility for initializing a global
+   no global object could depend on being able to call any other,
+   so the responsibility for initializing each global
    would often have fallen on client code.
 
 2. There was no way to override the meaning of ``new`` in C++
@@ -169,21 +171,19 @@ what were their options for offering singleton objects?
    for client code to call ``new``,
    by marking the class constructor as either ``protected`` or ``private``.
 
-3. So the Gang of Four wound up pivoting
-   in the same direction Python pivoted for its own object design:
-   by having clients invoke a callable to ask for the singleton object.
-   They chose a class method as their preferred callable.
+3. So the Gang of Four pivoted to a class method
+   that would return the class’s singleton object.
    Unlike a global function,
    a class method avoided adding yet another name to the C++ global namespace,
    and unlike a static method,
-   it can be used to instantiate subclasses of the main singleton class.
+   it could support subclasses that were singletons as well.
 
 How could Python code illustrate their approach?
-Python lacks the complicated concepts of ``protected`` or ``private`` methods,
-but one alternative is to raise an exception in ``__init__()``
+Python lacks the complications of ``new``, ``protected``, and ``private``.
+But an alternative is to raise an exception in ``__init__()``
 to make normal object instantiation impossible.
 The class method can then use a dunder method trick
-to create the object without triggering ``__init__()`` and its exception:
+to create the object without triggering the exception:
 
 .. testcode::
 
@@ -225,8 +225,8 @@ from creating new instances by calling the class:
       ...
     RuntimeError: Call instance() instead
 
-Instead, they are directed to use the ``instance()`` class method,
-which does successfully create and return an object:
+Instead, callers are instructed to use the ``instance()`` class method,
+which creates and returns an object:
 
 .. testcode::
 
@@ -238,9 +238,9 @@ which does successfully create and return an object:
     Creating new instance
     <Logger object at 0x7f0ff5e7c080>
 
-Subsequent calls to ``instance()`` simply return the singleton
+Subsequent calls to ``instance()`` return the singleton
 without repeating the initialization step
-(note that “Creating new instance” isn’t printed again),
+(as we can see from the fact that “Creating new instance” isn’t printed again),
 exactly as the Gang of Four intended:
 
 .. testcode::
@@ -257,7 +257,7 @@ exactly as the Gang of Four intended:
 There are more complicated schemes that I can imagine
 for implementing the original Gang of Four class method.
 For example, instead of always raising an exception in ``__init__()``,
-it could introspect the stack and skip raising the exception
+we could introspect the stack and skip raising the exception
 if it’s being called from ``instance()`` method.
 That would let ``instance()`` call ``Logger()`` normally
 and avoid the manual call to ``__new__()``.
@@ -268,34 +268,36 @@ Since the Gang of Four’s pattern is not a good fit for Python anyway,
 I’ll resist the temptation to iterate on it further,
 and instead move on to how the pattern is best supported in Python.
 
-Pythonic Implementation
-=======================
+A more Pythonic implementation
+==============================
 
 In one sense,
-Python started out better prepared than C++ for the Singleton Pattern
-because Python instantiation always uses the syntax of calling a factory::
+Python started out better prepared than C++ for the Singleton Pattern,
+because Python lacks a ``new`` keyword
+that forces a new object to be created.
+Instead, objects are created by invoking a callable,
+which imposes no syntactic limitation
+on what operation the callable performs::
 
     log = Logger()
 
-But renaming the class
-and putting a factory function named ``Logger`` in its place,
-while successfully pivoting the above line of code,
-would break code that expected ``isinstance()`` to work with ``Logger``
-or that tried to subclass it.
-So Python 2.4 added the ``__new__()`` dunder method
-to support object creation patterns
+To let authors take control of calls to a class,
+Python 2.4 added the ``__new__()`` dunder method
+to support alternative creational patterns
 like the Singleton Pattern and :doc:`/gang-of-four/flyweight/index`.
 
 The Web is replete with Singleton Pattern recipes featuring ``__new__()``
 that each propose a more or less complicated mechanism
 for working around the method’s biggest quirk:
 the fact that ``__init__()`` always gets called on the return value,
-whether it’s new object or not.
+whether the object that’s been returned is new or not.
 To make my own example simple,
 I will simply not define an ``__init__()`` method
 and thus avoid having to work around it:
 
 .. testcode::
+
+    # Straightforward implementation of the Singleton Pattern
 
     class Logger(object):
         _instance = None
@@ -343,14 +345,13 @@ nor is a different object returned:
     Are they the same object? True
 
 The example above opts for simplicity,
-at the expense of making two ``cls._instance`` class attribute lookups
+at the expense of doing the ``cls._instance`` attribute lookup twice
 in the common case.
-If singleton access were in a program’s critical path,
-a local name or other connivance could eliminate the double lookup.
-Or the method could consist of a single ``return`` statement
-that short circuits to returning the instance if it already exists,
-``or`` calls another method to construct and store it.
-
+For programmers who cringe at such waste,
+the result can of course be assigned a name
+and re-used in the return statement.
+And various other improvements can be imagined
+that would result in faster bytecode.
 But however elaborately tweaked,
 the above pattern is the basis of every Python class
 that hides a singleton object
@@ -361,54 +362,54 @@ Verdict
 
 While the Gang of Four’s original Singleton Pattern is a poor fit
 for a language like Python
-that lacks the concept of “private” and “protected” methods,
+that lacks the concepts of ``new``, ``private``, and ``protected``,
 it’s not as easy to dismiss the pattern when it’s built atop ``__new__()`` —
-after all, singletons were part of the reason the method was introduced.
+after all, singletons were part of the reason
+the ``__new__()`` dunder method was introduced!
+
+But the Singleton Pattern in Python always seems to have drawbacks.
 
 A first objection is that the Singleton Pattern’s implementation
 is difficult for many Python programmers to read.
-The alternative, :doc:`/python/module-globals/index`,
-is straightforward:
+The alternative :doc:`Global Object Pattern </python/module-globals/index>`
+is easy to read:
 it’s simply the familiar assignment statement,
-placed at a module’s top level.
+placed up at a module’s top level.
 But a Python programmer reading a ``__new__()`` method for the first time
-is likely to require documentation
-to understand what the method is trying to accomplish.
+is probably going to have to stop and look for documentation
+to understand what’s going on.
 
 A second objection is that the Singleton Pattern
-makes calls to the class look
-misleading to programmers reading the code.
+makes calls to the class, like ``Logger()``, misleading for readers.
 Unless the designer has put “Singleton”
 or some other hint in the class name,
 and the reader knows design patterns well enough to understand the hint,
 the code will read as though a new instance is being created and returned.
 
 A third objection is that the Singleton Pattern forces a design commitment
-that the :doc:`/python/module-globals/index` does not.
-The assumption “we will only ever need one instance of this class”
-can break down as a system evolves.
-The Gang of Four TODO,
-but the day can arrive when system requirements
-demand that your system host a second independent print spool.
-And if your system adopts modern testing practices,
-you will often be grateful for the chance to create
-a new print spool object
-for each successive test
-rather than trying to reset the singleton object
-back to a known good state.
+that :doc:`/python/module-globals/index` does not.
+Offering a global object still leaves code
+free to create other instances of the class —
+which can be particularly helpful for tests,
+that otherwise wind up coupled together
+through the single global object they are forced to share.
+But the Singleton Pattern makes additional instances impossible.
+(Unless the caller is willing to stoop to monkey patching;
+or temporarily modifying ``_instance`` to subvert the logic in ``__new__()``;
+or creating a subclass that replaces the method.)
 
 Why, then, would you use the Singleton Pattern in Python?
 
-The one situation which would really demand the pattern
+The one situation that would really demand the pattern
 would be an existing class that,
 because of a new requirement,
-will now operate best if designed as a single instance.
-If it’s not possible to simply migrate all the client code at once
-to using a module global,
-then using the Singeton Pattern to subvert the instantiations
-and return a single instance would be a natural approach.
+will now operate best as a single instance.
+If it’s not possible to migrate all client code to using a global object,
+then using the Singeton Pattern would be a natural approach
+to pivoting to a singleton design while preserving the old syntax.
 
-But, otherwise, the pattern is best avoided.
+But, otherwise, the pattern is best avoided
+in favor of :doc:`/python/module-globals/index`.
 
 .. See also
 
