@@ -114,6 +114,11 @@ code, tt {
     padding: 1px 2px 2px;
     font-size: 0.8em;
 }
+code {
+    /* Prevent paragraph lines featuring inline code from being taller than
+       the surrounding lines. */
+    line-height: 0px;
+}
 a code:hover, a tt:hover {
     border-color: #827c6b;
 }
