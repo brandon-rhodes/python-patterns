@@ -13,9 +13,11 @@
    Python programmers almost never implement the Singleton Pattern
    as described in the :doc:`/gang-of-four/index`,
    whose Singleton class forbids normal instantiation
-   and offers a class method that returns the single instance.
-   Instead, Python lets classes define a custom ``__new__()`` method
-   that returns a singleton instance each time the class is called.
+   and instead offers a class method that returns the singleton instance.
+   Python is more elegant,
+   and lets a class continue to support the normal syntax for instantiation
+   by defining a custom ``__new__()`` method
+   that returns the singleton instance.
    But an even more Pythonic approach,
    if your design forces you to offer global access to a singleton object,
    is to use :doc:`/python/module-globals/index` instead.
@@ -139,9 +141,8 @@ that looked something like::
 
     log = new Logger()
 
-A line of code that performed the ``new`` operation
-would always return a new class instance —
-never a singleton.
+A line of C++ that says ``new`` always creates a new class instance —
+it never returns a singleton.
 In the presence of this special syntax,
 what were their options for offering singleton objects?
 
@@ -152,8 +153,8 @@ what were their options for offering singleton objects?
    There, global names all shared a single crowded global namespace,
    so elaborate naming conventions were necessary
    to prevent names from different libraries from colliding.
-   So the Gang judged that adding both a class and its singleton instance
-   to the global namespace was excessive.
+   The Gang judged that adding both a class and its singleton instance
+   to the crowded global namespace would be excessive.
    And since C++ programmers couldn’t control the order
    in which global objects were initialized,
    no global object could depend on being able to call any other,
@@ -176,7 +177,7 @@ what were their options for offering singleton objects?
 
 How could Python code illustrate their approach?
 Python lacks the complications of ``new``, ``protected``, and ``private``.
-But an alternative is to raise an exception in ``__init__()``
+An alternative is to raise an exception in ``__init__()``
 to make normal object instantiation impossible.
 The class method can then use a dunder method trick
 to create the object without triggering the exception:
@@ -251,14 +252,8 @@ exactly as the Gang of Four intended:
     Are they the same object? True
 
 There are more complicated schemes that I can imagine
-for implementing the original Gang of Four class method.
-For example, instead of always raising an exception in ``__init__()``,
-we could introspect the stack and skip raising the exception
-if it’s being called from ``instance()`` method.
-That would let ``instance()`` call ``Logger()`` normally
-and avoid the manual call to ``__new__()``.
-
-But the above example does the best job, I think,
+for implementing the original Gang of Four class method in Python,
+but I think the above example does the best job
 of illustrating the original scheme with the least magic possible.
 Since the Gang of Four’s pattern is not a good fit for Python anyway,
 I’ll resist the temptation to iterate on it further,
@@ -384,15 +379,17 @@ the code will read as though a new instance is being created and returned.
 
 A third objection is that the Singleton Pattern forces a design commitment
 that :doc:`/python/module-globals/index` does not.
-Offering a global object still leaves code
-free to create other instances of the class —
+Offering a global object still leaves a programmer free
+to create other instances of the class —
 which can be particularly helpful for tests,
 letting them each test a completely separate object
 without needing to reset a shared object back to a known good state.
 But the Singleton Pattern makes additional instances impossible.
 (Unless the caller is willing to stoop to monkey patching;
 or temporarily modifying ``_instance`` to subvert the logic in ``__new__()``;
-or creating a subclass that replaces the method.)
+or creating a subclass that replaces the method.
+But a pattern you have to work around
+is generally a pattern you should avoid.)
 
 Why, then, would you use the Singleton Pattern in Python?
 
@@ -400,7 +397,9 @@ The one situation that would really demand the pattern
 would be an existing class that,
 because of a new requirement,
 will now operate best as a single instance.
-If it’s not possible to migrate all client code to using a global object,
+If it’s not possible to migrate all client code
+to stop calling the class directly
+and start using a global object,
 then the Singeton Pattern would be a natural approach
 to pivoting to a singleton while preserving the old syntax.
 
