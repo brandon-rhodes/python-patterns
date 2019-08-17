@@ -126,3 +126,6 @@ mix-in classes “use mix-ins like this”
 “class registration”?!
 __set_name__
 subprocess.run
+
+Add a reference to: (and credit the tweet that mentioned it)
+http://www.informit.com/articles/article.aspx?p=1404056
