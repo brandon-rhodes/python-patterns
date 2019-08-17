@@ -11,7 +11,7 @@ x Abstract Factory
 x Builder
 x Factory Method
 X Prototype
-  Singleton
+x Singleton
     X Prebound Methods
     X Sentinel Object
     X Module Globals
@@ -65,8 +65,6 @@ Fathers of OOP had in mind. We want to create objects that describe what
 they are, and then bind behavior to them, rather than focus on what they
 do, and then figure out what data they'll need to do that."
 
-
-
 Why bottom out? Python strings are made of — strings!
 
 in Go I keep making error
@@ -89,9 +87,7 @@ smaller piece of string? it’s a string too!
 >>> type(s[4])
 <class 'str'>
 
-
 What should be at top of file; what order functions should go in.
-
 
 Mention modules that prevent import * from subordinate modules
 so the main package is where you import * its classes instead?
@@ -99,18 +95,12 @@ Probably import * just isn’t important enough today to mention:
   # multiprocessing/context.py
   __all__ = ()
 
-
 Mention this someday?
 /home/brandon/cpython/Lib/_collections_abc.py
 27:__name__ = "collections.abc"
 
-
 Discuss the happy fact that Python lacks any concept of a ``protected``
 or ``private`` method.
-
-“>>>”
-chapters 8,9,10 move earlier, between 4/5
-closure vs class with __call__.
 
 PEP-8 says “if not somelist”
 Walrus; comprehensions
