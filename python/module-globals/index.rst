@@ -304,7 +304,7 @@ to the module invoked from the command line,
 and ``__file__``,
 the full filesystem path to the module’s Python file itself —
 which is almost universally used to find data files included in a package,
-even though we the official recommendation these days
+even though the official recommendation these days
 is to use |pkgutil_get_data|_ instead.
 
 .. |pkgutil_get_data| replace:: ``pkgutil.get_data()``
