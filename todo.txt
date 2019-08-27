@@ -24,7 +24,7 @@ Structural Patterns
 x Composite
 x Decorator
   Facade
-  Flyweight
+X Flyweight
   Proxy
 
 Behavioral Patterns
@@ -109,6 +109,7 @@ does dict-like stay ordered
 setdefault is hard to read and can lead to throwing away new objects
 do linters check for inner function local names that shadow names further out?
 “private” attributes
+for k in dict vs for k in dict.keys
 
 mix-in classes “use mix-ins like this”
 “throw”? “ticks remaining”
