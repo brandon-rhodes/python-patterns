@@ -98,7 +98,7 @@ and correctly reset its state before the next test runs.
 
 Third, this approach abandons encapsulation.
 This will sound like a fuzzier complaint
-then the previous two,
+than the previous two,
 but it can detract from readability
 (“readability counts”)
 for a small tight system of two functions and a ``seed``
