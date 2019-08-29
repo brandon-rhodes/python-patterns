@@ -59,6 +59,7 @@ Structural Patterns
 .. toctree::
    :maxdepth: 2
 
+   gang-of-four/bridge/index
    gang-of-four/composite/index
    gang-of-four/decorator-pattern/index
    gang-of-four/flyweight/index
