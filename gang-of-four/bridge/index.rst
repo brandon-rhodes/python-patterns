@@ -7,12 +7,17 @@
 
 .. admonition:: Verdict
 
-   The Bridge Pattern solves the problem
-   :
-   instead of coupling
+   The Bridge Pattern helps improve the design of classes
+   so Python programmers won’t need multiple inheritance or mixins
+   to customize them.
+   Instead of a single complicated class
+   that needs to be customized across multiple axes,
+   the Bridge Pattern recommends
+   that several simple classes be composed together
+   to perform the same task.
 
-Uncooperative Subclasses
-========================
+Unwitting Superclasses
+======================
 
 Some early experiments in object orientation
 imagined that a primary purpose of software libraries
@@ -27,29 +32,13 @@ and invites programmers to specialize it:
 
 .. testcode::
 
+    import sys
+
     class Logger(object):
         def log(self, level, message):
             print(level, message, file=sys.stderr)
 
 A large software project might accumulate several subclasses.
-
-.. testcode::
-
-    class FilteredLogger(Logger):
-        def __init__(self, threshold):
-            self.threshold = threshold
-
-        def log(self, level, message):
-            if level >= threshold:
-                super().log(level, message)
-                # , file=sys.stderr)
-
-    class FileLogger(Logger):
-        def __init__(self, file):
-            self.file = file
-
-        def log(self, level, message):
-            print(level, message, file=self.file)
 
 The two subclasses might live in different parts of the codebase
 without either programmer knowing about the other’s work.
@@ -57,7 +46,7 @@ But they raise the obvious question:
 can the two subclasses be composed together
 so as to combine their features?
 
-No, in the general case they cannot.
+No; in the general case, they cannot.
 
 One problem is that Python initialization methods
 
@@ -72,7 +61,7 @@ Much more serious is the problem
 that the application logic itself —
 the filtering and presentation of logging messages —
 cannot compose.
-The author of the ``FilteredLogger``
+The author of the ``FilterLogger``
 did their best to cooperate with the superclass,
 dutifully calling ``super()`` to have the superclass
 do the actual printing.
@@ -96,14 +85,39 @@ it turns out
 that these two subclasses will compose just fine
 if we reverse their order!
 
-    class FilteredFileLogger(FilteredLogger, FileLogger):
-        def __init__(self, level, file):
-            # Cheat, since __init__() does not compose:
-            self.level = level
-            self.file = file
+INSTEAD
+
+.. testcode::
+
+    # One developer specialized the idea of a Logger:
+
+    class FilterLogger(Logger):
+        """Configure with log.threshold = <value>."""
+        threshold = 30
+
+        def log(self, level, message):
+            if level >= threshold:
+                super().log(level, message)
+
+    # Somewhere else, another developer defined:
+
+    class FileLogger(Logger):
+        """Configure with log.file = <file object>."""
+        file = sys.stderr
+
+        def log(self, level, message):
+            print(level, message, file=self.file)
+
+this is the very best case
+
+1. configuration not through __init__()
+
+2. remembered to call super()
+
+3. because order is important, it’s happy that Python MROs have order
 
 Calling the ``log()`` method of the combined class
-will first call the ``FilteredLogger`` version of the routine,
+will first call the ``FilterLogger`` version of the routine,
 which performs the filtering.
 Then its call to ``super()``
 will find the ``FileLogger`` next in the method resolution order,
@@ -131,14 +145,8 @@ by copying the threshold test
 
 .. testcode::
 
-    class FilteredFileLogger(FileLogger):
-        def __init__(self, level, file):
-            self.level = level
-            super().__init__(file)
-
-        def log(self, level, message):
-            if level >= threshold:
-                super().log(level, message)
+    class FilteredFileLogger(FilterLogger, FileLogger):
+        """Subclass that combines superclass abilities."""
 
 note the naming order
 put filtered first to remember both the order of operations
@@ -148,32 +156,7 @@ in general code reuse is difficult
 we have had to re-implement filtering
 in a new subclass
 
-Cooperative Subclasses
-======================
-
-
-
-    class FilteredLogger2(Logger):
-        def __init__(self, threshold):
-            self.threshold = threshold
-
-        def log(self, level, message):
-            if level >= threshold:
-                super().log(level, message)
-
-here subclass has anticipated composition
-
-    class 
-
-note that this would have been a disaster
-if either subclass __init__ had called super().__init__()
-because they would have tried calling their fellow subclass
-
-so in general you have to stop using init
-and instead have a separate method
-to initialize each attribute
-
-Cooperative Subclasses
+Anticipated subclasses
 ======================
 
 you can design a class
@@ -184,8 +167,11 @@ like
 
     class BaseLogger(object):
         def log(self, level, message):
-            level, message = self.filter(message)
-            self.emit(level, message)
+            if self.filter(level, message):
+                self.emit(level, message)
+
+        def filter(self, level, message):
+            return True
 
         def emit(self, level, message):
             print(level, message, file=sys.stderr)
@@ -194,39 +180,72 @@ we could now do stuff without as much problem
 we wouldn’t have to worry about order of subclasses?
 hmm
 
-you would have to create, ahead of time,
-each combination of classes
-because you can’t define new subclasses at runtime
+    class FilterLogger(BaseLogger):
+        """Configure with log.threshold = <value>."""
+        threshold = 30
 
-2^n
+        def filter(self, level, message):
+            return level >= threshold
 
-except that you can, because this is Python
+    class FileLogger(BaseLogger):
+        """Configure with log.file = <file object>."""
+        file = sys.stderr
 
-creating classes dynamically
-============================
+        def emit(self, level, message):
+            print(level, message, file=self.file)
 
-type(classname, superclasses, attributes_dict)
+Thanks to the superclass’s careful design,
+these subclasses are clean and orthogonal,
+each customizing a different method of the parent class.
+Multiple inheritance can safely mix them together in any order.
 
-checkboxes = [
-    ('Filter?', FilterMixin),
-    ('File?', FileMixin),
-]
+    class FilterFileLogger(FileLogger, FilterLogger):
+        """Subclass that combines superclass abilities."""
 
-answers = [True, False]
+But this success is fragile.
+how?
 
-superclasses = [BaseLogger]
+mixins
+======
 
-for answer, (name, mixin) in zip(answers, checkboxes):
-    if answer:
-        superclasses.append(mixin)
+how to discuss?
 
-new_class = type('DynamicLogger', superclasses, {})
+why have
+
+instead
+
+    class FilterMixin(object):
+        threshold = 30
+
+        def filter(self, level, message):
+            return level >= threshold
+
+    class FileMixin(object):
+        file = sys.stderr
+
+        def emit(self, level, message):
+            print(level, message, file=self.file)
 
 
+
+    class FilterFileLogger(FileMixin, FilterMixin, BaseLogger):
+        """Subclass that combines superclass abilities."""
+
+in general a mixin is a symptom of the same thing:
+multiple axes of design
+have been coupled into a single class
 
 the Bridge Pattern
 ==================
 
+instead of coupling two different kinds of behavior in the same class,
+the bridge pattern
+splits each behavior into a separate class.
+callers are expected to interact with
+abstraction and implementation
+
+in g4 did something else:
+prevented client code from... really?
 
 .. testcode::
 
@@ -239,16 +258,20 @@ the Bridge Pattern
 
     class Handler(object):
         def log(self, level, message):
-            self.handler(level, message)
+            print(level, message, file=sys.stderr)
 
-now subclass independently
+The two axes along which we want to customize class behavior —
+whether a particular message is logged at all,
+and where the message is written —
+are now independent.
+so two subclasses
 
 .. testcode::
 
-    class FilteredLogger(object):
+    class FilterLogger(object):
         def __init__(self, handler, level):
             self.level = level
-            super().__init__(level)
+            super().__init__()
 
         def log(self, level, message):
             if level >= foo:
@@ -260,7 +283,23 @@ now subclass independently
             super().__init__()
 
         def log(self, level, message):
-            super considered super
+            print(level, message, file=self.file)
+
+first we have only simple subclassing
+so super() you know which class it calls
+
+second we have avoided __init__ problem
+because each class builds atop a single base class,
+(hmm, am I right? is this so much better?)
+
+another in C++: not binding abstr to impl
+
+.. testcode::
+
+    logfile = open('/tmp/app.log', 'a')
+    log = FilterLogger(FileHandler(logfile), 30)
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 == multiple inheritance works poorly
 if the stack of methods have different arguments
@@ -278,6 +317,12 @@ all the problems are solved
   it can declare init that extends the superclass’s list of arguments
   with the additional arguments it needs
   and safely call super() init
+
+
+
+no longer have to build new classes
+can just plug things together at runtime
+
 
 
 actual logging module more complicated
@@ -300,9 +345,7 @@ actual logging module more complicated
 
 vvvvv keep this example of using actual?
 
-.. testcode::
-
-    from logging import getLogger
+..  from logging import getLogger
     import logging
 
     log = getLogger('example')
@@ -355,3 +398,36 @@ if logging wanted a less heavyweight approach
 could move to duck typing
 
 
+why not just have a huge class with lots of methods
+and lots of abilities and configure it for each situation?
+
+creating classes dynamically
+============================
+
+“when the implementation must be selected or switched at run-time.”
+
+you would have to create, ahead of time,
+each combination of classes
+because you can’t define new subclasses at runtime
+
+..
+   2^n
+
+   except that you can, because this is Python
+
+   type(classname, superclasses, attributes_dict)
+
+   checkboxes = [
+       ('Filter?', FilterMixin),
+       ('File?', FileMixin),
+   ]
+
+   answers = [True, False]
+
+   superclasses = [BaseLogger]
+
+   for answer, (name, mixin) in zip(answers, checkboxes):
+       if answer:
+           superclasses.append(mixin)
+
+   new_class = type('DynamicLogger', superclasses, {})
