@@ -120,3 +120,9 @@ subprocess.run
 
 Add a reference to: (and credit the tweet that mentioned it)
 http://www.informit.com/articles/article.aspx?p=1404056
+
+Some early experiments in object orientation
+imagined that a primary purpose of software libraries
+would be to provide useful superclasses,
+whose code we would re-use
+by subclassing them.

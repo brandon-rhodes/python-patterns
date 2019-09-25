@@ -3,32 +3,39 @@
  The Bridge Pattern
 ====================
 
+.. todo make sure I say complicated not complex
+
 *A “Structural Pattern” from the* :doc:`/gang-of-four/index`
 
 .. admonition:: Verdict
 
-   The Bridge Pattern helps improve the design of classes
-   so Python programmers won’t need multiple inheritance or mixins
-   to customize them.
+   The Bridge Pattern helps improve the design of Python classes
+   that might otherwise need tricks like multiple inheritance and mixins.
    Instead of a single complicated class
-   that needs to be customized across multiple axes,
+   that couples several behaviors together,
    the Bridge Pattern recommends
-   that several simple classes be composed together
+   that simpler classes be composed together
    to perform the same task.
+
+object oriented folks will have seen situations
+where a single class needs to be specialized
+along many different axes at once
+symptom: classes with long names
+in example below, ``FilteredFileLogger``
+
+the bridge pattern
+recommends decomposing a complicated class
+into several classes,
+with a more abstract outer class
+holding a reference to an implementation in an inner class
 
 Unwitting Superclasses
 ======================
 
-Some early experiments in object orientation
-imagined that a primary purpose of software libraries
-would be to provide useful superclasses,
-whose code we would re-use
-by subclassing them.
-
 An overly simplistic example can drive our discussion.
-Imagine a logging library
-that provides a ``Logger`` superclass
-and invites programmers to specialize it:
+Imagine a naive ``Logger`` class
+that provides a basic interface for issuing log messages
+and invites the programmer to specialize it:
 
 .. testcode::
 
