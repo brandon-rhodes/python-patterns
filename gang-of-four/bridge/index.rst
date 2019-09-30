@@ -156,7 +156,31 @@ Dodge: use multiple inheritance
 
 problem is init methods
 
-dodge: decompose into methods instead of classes
+Dodge: decompose into methods instead of classes
+------------------------------------------------
+
+Some classes try to dodge the problems that the Bridge Pattern solves
+by decomposing a complicated class’s code into separate methods.
+Given our example,
+this approach would recognize that filtering and emitting
+are separate steps that will often need separate customization,
+but would grant them each a method instead of a class:
+
+example
+
+problem
+still remains complicated
+what is its job “everything”
+
+convoluted testing story
+easy to test filter or emitter:
+instantiate it and call its API
+But how would you unit test
+a filter method added to the class shown above?
+(would it really be hard? hmm)
+
+Finally, it results in unhappy
+inviting person into your class:
 
 https://docs.python.org/3/library/socketserver.html
 
@@ -172,14 +196,19 @@ handle_request()
 
 (testing?)
 
-dodge: use mixins
+Dodge: use mixins
+-----------------
 
 having an emit method
 so that you can specialize it separately
 
-appendix: creating classes dynamically
+Appendix: creating classes dynamically
+--------------------------------------
 
-appendix: functions instead of classes
+raised the specter
+
+Appendix: functions instead of classes
+--------------------------------------
 
 
 
