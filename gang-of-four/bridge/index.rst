@@ -17,6 +17,44 @@
    that simpler classes be composed together
    to perform the same task.
 
+A class that was intended to be simple can, in practice,
+wind up getting extended in several different directions
+over the course of its career.
+If the class varies in _m_ different ways along one axis of design
+and _n_ ways along another,
+then in the worst case a system might need _m×n_ variants of the class.
+
+The Gang of Four offer the example of a ``Window`` class
+that has been extended to support two different operating systems —
+imagine that there are subclasses ``MSWindow`` and ``MacWindow``.
+What happens when a designer now wants to create a special window
+for supporting a grid of icons?
+They will need to create both an ``MSIconWindow`` and a ``MacIconWindow``.
+The _m_=2 possible operating systems (Microsoft and Windows)
+have combined with _n_=2 possible behaviors (“plain” and “icon”)
+to produce 2×2=4 classes.
+
+The Bridge Pattern recommends splitting a complicated class
+into several simple classes,
+each of which implements one of the possible axes of design.
+In their example,
+an outer ``Window`` or ``IconWindow`` class
+that is purely concerned with layout
+can wrap an inner ``MSWindowDriver`` or ``MacWindowDriver`` class
+that’s concerned with operating under a specific operating system.
+The system winds up with _m+n_ instead of _m×n_ separate classes.
+
+As we will see,
+this Bridge Pattern not only works well in Python,
+but can replace two Python habits
+that were not widespread in the Gang of Four’s original languages:
+multiple inheritance, and mixins.
+
+
+
+
+
+
 object oriented folks will have seen situations
 where a single class needs to be specialized
 along many different axes at once
