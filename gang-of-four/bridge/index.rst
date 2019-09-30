@@ -28,22 +28,23 @@ then in the worst case a class might need _m×n_ subclasses.
 The Gang of Four offer the example of a ``Window`` class
 that has been extended to support two different operating systems —
 imagine that there are subclasses ``MSWindow`` and ``MacWindow``.
-What happens when a designer now wants to create a special window
-for supporting a grid of icons?
-They will need to create both an ``MSIconWindow`` and a ``MacIconWindow``.
-The _m_=2 possible operating systems (Microsoft and Windows)
-have combined with _n_=2 possible behaviors (“plain” and “icon”)
-to produce 2×2=4 classes.
+What happens when a designer now wants to program a window
+with a special layout algorithm
+for displaying a grid of icons?
+They would need to create both an ``MSIconWindow`` and a ``MacIconWindow``
+to provide the layout under both operating systems.
 
 The Bridge Pattern recommends splitting a complicated class
 into several simple classes,
 each of which implements one of the possible axes of design.
 In their example,
-an outer ``Window`` or ``IconWindow`` class
-that is purely concerned with layout
-can wrap an inner ``MSWindowDriver`` or ``MacWindowDriver`` class
+an outer ``Window`` class and its ``IconWindow`` subclass
+are purely concerned with layout.
+To perform raw graphics operations,
+they wrap an inner ``MSWindowDriver`` or ``MacWindowDriver`` class
 that’s concerned with how to draw pixels under a specific operating system.
-The system winds up with _m+n_ instead of _m×n_ separate classes.
+The Bridge Pattern lets a system
+winds up with _m+n_ instead of _m×n_ separate classes.
 
 As we will see,
 this Bridge Pattern not only works well in Python,
@@ -51,24 +52,26 @@ but can replace two Python habits
 that were not widespread in the Gang of Four’s original languages:
 multiple inheritance and mixins.
 
-A complicated class
--------------------
+The problem
+-----------
 
 .. todo link
+
+.. todo does duck typing help?
 
 Python’s own ``logging`` Standard Library module
 makes extensive use of the Bridge Pattern,
 so let’s adopt a simple logger as our example.
-Imagine that a novice programmer
+Imagine that a novice
 with no experience extending a logger
 started with an overly simple class:
 
 class logger
 
 As the programmer’s team extended the system,
-several variants of this basic logger might get written.
+several subclasses of this basic logger might get written.
 One variant might specialize the logger so that it filters log messages,
-displaying only messages of at least a given level of severity:
+displaying only messages of at least a given severity:
 
 ex
 
@@ -80,68 +83,94 @@ Given these two subclasses,
 what happens when the day arrives
 when the system needs a logger
 that both filters its messages
-but also delivers them to a custom destination file?
+and also delivers them to a custom destination file?
 
-In the traditional case,
+In a less powerful language than Python
+where a new subclass could only inherit from one or the other
+of the two subclasses,
 code would need to be duplicated
-to produce a class with the abilities of both subclasses.
-
-
-1 specalizing by subclassing.
-  if instead working in a monorepo,
-  and the original class can be extended,
-  then no problem.
-
-2 >1 axes.
-  here they are filtering, and emitting.
-
-3 want to avoid duplicating code.
-  otherwise you can just create a new class
-  that combines.
-
-in languages used by the gang of four,
-point 3 above is much stronger.
-you don’t just need to avoid duplicate code,
-it’s mandatory that your new logging classes
-all inherit from ?
-
-why subclass?
-
-why are they subclassing
-instead of extending the original class?
-
-so this is “complicated” because...
+to produce a new class with the abilities of both subclasses.
 
 The solution
 ------------
 
-which becomes the wrapper?
+The Bridge Pattern recommends splitting a complicated class
+into several smaller classes,
+each of which is responsible for one of the behaviors —
+one of the axes of design —
+of the original class.
 
-* we could decide that a Logger’s primary job is to emit messages,
-  and so split off filtering into its own ``Filter`` class.
+One of the resulting classes will serve as the “abstraction”
+that provides the interface that clients interact with.
+In our example, the abstraction provides the ``log()`` method.
+The other classes work behind the scenes
+to perform the separate steps originally combined in a single class.
+
+This leads to a question.
+When decomposing a complicated class with the Bridge Pattern,
+which code belongs out in the abstraction class,
+and which belong in the classes behind it?
+There are often several options.
+
+* In our example,
+  we could decide that a logger’s primary job is to emit messages,
+  and split off filtering into its own ``Filter`` class.
   Each logger would be given a ``Filter`` instance
   to which it submitted each message before emitting it.
 
-* we could decide that a logger’s primary job is to filter messages.
-  The task of emitting messages could be ceded to a ``Handler`` class.
+* Or we could decide that a logger’s primary job is to filter messages.
+  The task of emitting messages could then be ceded to a ``Handler`` class.
   Each logger would keep a ``Handler`` instance
   to which the logger passed each message that survived filtering.
 
-* The Standard Library logging module
-  applies the Bridge Pattern in both ways,
+* Or nearly all functionality could be moved out of the abstraction.
+  The Standard Library logging module, for example,
+  applies the Bridge Pattern in both of the above ways,
   splitting out both filters and handlers
   as separate classes from the main ``Logger`` class.
 
-to keep our example here simple,
-let’s split the emitter.
-this is symmetrical with the Gang of Four’s example,
-where the wrapper
+To keep our example here simple,
+let’s split out the handler:
 
-you can plug using code
+code
 
-dodge: use multiple inheritance
+The Bridge Pattern does not specify
+whether our class should require client code
+to instantiate the correct ``Handler`` itself,
+or whether our ``Logger`` should create and install a default handler
+during instantiation.
+To keep things simple,
+let’s have our client code instantiate both objects
+and then compose them together:
+
+code
+
+The result is quite elegant,
+and can result in an API that feels very much like a Lego set.
+A box of useful classes is provided to the programmer
+that can snap together to create complex configurations
+out of simple pieces.
+
+Dodge: use multiple inheritance
+-------------------------------
 
 problem is init methods
+
+dodge: decompose into methods instead of classes
+
+https://docs.python.org/3/library/socketserver.html
+
+handle_request()
+
+  Process a single request. This function calls the following methods in
+  order: ``get_request()``, ``verify_request()``, and
+  ``process_request()``.  If the user-provided ``handle()`` method of
+  the handler class raises an exception, the server’s ``handle_error()``
+  method will be called.  If no request is received within ``timeout``
+  seconds, ``handle_timeout()`` will be called and ``handle_request()``
+  will return.
+
+(testing?)
 
 dodge: use mixins
 
