@@ -20,9 +20,10 @@
 A class that was intended to be simple can, in practice,
 wind up getting extended in several different directions
 over the course of its career.
-If the class varies in _m_ different ways along one axis of design
-and _n_ ways along another,
-then in the worst case a system might need _m×n_ variants of the class.
+If a system accretes _m_ different variants of a class
+along one axis of its design
+and _n_ variants along another axis,
+then in the worst case a class might need _m×n_ subclasses.
 
 The Gang of Four offer the example of a ``Window`` class
 that has been extended to support two different operating systems —
@@ -41,15 +42,115 @@ In their example,
 an outer ``Window`` or ``IconWindow`` class
 that is purely concerned with layout
 can wrap an inner ``MSWindowDriver`` or ``MacWindowDriver`` class
-that’s concerned with operating under a specific operating system.
+that’s concerned with how to draw pixels under a specific operating system.
 The system winds up with _m+n_ instead of _m×n_ separate classes.
 
 As we will see,
 this Bridge Pattern not only works well in Python,
 but can replace two Python habits
 that were not widespread in the Gang of Four’s original languages:
-multiple inheritance, and mixins.
+multiple inheritance and mixins.
 
+A complicated class
+-------------------
+
+.. todo link
+
+Python’s own ``logging`` Standard Library module
+makes extensive use of the Bridge Pattern,
+so let’s adopt a simple logger as our example.
+Imagine that a novice programmer
+with no experience extending a logger
+started with an overly simple class:
+
+class logger
+
+As the programmer’s team extended the system,
+several variants of this basic logger might get written.
+One variant might specialize the logger so that it filters log messages,
+displaying only messages of at least a given level of severity:
+
+ex
+
+Another variant might allow the destination file to be specialized:
+
+ex
+
+Given these two subclasses,
+what happens when the day arrives
+when the system needs a logger
+that both filters its messages
+but also delivers them to a custom destination file?
+
+In the traditional case,
+code would need to be duplicated
+to produce a class with the abilities of both subclasses.
+
+
+1 specalizing by subclassing.
+  if instead working in a monorepo,
+  and the original class can be extended,
+  then no problem.
+
+2 >1 axes.
+  here they are filtering, and emitting.
+
+3 want to avoid duplicating code.
+  otherwise you can just create a new class
+  that combines.
+
+in languages used by the gang of four,
+point 3 above is much stronger.
+you don’t just need to avoid duplicate code,
+it’s mandatory that your new logging classes
+all inherit from ?
+
+why subclass?
+
+why are they subclassing
+instead of extending the original class?
+
+so this is “complicated” because...
+
+The solution
+------------
+
+which becomes the wrapper?
+
+* we could decide that a Logger’s primary job is to emit messages,
+  and so split off filtering into its own ``Filter`` class.
+  Each logger would be given a ``Filter`` instance
+  to which it submitted each message before emitting it.
+
+* we could decide that a logger’s primary job is to filter messages.
+  The task of emitting messages could be ceded to a ``Handler`` class.
+  Each logger would keep a ``Handler`` instance
+  to which the logger passed each message that survived filtering.
+
+* The Standard Library logging module
+  applies the Bridge Pattern in both ways,
+  splitting out both filters and handlers
+  as separate classes from the main ``Logger`` class.
+
+to keep our example here simple,
+let’s split the emitter.
+this is symmetrical with the Gang of Four’s example,
+where the wrapper
+
+you can plug using code
+
+dodge: use multiple inheritance
+
+problem is init methods
+
+dodge: use mixins
+
+having an emit method
+so that you can specialize it separately
+
+appendix: creating classes dynamically
+
+appendix: functions instead of classes
 
 
 
