@@ -130,7 +130,8 @@ There are often several options.
   as separate classes from the main ``Logger`` class.
 
 To keep our example here simple,
-let’s split out the handler:
+let’s split out the handler
+and leave filtering in the superclass.
 
 code
 
@@ -145,28 +146,97 @@ and then compose them together:
 
 code
 
-The result is quite elegant,
-and can result in an API that feels very much like a Lego set.
-A box of useful classes is provided to the programmer
-that can snap together to create complex configurations
-out of simple pieces.
+The result is quite elegant —
+an API that offers separately configurable classes
+that click cleanly together to make a working logger.
 
 Dodge: use multiple inheritance
 -------------------------------
 
-problem is init methods
+Instead of decomposing a complicated class into simpler classes,
+some Python programmers try to combine the features
+of several subclasses by using multiple inheritance:
+
+code
+
+A first obstacle is that multiple inheritance
+will not always produce working code.
+We were lucky in this case
+that only Emit needed to completely rewrite log(),
+while Filter was able to use super()
+to delegate the actual message printing to its superclass.
+If both subclasses had needed to entirely rewrite log(),
+then their two implementations of the method
+would not have cooperated at all.
+And even in their current state,
+our subclass only works because we listed Filter before Emit
+in our base classes;
+if the order were reversed, the class’s features would not compose.
+
+Second, __init__() methods are notorious in Python
+for the problems they cause for multiple inheritance.
+
+
+not always possible
+
+init parameters no longer compatible
+
+init fragile and can break later?
+
+
 
 Dodge: decompose into methods instead of classes
 ------------------------------------------------
 
-Some classes try to dodge the problems that the Bridge Pattern solves
-by decomposing a complicated class’s code into separate methods.
-Given our example,
-this approach would recognize that filtering and emitting
-are separate steps that will often need separate customization,
-but would grant them each a method instead of a class:
+Instead of decomposing a complicated class into several classes,
+some designers try to split its operations into separate methods instead.
+In our example,
+the two steps of filtering and emitting
+would each be granted its own method:
 
 example
+
+This prevents new filter code and new output code
+from trying to override the same method
+and colliding with each other.
+Instead, the code for each operation is cleanly separated.
+
+example
+
+Given the modularity of these replacement methods,
+some programmers opt to provide them as standalone “mixins”
+that don’t inherit from the base class
+and can’t operate as standalone loggers themselves.
+This forces the programmer to always build a class of their own.
+
+example
+
+But there are disadvantages
+to decomposing several design axes
+into mere methods rather than fully separate classes.
+
+First,
+class instances are easier to compose at runtime
+than are class objects themselves.
+Imagine that logging will now be driven by a configuration file.
+The configuration will choose one logger for writing,
+and how they are filtered.
+How will Python code build a logger?
+
+if fully decomposed easy
+choose and instantiate a filter
+choose and inst the logger,
+passing it the filter.
+A filter and printer can be combined at runtime quite simply,
+by instantiating one and passing it to the other.
+
+but a logging system freighted with mixin or m i system
+will require the filter and printer
+to be composed into a single class
+The programmer will either need to instantiate ahead of time
+all _m×n_ possible combinations of filters and printers,
+or else build classes ahead of time.
+(See the Appendix below for the details.)
 
 problem
 still remains complicated
@@ -209,6 +279,9 @@ raised the specter
 
 Appendix: functions instead of classes
 --------------------------------------
+
+
+
 
 
 
