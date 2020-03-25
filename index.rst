@@ -1,35 +1,27 @@
 
-=================
- Python Patterns
-=================
+========================
+ Python Design Patterns
+========================
+
+by @\ `brandon_rhodes <https://twitter.com/brandon_rhodes>`_
 
 Welcome!
 
-It’s time for me to start writing up, in one place,
-my ideas about Python programming patterns
-that are currently scattered across all of my
-`Python conference talks <http://rhodesmill.org/brandon/talks/>`_
-and
-`writing <http://rhodesmill.org/brandon/all/>`_.
+* Here I’m collecting my ideas about Python Design Patterns,
+  to make them available in one place.
 
-One reason is that, after all of these years,
-my
-`Python Design Patterns <https://www.youtube.com/watch?v=Er5K_nR5lDQ&t=1045s>`_
-talk from 2012 is still one of my most popular —
-despite conference video problems
-that forced me to cut 20 minutes of material!
-Another is that written material is easier
-for other programmers to search, browse, and reference,
-and can be corrected and improved as time goes on.
+* My hope is that these pages make the patterns more discoverable —
+  easier to find in web searches, and easier to read —
+  than when they were scattered across the videos and slides
+  of my `Python conference talks <http://rhodesmill.org/brandon/talks/>`_.
 
-Inspired by the schedule that Doug Hellmann maintains
-on his famous `Python Module of the Week <https://pymotw.com/3/>`_ site,
-I am going to try writing up one design pattern each week.
-You can watch for links to new material on my Twitter account:
+* The weight of other obligations makes my progress intermittent.
+  To check for new material,
+  simply visit the commit history of this site’s
+  `project repository on GitHub <https://github.com/brandon-rhodes/python-patterns>`_,
+  where you can also select “Watch” to get updates.
 
-`@brandon_rhodes <https://twitter.com/brandon_rhodes>`_
-
-And with those preliminaries complete, here we go!
+With those preliminaries complete, here are the patterns!
 
 Python-Specific Patterns
 ========================
