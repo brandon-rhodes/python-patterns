@@ -23,30 +23,30 @@ Consider a JSON string like this one:
 
     text = '{"total": 9.61, "items": ["Americano", "Omelet"]}'
 
-By default, the ``json`` module
-will create ``unicode`` objects for strings like ``"Americano"``,
-a ``float`` for ``9.61``,
-a ``list`` for the sequence of items,
-and a ``dict`` for the main object’s keys and values,
+By default, the ``json`` module’s ``loads()`` function
+will create ``unicode`` objects
+for the strings ``"Americano"`` and ``"Omelet"``,
+a ``list`` to hold them,
+a Python ``float`` for ``9.61``,
+and a ``dict`` with ``unicode`` keys for the top-level JSON object.
 
-But some users aren’t content with these defaults.
+But some users will not be content with these defaults.
 For example, an accountant would probably be unhappy
-with the ``json`` module’s
-representing an exact amount like “9 dollars 61 cents”
-with an approximate floating point number,
-and would prefer to use a ``Decimal`` instance instead.
+with the choice of a ``float``
+to represent an exact amount like “9 dollars 61 cents”
+and would prefer an exact ``Decimal`` instead.
 
-This is a specific instance of a general problem:
+The need to control what kind of numeric object the ``json`` module creates
+is a specific instance of a general problem:
 
 * In the course of performing its duties,
   a routine is going to need to create a number of objects
   on behalf of the caller.
 
-* A reasonable default might exist
-  for which class to use for each object,
-  but the default does not cover all possible cases.
+* But the class that the routine would instantiate by default
+  does not cover all possible cases.
 
-* So instead of hard-coding those default classes
+* So instead of hard-coding that default class
   and making customization impossible,
   the routine wants to let the caller specify which classes
   it will instantiate.
@@ -55,23 +55,23 @@ First, we’ll look at the Pythonic approach to this problem.
 Then we’ll start placing a series of restrictions on our Python code
 to more closely model legacy object oriented languages,
 until the Abstract Factory pattern emerges
-as an elegant solution within the bounds set by those limitations.
+as the best solution within those limitations.
 
 The Pythonic approach: callable factories
 =========================================
 
 In Python, a “callable” —
-any routine ``f`` that can be invoked using the syntax ``f(a, b, c)``
-to run its code with the arguments listed in the parentheses —
+any object ``f`` that executes code
+when invoked using the syntax ``f(a, b, c)`` —
 is a first-class object.
-This means that a callable can be passed as a parameter,
+To be “first class” means that a callable can be passed as a parameter,
 returned as a return value,
 and can even be stored in a data structure
 like a list or dictionary.
 
 First-class callables offer a powerful mechanism
-for implementing object “factories” —
-a fancy term for routines that build and return new objects.
+for implementing object “factories”,
+a fancy term for “routines that build and return new objects.”
 
 A beginning Python programmer might expect
 that each time they need to supply a factory,
@@ -96,19 +96,19 @@ The number returned is a decimal instead of a float.
 
 (Note my choice of a verb ``build_decimal()`` as the name of this function,
 instead of a noun like ``decimal_factory()`` —
-I almost always find functions more readable
-if their name tells me what they *do*
-instead of what they think they *are*.)
+I find a function name easier to read when it tells me what the function *does*
+instead of telling me what *kind* of function it is.)
 
-While the above code will certainly work,
+While the above function will certainly work,
 there is an elision we can perform
 thanks to the fact that Python types are themselves callables.
-The fact that ``Decimal`` is itself a callable taking a string argument
-and returning a decimal object instance
-means that, unless we need to edit the string first —
-for example, to removing a leading currency symbol —
+Because ``Decimal`` is a callable taking a string argument
+and returning a decimal object instance,
 we can dispense with our own factory
-and simply pass the ``Decimal`` type directly to the JSON loader!
+and pass the ``Decimal`` type directly to the JSON loader!
+Unless we need to edit the string first,
+like by removing a leading currency symbol,
+``Decimal`` can completely replace our little factory:
 
 .. testcode::
 
@@ -122,14 +122,14 @@ There is one implementation detail that deserves mention.
 If you study the ``json`` module
 you will discover that ``load()`` is simply a wrapper
 around the ``JSONDecoder`` class.
-How is the decoder instance itself customized
-when we provide this alternative factory?
-The answer is that its initialization method
-stores its ``parse_float`` argument
-on the class as an instance attribute,
+How does the decoder instance itself support an alternative factory?
+Its initialization method stores the ``parse_float`` argument
+as an instance attribute,
 defaulting to Python’s built-in ``float`` type if no override was specified::
 
     self.parse_float = parse_float or float
+
+It can then invoke it later as ``self.parse_float(…)``.
 
 If you are interested in variations on this pattern —
 where a class uses its instance attributes
@@ -150,45 +150,42 @@ Restriction: outlaw passing callables
 What if Python didn’t let you pass callables as parameters?
 
 That restriction would remove an entire dimension from Python’s flexibility.
-Python normally lets your programs work with both nouns —
-objects that are interesting because of the attributes and methods
-they offer —
-and verbs, callables that perform an action.
-
-If we prohibit our Python code from passing callables,
-then we eliminate verbs from the arguments we can pass.
-Instead we will always pass nouns,
-and any verb we want to accomplish
-will have to dangle off of a noun as a method.
-Instead of a simple function,
-we’ll need to indent our code an extra level
-and wrap it up inside a class.
-One approach would be:
+Instead of supporting both “nouns” and “verbs” as arguments —
+both class instances and callable functions —
+some legacy languages only support passing class instances.
+Under that restriction,
+every simple factory would need to pivot from a function to a method:
 
 .. testcode::
+
+    # In Python: a factory function.
+
+    def build_decimal(string):
+        return Decimal(string.lstrip('$'))
+
+    # In some legacy languages: the code must
+    # move inside a class method instead.
 
     class DecimalFactory(object):
         @staticmethod
         def build(string):
-            return Decimal(string)
+            return Decimal(string.lstrip('$'))
 
-This restriction that some languages impose
-against passing simple callables
-is why words like “factory” had to be imported
-into the practice of programming in the first place.
-When a verb would have been fine,
-but a language requires each verb to be attached to a useless noun,
-the programmer’s imagination has to search for a vague abstraction
-to fill the gap.
-And a “factory” in the real world is,
-indeed, a place where objects are manufactured.
+In traditional Object Oriented programming,
+the word “factory” is the name of this kind of class —
+a class that offers a method that builds an object.
+In naming the equivalent Python function ``build_decimal()``,
+therefore,
+I’m not only indulging in my own preference
+for giving functions verb-names rather than noun-names,
+but being as precise as possible in naming:
+the “factory” is not the callable,
+but the class that holds it.
 
-The code using our factory
-must now switch to invoking the factory’s method.
-Instead of implementing our own JSON parser as our example,
-let’s keep our attention on the pattern
-by switching to the simpler task
-of parsing a comma-separated list of numbers:
+Instead of continuing our earlier example of JSON parsing,
+let’s switch to a simpler task that can fit in a couple of lines of code:
+parsing a comma-separated list of numbers.
+Here’s how the parser would invoke the builder method on our factory class.
 
 .. testcode::
 
@@ -205,15 +202,17 @@ of parsing a comma-separated list of numbers:
 
     [Decimal('464.80'), Decimal('993.68')]
 
-After the labor of moving all of our code into methods,
-we are still able to use our factory
-to take control of how the parsing logic builds objects.
+Note that,
+thanks to the fact that Python classes offer static and class methods
+that can be invoked without an instance,
+we have not yet been reduced to needing to instantiate the factory class —
+we are simply passing the Python class in as a first-class object.
 
 Restriction: outlaw passing classes
 ===================================
 
-Next, let’s also pretend that a Python class cannot be passed as a value;
-only object instances can be assigned to names
+Next, let’s also pretend that a Python class cannot be passed as a value,
+but that only object instances can be assigned to names
 and passed as parameters.
 
 This restriction is going to prevent us
@@ -233,7 +232,7 @@ and pass the resulting object:
 
     [Decimal('464.80'), Decimal('993.68')]
 
-Note again the difference
+Note the difference
 between this pattern
 and the :doc:`Factory Method </gang-of-four/factory-method/index>`.
 Here, we are neither asked nor required to subclass ``Loader`` itself
@@ -242,12 +241,12 @@ Instead, object creation is entirely parametrized
 by the separate factory object we choose to pass in.
 
 Note also the clear warning sign in the factory’s own code
-that ``build()`` should not really be the method of an object.
+that ``build()`` should, in Python, not really be the method of an object.
 Scroll back up and read the method’s code.
 Where does it accept as an argument, or use in its result,
 the object ``self`` on which it is being invoked?
 It makes no use of it at all!
-The method never even mentions ``self`` in its code.
+The method never mentions ``self`` in its code.
 As Jack Diederich propounded in his famous talk
 `Stop Writing Classes <https://www.youtube.com/watch?v=o9pEzgHorH0>`_,
 a method that never uses ``self``
@@ -297,6 +296,9 @@ And here is an updated loader that uses this factory:
 
     [Decimal('1.23'), Decimal('4.56')]
 
+Every choice it needs to make about object instantiation
+is deferred to the factory instead of taking place in the parser itself.
+
 Second, consider the behavior of languages that force you
 to declare ahead of time the type of each method parameter.
 You would overly restrict your future choices
@@ -332,7 +334,8 @@ though, the operations that take place at runtime
 are exactly the same as they were before.
 The factory’s methods are called with various arguments,
 which direct them to create various kinds of object,
-which the methods construct and return
+which they construct and return
 without the caller needing to know the details.
 
-It’s like something you might do in Python, but done more complicated.
+It’s like something you might do in Python, but made overly complicated.
+So avoid the Abstract Factory and use callables as factories instead.
