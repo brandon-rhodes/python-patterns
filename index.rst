@@ -4,14 +4,15 @@
 ========================
 
 Welcome!
+
 I’m **Brandon Rhodes**
 (`website <https://rhodesmill.org/brandon/>`_,
 `Twitter <https://twitter.com/brandon_rhodes>`_)
-and this is my guide to design patterns in the
+and this is my evolving guide to design patterns in the
 `Python programming language <https://www.python.org/>`_.
 
-* Here I’m collecting my ideas about Python Design Patterns all in one place,
-  to make them available in one place.
+* This site is letting me collect my ideas about Python
+  and Design Patterns all in one place.
 
 * My hope is that these pages make the patterns more discoverable —
   easier to find in web searches, and easier to read —
