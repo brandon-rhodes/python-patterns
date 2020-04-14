@@ -44,6 +44,21 @@ table{border-collapse:collapse;border-spacing:0}
 /* Skyfield custom styles */
 /* Colors darkened and lightened with http://gka.github.io/chroma.js/ */
 
+@font-face {
+    font-family: 'Gentium Basic';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Gentium Basic'), local('GentiumBasic'),
+         url('gentium-basic-v11-latin-regular.woff') format('woff');
+}
+@font-face {
+    font-family: 'Gentium Basic';
+    font-style: italic;
+    font-weight: 400;
+    src: local('Gentium Basic Italic'), local('GentiumBasic-Italic'),
+         url('gentium-basic-v11-latin-italic.woff') format('woff');
+}
+
 body, body > img {
     display: block;
     margin-left: auto;
@@ -52,7 +67,7 @@ body, body > img {
 body {
     padding: 0 1em;
     line-height: 1.4em;
-    font-family: "Gentium Custom", sans-serif, serif;
+    font-family: "Gentium Basic", sans-serif, serif;
     max-width: 36em;
 }
 img {
@@ -126,7 +141,7 @@ code.py-obj {
     border: none;
     border-radius: 0;
     background: none;
-    font-family: "Gentium Custom", sans-serif, serif;
+    font-family: "Gentium Basic", sans-serif, serif;
 }
 dt {
     display: inline-block;
