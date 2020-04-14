@@ -3,11 +3,14 @@
  Python Design Patterns
 ========================
 
-by @\ `brandon_rhodes <https://twitter.com/brandon_rhodes>`_
-
 Welcome!
+I’m **Brandon Rhodes**
+(`website <https://rhodesmill.org/brandon/>`_,
+`Twitter <https://twitter.com/brandon_rhodes>`_)
+and this is my guide to design patterns in the
+`Python programming language <https://www.python.org/>`_.
 
-* Here I’m collecting my ideas about Python Design Patterns,
+* Here I’m collecting my ideas about Python Design Patterns all in one place,
   to make them available in one place.
 
 * My hope is that these pages make the patterns more discoverable —
@@ -33,8 +36,18 @@ Python-Specific Patterns
    python/prebound-methods/index
    python/sentinel-object/index
 
-Creational Patterns
-===================
+Gang of Four: Principles
+========================
+
+.. TODO “Program to an interface, not an implementation.”
+
+.. toctree::
+   :maxdepth: 2
+
+   gang-of-four/composition-over-inheritance/index
+
+Gang of Four: Creational Patterns
+=================================
 
 .. toctree::
    :maxdepth: 2
@@ -45,8 +58,8 @@ Creational Patterns
    gang-of-four/prototype/index
    gang-of-four/singleton/index
 
-Structural Patterns
-===================
+Gang of Four: Structural Patterns
+=================================
 
 .. toctree::
    :maxdepth: 2
@@ -55,8 +68,8 @@ Structural Patterns
    gang-of-four/decorator-pattern/index
    gang-of-four/flyweight/index
 
-Behavioral Patterns
-===================
+Gang of Four: Behavioral Patterns
+=================================
 
 .. toctree::
    :maxdepth: 2
