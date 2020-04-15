@@ -647,7 +647,7 @@ We could easily pivot the ``file`` and ``socket`` parameters
 to lists named ``files`` and ``sockets``.)
 
 Given that every Python programmer learns ``if`` quickly,
-but might take much longer to understand classes,
+but can take much longer to understand classes,
 it might seem a clear win
 for code to rely on the simplest possible mechanism
 that will get a feature working.
