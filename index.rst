@@ -27,16 +27,6 @@ and this is my evolving guide to design patterns in the
 
 With those preliminaries complete, here are the patterns!
 
-Python-Specific Patterns
-========================
-
-.. toctree::
-   :maxdepth: 2
-
-   python/module-globals/index
-   python/prebound-methods/index
-   python/sentinel-object/index
-
 Gang of Four: Principles
 ========================
 
@@ -46,6 +36,16 @@ Gang of Four: Principles
    :maxdepth: 2
 
    gang-of-four/composition-over-inheritance/index
+
+Python-Specific Patterns
+========================
+
+.. toctree::
+   :maxdepth: 2
+
+   python/module-globals/index
+   python/prebound-methods/index
+   python/sentinel-object/index
 
 Gang of Four: Creational Patterns
 =================================
