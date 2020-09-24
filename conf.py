@@ -240,8 +240,13 @@ html_static_path = ['_static']
 htmlhelp_basename = 'PythonPatternsdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
+latex_engine = 'xelatex'
 
 latex_elements = {
+     # Additional unicode character definitions.
+     'inputenc' : '\\usepackage[utf8x]{inputenc}',
+     'utf8extra': '',
+
      # The paper size ('letterpaper' or 'a4paper').
      #
      # 'papersize': 'letterpaper',
