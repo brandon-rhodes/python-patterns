@@ -1164,7 +1164,7 @@ that creates new classes dynamically at runtime:
 
     # Build a new derived class (!)
 
-    name = filter_name.replace('Log', '') + output_name
+    name = filter_name.title() + output_name.title() + 'Log'
     cls = type(name, (filter_cls, output_cls), {})
 
     # Call it as usual to produce an instance.
