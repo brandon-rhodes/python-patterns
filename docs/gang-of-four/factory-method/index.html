@@ -1,0 +1,372 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Factory Method Pattern</title>
+    <link rel="stylesheet" type="text/css"
+          href="../../_static/style.css">
+  </head>
+  <body>
+    
+    <p class="motto">
+      •
+      <a href="/">Home Page</a>
+      •
+    </p>
+    
+    <article>
+      <div class="section" id="the-factory-method-pattern">
+<h1>The Factory Method Pattern<a class="headerlink" href="#the-factory-method-pattern" title="Permalink to this headline">¶</a></h1>
+<p><em>A “Creational Pattern” from the</em> <a class="reference internal" href="../"><span class="doc">Gang of Four book</span></a></p>
+<div class="admonition-verdict admonition">
+<p class="first admonition-title">Verdict</p>
+<p class="last">The “Factory Method” pattern is a poor fit for Python.
+It was designed for underpowered programming languages
+where classes and functions
+can’t be passed as parameters or stored as attributes.
+In those languages,
+the Factory Method serves as an awkward but necessary escape route.
+But it’s not a good design for Python applications.</p>
+</div>
+<p>You will often create objects in Python
+that themselves need to turn around and create more objects.
+Imagine an HTTP connection pool, for example,
+that sometimes needs to create new connections
+to replace old connections as they time out and close.</p>
+<p>Now comes the challenge.
+What if your program will run behind a special corporate proxy,
+and the HTTP connection pool will only be able to communicate
+if it creates and uses specially configured network connections
+instead of the generic sockets that it usually creates?</p>
+<p>The Factory Method is one pattern
+by which the HTTP connection pool class
+could offer you a way to choose what kind of connection it creates.
+Before learning how this awkward pattern works,
+let’s review the Pythonic design patterns that solve the same problem.</p>
+<div class="section" id="dodge-use-dependency-injection">
+<h2>Dodge: use Dependency Injection<a class="headerlink" href="#dodge-use-dependency-injection" title="Permalink to this headline">¶</a></h2>
+<p>First, we should stop for a moment and double-check something.
+Does the class you’re designing
+<em>really</em> need to go around creating other classes?</p>
+<p>If you know up front all the objects that the class will need,
+you should consider providing them to the class yourself
+through Dependency Injection.</p>
+<p>You will see excellent examples of this simpler pattern
+everywhere that Python libraries let you pass an already-open file object
+instead of making you supply a path
+and insisting on opening the file themselves.
+Take the Standard Library’s JSON parser as an example.
+Instead of asking for a path,
+its <code class="docutils literal notranslate"><span class="pre">load()</span></code> method lets you open the file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;input_data.json&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>By leaving you in charge of instantiating the file object,
+this maneuver accomplishes many goals at once.</p>
+<ul class="simple">
+<li><strong>Decoupling:</strong> the library doesn’t need to know
+all the parameters accepted by the <cite>open()</cite> method,
+and doesn’t need to accept every one of them as a parameter itself.
+If the file object were to grow more creation parameters in the future,
+<code class="docutils literal notranslate"><span class="pre">json.load()</span></code> won’t need to change.</li>
+<li><strong>Efficiency:</strong> If you already have the file open for other reasons,
+you can go ahead and provide the open file object.
+The library won’t insist on re-opening the file.
+This is crucial if the file is a read-once source of data
+like an anonymous pipe.</li>
+<li><strong>Flexibility:</strong> You can pass any file-like object you want.
+It can be a subclass of the standard file object,
+or be completely independent.
+You could pass a <code class="docutils literal notranslate"><span class="pre">StringIO</span></code> that operates directly on data in RAM
+instead of needing the JSON written to disk first.
+Or you could offer a wrapper around a socket
+that lets you parse JSON data as it arrives off the network
+without needing to be stored locally first.</li>
+</ul>
+<p>In a simple case like this,
+the Dependency Injection pattern completely eliminates
+the need for an object like a JSON parser
+to have its design made more complicated
+by the details of how other objects get created.</p>
+<p>So (a)&nbsp;if your class always needs a particular object built,
+and (b)&nbsp;if users will normally want to at least customize
+the parameters with which it is instantiated,
+you should strongly consider Dependency Injection.
+In that case, you might want to read Miško Hevery’s
+<a class="reference external" href="http://misko.hevery.com/2008/10/21/dependency-injection-myth-reference-passing/">2008 post about dependency injection</a>
+for an important note about the dangers
+of applying Dependency Injection halfway!</p>
+</div>
+<div class="section" id="instead-use-a-class-attribute-factory">
+<h2>Instead: use a Class Attribute Factory<a class="headerlink" href="#instead-use-a-class-attribute-factory" title="Permalink to this headline">¶</a></h2>
+<p>The next alternative comes to us from the 1990s.
+The class that needs to be created
+can be attached as an attribute on the class
+that will be doing the creating.</p>
+<p>You can see this pattern in some of the older modules
+in the Python Standard Library.
+For example,
+when an <code class="docutils literal notranslate"><span class="pre">HTTPConnection</span></code> is done sending a request,
+it expects to receive and parse a response.
+But what class should it use to parse and represent the response?
+What if you happen to be talking to a server
+that sends non-standard information in its response
+for which you require special handling?</p>
+<p>What I will here call the Class Attribute Factory pattern
+takes advantage of the fact that classes are first-class objects in Python.
+It simply attaches the class as an attribute
+of the class that will be doing the creating.
+You’ll find the following code in the Standard Library:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">HTTPConnection</span><span class="p">:</span>
+    <span class="o">...</span>
+    <span class="n">response_class</span> <span class="o">=</span> <span class="n">HTTPResponse</span>
+    <span class="o">...</span>
+    <span class="k">def</span> <span class="nf">getresponse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="o">...</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_class</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_method</span><span class="p">)</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>This gives the code using the <code class="docutils literal notranslate"><span class="pre">HTTPConnection</span></code>
+complete control over what happens when it is time to build a response.
+All it has to do is create a subclass and use the subclass instead:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">SpecialHTTPConnection</span><span class="p">(</span><span class="n">HTTPConnection</span><span class="p">):</span>
+    <span class="n">response_class</span> <span class="o">=</span> <span class="n">SpecialHTTPResponse</span>
+</pre></div>
+</div>
+<p>That’s all there is to it!
+While subclassing generally means
+that a software design is running
+at least somewhat against the grain of the Python language,
+the approach will still work well.
+The subclass will behave exactly
+like a normal Standard Library HTTP connection
+except when the moment comes to instantiate a response.
+At that point the connection will access its <code class="docutils literal notranslate"><span class="pre">response_class</span></code> attribute,
+receive the alternative class you provided instead of the normal one,
+and the alternative response class will then be in control.</p>
+<p>There is more flexibility here we should explore,
+but first let’s look at the more modern alternative
+to the Class Attribute Factory.</p>
+</div>
+<div class="section" id="instead-use-an-instance-attribute-factory">
+<h2>Instead: use an Instance Attribute Factory<a class="headerlink" href="#instead-use-an-instance-attribute-factory" title="Permalink to this headline">¶</a></h2>
+<p>Why should you have to subclass an object merely to customize its behavior?</p>
+<p>It’s a serious question — very serious,
+for at one point in the history of programming
+some adherents of a doctrine called “object orientation”
+were suggesting that if you wanted a button that said “Submit”
+that you shouldn’t be able to simply instantiate a button
+with a parameter like <code class="docutils literal notranslate"><span class="pre">label=&quot;Submit&quot;</span></code>
+but that you should instead have to subclass the button
+and override its default <code class="docutils literal notranslate"><span class="pre">label()</span></code> method to return something new.</p>
+<p>Happily,
+an alternative to subclass-powered customization
+has swept the Python community:
+what I’ll call the Instance Attribute Factory.
+Among the many good examples of its practice
+is the <code class="docutils literal notranslate"><span class="pre">json</span></code> module in the Standard Library,
+which was added around&nbsp;2008.</p>
+<p>Here’s one example from the <code class="docutils literal notranslate"><span class="pre">json</span></code> module.
+Every time the JSON module encounters a number in its input,
+it has to instantiate some kind of Python object
+capable of representing the number.
+But which number class should it instantiate?
+An integer, if the fractional part of the number is zero?
+A&nbsp;float, the only numeric type in JavaScript?
+Or a <code class="docutils literal notranslate"><span class="pre">Decimal</span></code> that’s guaranteed to not lose any precision?</p>
+<p>Watch how elegantly the <code class="docutils literal notranslate"><span class="pre">json</span></code> module handles the question:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">JSONDecoder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">...</span> <span class="n">parse_float</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">):</span>
+        <span class="o">...</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parse_float</span> <span class="o">=</span> <span class="n">parse_float</span> <span class="ow">or</span> <span class="nb">float</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>Whenever it encounters a number in its input,
+it simply calls <code class="docutils literal notranslate"><span class="pre">self.parse_float()</span></code> with the string as input.</p>
+<p>This is Python code that’s running on all pistons.
+If the developer does not intervene,
+each number is interpreted using a lighting-fast call
+to the <code class="docutils literal notranslate"><span class="pre">float</span></code> type itself.
+If instead the developer has provided their own callable for parsing numbers,
+then that callable is transparently used instead.</p>
+<p>The beauty is that it all happens without a single additional class!
+Instead of forcing the programmer
+to create a new class each time they want to customize behavior,
+individual <code class="docutils literal notranslate"><span class="pre">JSONDecoder</span></code> instances can each be configured directly.
+You can create a custom decoder with a single line of code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">decimal</span> <span class="kn">import</span> <span class="n">Decimal</span>
+<span class="kn">from</span> <span class="nn">json</span> <span class="kn">import</span> <span class="n">JSONDecoder</span>
+
+<span class="n">my_decoder</span> <span class="o">=</span> <span class="n">JSONDecoder</span><span class="p">(</span><span class="n">parse_float</span><span class="o">=</span><span class="n">Decimal</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Besides the benefits of clarity and brevity,
+an advantage of customizing an object through its parameters
+is that parameters compose so beautifully in Python.
+If several pieces of code have parameters for the decoder
+that they need to combine,
+the task is no more difficult than building an empty <code class="docutils literal notranslate"><span class="pre">dict</span></code>
+and then using <code class="docutils literal notranslate"><span class="pre">update()</span></code> to fill it with each set of parameters,
+setting the parameters last
+that should be allowed to override the earlier ones.</p>
+</div>
+<div class="section" id="instance-attributes-override-class-attributes">
+<h2>Instance attributes override class attributes<a class="headerlink" href="#instance-attributes-override-class-attributes" title="Permalink to this headline">¶</a></h2>
+<p>I should admit that the previous two design patterns
+are not as completely different as I have tried to make it sound.
+At bottom, both classes — the <code class="docutils literal notranslate"><span class="pre">HTTPConnection</span></code> and the <code class="docutils literal notranslate"><span class="pre">JSONDecoder</span></code> —
+make the exact same move when they are ready to create a new object:
+they start with <code class="docutils literal notranslate"><span class="pre">self</span></code> and use <code class="docutils literal notranslate"><span class="pre">.</span></code>
+to access some specific attribute on it.
+The only difference in the two design patterns above
+is in how they choose to supply the attribute.
+The first pattern happens to use a class attribute,
+while the second uses an instance attribute.</p>
+<p>But the two are not mutually exclusive.
+There is no rule that if you have a class attribute named <code class="docutils literal notranslate"><span class="pre">.response_class</span></code>
+that you can’t also have an instance attribute named <code class="docutils literal notranslate"><span class="pre">.response_class</span></code> —
+and the rule in the case where you have both is simple:
+the instance attribute wins.</p>
+<p>Which means I should admit that, really,
+even though I made a big deal about claiming
+that the <code class="docutils literal notranslate"><span class="pre">HTTPConnection</span></code> forces you to subclass it,
+it’s not true.
+You can override the default but just setting an instance attribute instead,
+just like the <code class="docutils literal notranslate"><span class="pre">JSONDecoder</span></code> does!
+The only difference is that the <code class="docutils literal notranslate"><span class="pre">HTTPConnection</span></code>
+won’t give you any help —
+you’ll have to reach in and set the instance attribute yourself:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conn</span> <span class="o">=</span> <span class="n">HTTPConnection</span><span class="p">()</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">response_class</span> <span class="o">=</span> <span class="n">SpecialHTTPResponse</span>
+</pre></div>
+</div>
+<p>So even when an old-fashioned class
+looks like it wants you to create a subclass
+that specifies a new value for one of its class attributes,
+you can often use the more modern Instance Attribute Factory instead!</p>
+<p>There are tiny differences in semantics and performance
+between class attributes and instance attributes,
+but I’ll refer you to the Python documentation and to Stack Overflow
+if you think your code is wandering towards an edge case
+where you care about the difference.</p>
+<p>In general you should choose between the above patterns based on readability.
+If you can imagine developers ever wanting to customize object creation,
+then go ahead and try making the object creation routine (the “factory”)
+a parameter in your <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> method
+and store it as an instance attribute.
+If instead you think that customization will be extremely rare,
+then make it a class attribute,
+remembering that the developer can always reach in
+and override it in those rare cases where they need to.</p>
+</div>
+<div class="section" id="any-callables-accepted">
+<h2>Any callables accepted<a class="headerlink" href="#any-callables-accepted" title="Permalink to this headline">¶</a></h2>
+<p>In the examples above,
+we used actual classes like <code class="docutils literal notranslate"><span class="pre">Decimal</span></code>
+and the fictional <code class="docutils literal notranslate"><span class="pre">SpecialHTTPResponse</span></code>
+when setting an attribute like <code class="docutils literal notranslate"><span class="pre">response_class</span></code> or <code class="docutils literal notranslate"><span class="pre">parse_float</span></code>.
+But you’ll note that the only thing the callers cared about
+was that these classes were callables.
+There’s happily no <code class="docutils literal notranslate"><span class="pre">new</span></code> keyword in Python,
+so object instantiation looks exactly like
+a normal function or method call.</p>
+<p>This means that you can substitute a function for any of these callbacks,
+and it will work just as well!
+For example, you could provide the JSON decoder
+with a function like this as its <code class="docutils literal notranslate"><span class="pre">parse_float</span></code> parameter:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">parse_number</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="k">if</span> <span class="s1">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">string</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can provide not only a function,
+but any other kind of callable as well —
+maybe a bound method,
+or a class method like an alternative constructor.
+You could even provide a callable
+that you’ve spun up dynamically
+using functional programming techniques
+like partial application:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">decimal</span> <span class="kn">import</span> <span class="n">Context</span><span class="p">,</span> <span class="n">ROUND_DOWN</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+<span class="n">parse_number</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">Decimal</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">Context</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">ROUND_DOWN</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Feel free to enjoy this Pythonic freedom of providing any kind of callable,
+and not limiting yourself to just providing classes,
+whether you are using the Class Attribute Factory
+or an Instance Attribute Factory.</p>
+</div>
+<div class="section" id="implementing">
+<h2>Implementing<a class="headerlink" href="#implementing" title="Permalink to this headline">¶</a></h2>
+<p>Having described the happy alternatives,
+I should finish by showing you the Factory Method itself.
+Imagine that you were using a language where:</p>
+<ul class="simple">
+<li>Classes are not first-class objects.
+You are not allowed to leave a class sitting around
+as an attribute of either a class instance or of another class itself.</li>
+<li>Functions are not first-class objects.
+You’re not allowed to save a function
+as an instance of a class or class instance.</li>
+<li>No other kind of callable exists
+that can be dynamically specified
+and attached to an object at runtime.</li>
+</ul>
+<p>Under such dire constraints,
+you would turn to subclassing as a natural way
+to attach verbs — new actions — to existing classes,
+and you might use method overriding
+as a basic means of customizing behavior.
+And if on one of your classes you designed a special method
+whose only purpose was to isolate the act of creating new objects,
+then you’d be using the Factory Method pattern.</p>
+<p>The Factory Method pattern can often be observed
+anywhere that code from an underpowered but object-oriented language
+has been translated straight into Python.
+The <code class="docutils literal notranslate"><span class="pre">logging</span></code> module from the Standard Library comes immediately to mind.
+Here’s an excerpt:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Handler</span><span class="p">(</span><span class="n">Filterer</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">NOTSET</span><span class="p">):</span>
+        <span class="o">...</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createLock</span><span class="p">()</span>
+    <span class="o">...</span>
+    <span class="k">def</span> <span class="nf">createLock</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Acquire a thread lock for serializing access to the underlying I/O.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>What if you wanted to create a <code class="docutils literal notranslate"><span class="pre">Handler</span></code> that uses a special kind of lock?
+The intention here
+is that you subclass <code class="docutils literal notranslate"><span class="pre">Hander</span></code> and override <code class="docutils literal notranslate"><span class="pre">createLock()</span></code>
+to return your own favorite kind of lock instead.
+It’s a clunky approach,
+it takes several lines of code,
+and it won’t compose well
+if there are several ways you want to customize <code class="docutils literal notranslate"><span class="pre">Handler</span></code> objects
+in a variety of situations —
+you’ll wind up with classes all over the place.</p>
+<p>But it will work.</p>
+<p>It just won’t be very Pythonic.</p>
+</div>
+</div>
+
+    </article>
+    <hr>
+    <p class="copyright">
+      © 2018–2020 <a href="http://rhodesmill.org/brandon/">Brandon Rhodes</a>
+    </p>
+  </body>
+</html>

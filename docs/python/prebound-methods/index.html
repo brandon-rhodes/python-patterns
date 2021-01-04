@@ -1,0 +1,296 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Prebound Method Pattern</title>
+    <link rel="stylesheet" type="text/css"
+          href="../../_static/style.css">
+  </head>
+  <body>
+    
+    <p class="motto">
+      •
+      <a href="/">Home Page</a>
+      •
+    </p>
+    
+    <article>
+      <div class="section" id="the-prebound-method-pattern">
+<h1>The Prebound Method Pattern<a class="headerlink" href="#the-prebound-method-pattern" title="Permalink to this headline">¶</a></h1>
+<p><em>A pattern native to the Python language.</em></p>
+<div class="admonition-verdict admonition">
+<p class="first admonition-title">Verdict</p>
+<p class="last">A powerful technique for offering callables
+at the top level of your module
+that share state through a common object.</p>
+</div>
+<p>There are occasions on which a Python module
+wants to offer several routines
+in the module’s global namespace
+that will need to share state with each other at runtime.</p>
+<p>Probably the most famous example
+is the Python Standard Library’s <a class="reference external" href="https://docs.python.org/3/library/random.html"><code class="docutils literal notranslate"><span class="pre">random</span></code></a> module.
+While it does provide advanced users
+with the option to build their own <code class="docutils literal notranslate"><span class="pre">Random</span></code> instance,
+most programmers opt for the convenient
+slate of routines available in the module’s global namespace —
+like
+<a class="reference external" href="https://docs.python.org/3/library/random.html#random.randrange">randrange()</a>,
+<a class="reference external" href="https://docs.python.org/3/library/random.html#random.randint">randint()</a>,
+and
+<a class="reference external" href="https://docs.python.org/3/library/random.html#random.choice">choice()</a> —
+that mirror the methods of a <code class="docutils literal notranslate"><span class="pre">Random</span></code> object.</p>
+<p>How do these top-level routines share state?</p>
+<p>Behind the scenes these callables are, in fact, methods
+that have all been bound ahead of time
+to a single instance of <code class="docutils literal notranslate"><span class="pre">Random</span></code>
+that the module itself has gone ahead and constructed.</p>
+<p>After reviewing the problem that the Prebound Methods pattern solves,
+we will see how the pattern looks in Python code.</p>
+<div class="section" id="alternatives">
+<h2>Alternatives<a class="headerlink" href="#alternatives" title="Permalink to this headline">¶</a></h2>
+<p>The most primitive approach
+to sharing state between a pair of module-level callables
+is to write a pair of functions
+that manipulate global data that’s stored next to them
+at the top level of the module.</p>
+<p>Imagine that we want to offer a simple random number generator.
+It returns, in an endless loop,
+the numbers 1 through&nbsp;255 in a fixed pseudo-random order.
+We also want to offer a simple <code class="docutils literal notranslate"><span class="pre">set_seed()</span></code> routine
+that resets the state of the generator to a known value —
+which is important both for tests that use random numbers,
+and for simulations driven by pseudo-randomness
+that want to offer reproducible results.</p>
+<p>If Python only supported plain functions,
+we might store the shared seed as a module global
+that our functions would directly access and modify:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="n">_seed</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">microsecond</span> <span class="o">%</span> <span class="mi">255</span> <span class="o">+</span> <span class="mi">1</span>
+
+<span class="k">def</span> <span class="nf">set_seed</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">_seed</span>
+    <span class="n">_seed</span> <span class="o">=</span> <span class="n">value</span>
+
+<span class="k">def</span> <span class="nf">random</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">_seed</span>
+    <span class="n">_seed</span><span class="p">,</span> <span class="n">carry</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">_seed</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">carry</span><span class="p">:</span>
+        <span class="n">_seed</span> <span class="o">^=</span> <span class="mh">0xb8</span>
+    <span class="k">return</span> <span class="n">_seed</span>
+</pre></div>
+</div>
+<p>There are several problems with this approach.</p>
+<p>First, it is impossible to ever instantiate
+a second copy of this random number generator.
+If two threads each wanted their own generator
+to avoid needing to protect it with locks,
+then they would be out of luck.</p>
+<p>(Okay, not really; this is Python.
+Think of the possibilities!
+You could import the module,
+save a reference to it,
+remove it from the <code class="docutils literal notranslate"><span class="pre">sys.modules</span></code> dictionary,
+and then import it again to get a second copy.
+Or you could manually instantiate a second module object
+and copy all three names across.
+By “out of luck” I refer only to sane Pythonic approaches.)</p>
+<p>Second, it is more difficult to decouple
+your random number generator tests from each other
+if the generator’s state is global.
+Instead of each test getting to create and exercise
+a separate isolated instance,
+the tests will all have to share the single generator
+and correctly reset its state before the next test runs.</p>
+<p>Third, this approach abandons encapsulation.
+This will sound like a fuzzier complaint
+than the previous two,
+but it can detract from readability
+(“readability counts”)
+for a small tight system of two functions and a <code class="docutils literal notranslate"><span class="pre">seed</span></code>
+to be splayed out as three separate and not obviously related names
+in a module which might contain dozens of other objects.</p>
+<p>To solve the above problems, we indent the two functions
+and wrap them up as methods of a new Python class.
+The two methods and their state
+can then be happily bundled together:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="k">class</span> <span class="nc">Random8</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_seed</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">microsecond</span> <span class="o">%</span> <span class="mi">255</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">set_seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">random</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span> <span class="n">carry</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">carry</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">^=</span> <span class="mh">0xb8</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span>
+</pre></div>
+</div>
+<p>This imposes an extra step on the caller:
+the object will have to be instantiated
+before the two methods can be called.
+Is there a way to let the caller skip that step?</p>
+<p>The software engineer would do well to stop for a moment
+and to think quite seriously
+about the fact that in the vast majority of cases
+simply defining a class like this is enough.
+It will take only a single statement
+for your user to create an instance of your class.
+If their own application’s architecture is too deeply compromised
+for them to easily pass the instance everywhere it’s needed,
+they can always store the instance as a module global
+in one of their own modules
+for the use of the rest of their code.</p>
+<p>There are several reasons that that the Prebound Methods pattern
+is a particularly good fit for a random number generator:</p>
+<ol class="arabic simple">
+<li>Instantiating a random number generator
+requires a system call —
+in our case, asking for the date;
+for the Python <code class="docutils literal notranslate"><span class="pre">random</span></code> module,
+fetching bytes from the system entropy pool.
+If every module needing a random number
+had to instantiate its own <code class="docutils literal notranslate"><span class="pre">Random</span></code> object,
+then this cost would be incurred repeatedly.</li>
+<li>Pseudo-random number generators
+are an interesting case of a resource
+whose behavior can be even more desirable when shared.
+If you are the lone caller to an instance,
+you see its completely predictable repeating sequence of values.
+If instead you are sharing that instance with other code,
+the generator will appear to skip ahead in its sequence unpredictably
+each time other callers have themselves called the generator.</li>
+<li>Since most users of <code class="docutils literal notranslate"><span class="pre">random</span></code>,
+including several modules within the Standard Library,
+import it specifically to use its module-level calls,
+it is rare for the pre-built <code class="docutils literal notranslate"><span class="pre">Random</span></code> instance that powers them
+to languish unused.</li>
+</ol>
+<p>If the costs and benefits strike a similar balance
+for a module of your own you are designing,
+then the Prebound Method pattern
+can let you deliver remarkable convenience.</p>
+</div>
+<div class="section" id="the-pattern">
+<h2>The pattern<a class="headerlink" href="#the-pattern" title="Permalink to this headline">¶</a></h2>
+<p>To offer your users a slate of Prebound Methods:</p>
+<ul class="simple">
+<li>Instantiate your class at the top level of your module.</li>
+<li>Consider assigning it a private name prefixed with an underscore <code class="docutils literal notranslate"><span class="pre">_</span></code>
+that does not invite users to meddle with the object directly.</li>
+<li>Finally, assign a bound copy of each of the object’s methods
+to the module’s global namespace.</li>
+</ul>
+<p>For the random number generator that we used as an illustration above,
+the entire module might look like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="k">class</span> <span class="nc">Random8</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_seed</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">microsecond</span> <span class="o">%</span> <span class="mi">255</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">set_seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">random</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span> <span class="n">carry</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">carry</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">^=</span> <span class="mh">0xb8</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span>
+
+<span class="n">_instance</span> <span class="o">=</span> <span class="n">Random8</span><span class="p">()</span>
+
+<span class="n">random</span> <span class="o">=</span> <span class="n">_instance</span><span class="o">.</span><span class="n">random</span>
+<span class="n">set_seed</span> <span class="o">=</span> <span class="n">_instance</span><span class="o">.</span><span class="n">set_seed</span>
+</pre></div>
+</div>
+<p>Users will now be able to invoke each method
+as though it were a stand-alone function.
+But the methods will secretly share state
+thanks to the common instance that they are bound to,
+without requiring the user to manage or pass that state explicitly.</p>
+<p>When exercising this pattern,
+please be responsible about the dangers
+of instantiating an object at import time.
+This pattern is usually not appropriate
+for a class whose constructor creates files,
+reads a database configuration,
+opens sockets,
+or that in general will inflict side effects on the program importing them.
+In that case,
+you will do better to either avoid the Prebound Methods pattern entirely,
+or else to defer any actual side effects
+until one of the methods is called.
+You could choose a middle ground of providing a <code class="docutils literal notranslate"><span class="pre">setup()</span></code> method
+and requiring application programmers to invoke it
+before they can expect any of the other routines to work.</p>
+<p>But for lightweight objects
+that can be instantiated without substantial delay or complication,
+the Prebound Methods pattern is an elegant way
+to make the stateful behavior of a class instance
+available up at a module’s global level.</p>
+<p>Examples of the pattern are strewn merrily across the Standard Library
+even beyond the <code class="docutils literal notranslate"><span class="pre">random</span></code> module we used as our example.
+The <code class="docutils literal notranslate"><span class="pre">calendar.py</span></code> module uses it:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">TextCalendar</span><span class="p">()</span>
+
+<span class="o">...</span>
+
+<span class="n">monthcalendar</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">monthdayscalendar</span>
+<span class="n">prweek</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">prweek</span>
+<span class="n">week</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">formatweek</span>
+<span class="n">weekheader</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">formatweekheader</span>
+<span class="n">prmonth</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">prmonth</span>
+<span class="n">month</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">formatmonth</span>
+<span class="n">calendar</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">formatyear</span>
+<span class="n">prcal</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">pryear</span>
+</pre></div>
+</div>
+<p>As does the venerable old <code class="docutils literal notranslate"><span class="pre">reprlib.py</span></code>,
+to offer a single <code class="docutils literal notranslate"><span class="pre">repr()</span></code> routine:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">aRepr</span> <span class="o">=</span> <span class="n">Repr</span><span class="p">()</span>
+<span class="nb">repr</span> <span class="o">=</span> <span class="n">aRepr</span><span class="o">.</span><span class="n">repr</span>
+</pre></div>
+</div>
+<p>As do several other modules —
+you will find the Prebound Methods pattern
+used with each of these Standard Library objects:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">distutils.log._global_log</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">multiprocessing.forkserver._forkserver</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">multiprocessing.semaphore_tracker._semaphore_tracker</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">secrets._sysrand</span></code></li>
+</ul>
+<p>One final hint:
+it is almost always better
+to assign methods to global names explicitly.
+Even if there are a dozen methods,
+I recommend going ahead and writing
+a quick stack of a dozen assignment statements
+aligned at the left-hand column of your module
+that make visible the whole list of global names you are defining.
+The fact that Python is a dynamic language
+might tempt you to automate the series of assignments instead,
+using attribute introspection and a <code class="docutils literal notranslate"><span class="pre">for</span></code> loop.
+I advise against it.
+Python programmers believe that “Explicit is better than implicit” —
+and materializing the stack of names as real code
+will better support human readers,
+language servers,
+and even venerable old <code class="docutils literal notranslate"><span class="pre">grep</span></code>.</p>
+</div>
+</div>
+
+    </article>
+    <hr>
+    <p class="copyright">
+      © 2018–2020 <a href="http://rhodesmill.org/brandon/">Brandon Rhodes</a>
+    </p>
+  </body>
+</html>

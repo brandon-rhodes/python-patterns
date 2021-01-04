@@ -1,0 +1,258 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Prototype Pattern</title>
+    <link rel="stylesheet" type="text/css"
+          href="../../_static/style.css">
+  </head>
+  <body>
+    
+    <p class="motto">
+      •
+      <a href="/">Home Page</a>
+      •
+    </p>
+    
+    <article>
+      <div class="section" id="the-prototype-pattern">
+<h1>The Prototype Pattern<a class="headerlink" href="#the-prototype-pattern" title="Permalink to this headline">¶</a></h1>
+<p><em>A “Creational Pattern” from the</em> <a class="reference internal" href="../"><span class="doc">Gang of Four book</span></a></p>
+<div class="admonition-verdict admonition">
+<p class="first admonition-title">Verdict</p>
+<p class="last">The Prototype pattern isn’t necessary
+in a language powerful enough to support first-class functions and classes.</p>
+</div>
+<p>It is almost embarrassing
+how many good alternatives Python offers
+to the Prototype pattern.</p>
+<p>As the problem and its solutions are simple,
+this article will be brief.
+We will define the problem,
+list several Pythonic solutions,
+and finish by studying how the Gang of Four
+solved the same problem under more onerous constraints.</p>
+<div class="section" id="the-problem">
+<h2>The problem<a class="headerlink" href="#the-problem" title="Permalink to this headline">¶</a></h2>
+<p>The Prototype Pattern suggests a mechanism
+by which a caller can provide a framework
+with a menu of classes to instantiate
+when the user —
+or some other runtime source of dynamic requests —
+selects the classes from a menu of choices.</p>
+<p>The problem would be a much simpler one
+if none of the classes in the menu needed <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> arguments:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Sharp</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="s2">&quot;The symbol ♯.&quot;</span>
+
+<span class="k">class</span> <span class="nc">Flat</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="s2">&quot;The symbol ♭.&quot;</span>
+</pre></div>
+</div>
+<p>Instead, the Prototype pattern is called into play
+when classes will need to be instantiated that require arguments:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Note</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="s2">&quot;Musical note 1 ÷ `fraction` measures long.&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fraction</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fraction</span> <span class="o">=</span> <span class="n">fraction</span>
+</pre></div>
+</div>
+<p>It is this situation —
+supplying a framework
+with a menu of classes
+that will need to be instantiated with pre-specified argument lists —
+that the Prototype pattern is designed to address.</p>
+</div>
+<div class="section" id="pythonic-solutions">
+<h2>Pythonic solutions<a class="headerlink" href="#pythonic-solutions" title="Permalink to this headline">¶</a></h2>
+<p>Python offers several possible mechanisms
+for supplying a framework with the classes we want to instantiate
+and the arguments we want them instantiated with.</p>
+<p>In the examples below,
+we will provide the menu of classes
+in a simple data structure — a Python dictionary —
+but the same principles apply
+even if the framework wants the menu items supplied
+in some other data structure,
+or supplied separately in a series of <code class="docutils literal notranslate"><span class="pre">register()</span></code> calls.</p>
+<p>One approach is to design the classes
+so that they only need positional arguments,
+not keyword arguments.
+The framework will then be able to store the arguments as a simple tuple,
+which can be supplied separately from the class itself —
+the familiar approach of the Standard Library
+<a class="reference external" href="https://docs.python.org/3/library/threading.html#thread-objects">Thread</a>
+class
+which asks for a callable <code class="docutils literal notranslate"><span class="pre">target=</span></code>
+separately from the <code class="docutils literal notranslate"><span class="pre">args=(...)</span></code> it will be passed.
+Our menu items might look like:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">menu</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;whole note&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">Note</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)),</span>
+    <span class="s1">&#39;half note&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">Note</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,)),</span>
+    <span class="s1">&#39;quarter note&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">Note</span><span class="p">,</span> <span class="p">(</span><span class="mi">4</span><span class="p">,)),</span>
+    <span class="s1">&#39;sharp&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">Sharp</span><span class="p">,</span> <span class="p">()),</span>
+    <span class="s1">&#39;flat&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">Flat</span><span class="p">,</span> <span class="p">()),</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Alternatively,
+each class and arguments could live in the same tuple:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">menu</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;whole note&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">Note</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="s1">&#39;half note&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">Note</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="s1">&#39;quarter note&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">Note</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+    <span class="s1">&#39;sharp&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">Sharp</span><span class="p">,),</span>
+    <span class="s1">&#39;flat&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">Flat</span><span class="p">,),</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The framework would then invoke each callable
+using some variation of <code class="docutils literal notranslate"><span class="pre">tup[0](*tup[1:])</span></code>.</p>
+<p>In the more general case, though,
+a class might require not just positional arguments
+but also keyword arguments.
+In response,
+we could pivot to providing simple callables to the framework,
+using lambda expressions for the classes that require arguments:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">menu</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;whole note&#39;</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">Note</span><span class="p">(</span><span class="n">fraction</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="s1">&#39;half note&#39;</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">Note</span><span class="p">(</span><span class="n">fraction</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+    <span class="s1">&#39;quarter note&#39;</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">Note</span><span class="p">(</span><span class="n">fraction</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+    <span class="s1">&#39;sharp&#39;</span><span class="p">:</span> <span class="n">Sharp</span><span class="p">,</span>
+    <span class="s1">&#39;flat&#39;</span><span class="p">:</span> <span class="n">Flat</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>While lambdas don’t support quick introspection —
+it isn’t easy for a framework or debugger to inspect them
+to learn what callable they will invoke
+or what arguments they will supply —
+they work fine if all the framework needs to do is invoke them.</p>
+<p>Another approach is to use a
+<a class="reference external" href="https://docs.python.org/3/library/functools.html#functools.partial">partial</a>
+for each item,
+which packages together a callable
+with both positional and keywords arguments
+that will be supplied when the partial itself is later called:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+<span class="c1"># Keyword arguments for illustration only;</span>
+<span class="c1"># in this case could instead write ‘partial(Note, 1)’</span>
+
+<span class="n">menu</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;whole note&#39;</span><span class="p">:</span> <span class="n">partial</span><span class="p">(</span><span class="n">Note</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="s1">&#39;half note&#39;</span><span class="p">:</span> <span class="n">partial</span><span class="p">(</span><span class="n">Note</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+    <span class="s1">&#39;quarter note&#39;</span><span class="p">:</span> <span class="n">partial</span><span class="p">(</span><span class="n">Note</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+    <span class="s1">&#39;sharp&#39;</span><span class="p">:</span> <span class="n">Sharp</span><span class="p">,</span>
+    <span class="s1">&#39;flat&#39;</span><span class="p">:</span> <span class="n">Flat</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>I will stop there,
+though you are free to keep imagining more alternatives —
+for example, you could supply a class, a tuple, and a dictionary
+<code class="docutils literal notranslate"><span class="pre">(cls,</span> <span class="pre">args,</span> <span class="pre">kw)</span></code> for each menu item
+and the framework would call <code class="docutils literal notranslate"><span class="pre">cls(*args,</span> <span class="pre">**kw)</span></code>
+when each menu item is selected.
+The choices in Python for tackling this problem are numerous
+because classes and functions in Python are first-class
+and are therefore eligible to be passed as arguments
+and stored in data structures
+just like any other objects.</p>
+</div>
+<div class="section" id="implementing">
+<h2>Implementing<a class="headerlink" href="#implementing" title="Permalink to this headline">¶</a></h2>
+<p>But the Gang of Four
+did not have the luxury of such easy circumstances
+as Python programmers enjoy.
+Armed with only polymorphism and the method call,
+they sallied forth to create a workable pattern.</p>
+<p>You might at first imagine that,
+in the absence of tuples
+and the ability to apply them as argument lists,
+we are going to need factory classes
+which will each remember a particular list of arguments
+and then supply those arguments when they are asked for a new object:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># What the Prototype pattern avoids:</span>
+<span class="c1"># needing one factory for every class.</span>
+
+<span class="k">class</span> <span class="nc">NoteFactory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fraction</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fraction</span> <span class="o">=</span> <span class="n">fraction</span>
+
+    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Note</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fraction</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">SharpFactory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Sharp</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">FlatFactory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Flat</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Fortunately, the situation is not so grim.
+If you re-read the factory classes above,
+you will notice that they each look similar — eerily similar —
+remarkably similar! — to the target classes we want to create.
+The <code class="docutils literal notranslate"><span class="pre">NoteFactory</span></code>, exactly like the <code class="docutils literal notranslate"><span class="pre">Note</span></code> itself,
+stores an attribute <code class="docutils literal notranslate"><span class="pre">fraction</span></code>.
+The stack of factories winds up looking,
+at least in their attribute lists,
+like the stack of classes we want to instantiate.</p>
+<p>This symmetry suggest a way to solve our problem
+without having to mirror each class with a factory.
+What if we used the original objects themselves
+to store the arguments,
+and gave them the ability to provide new instances?</p>
+<p>The result is the Prototype pattern!
+All of the factory classes disappear.
+Instead, each instance gains a <code class="docutils literal notranslate"><span class="pre">clone()</span></code> method
+to which it responds by building a new instance
+with exactly the same arguments it received:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The Prototype pattern: teach each object</span>
+<span class="c1"># instance how to build copies of itself.</span>
+
+<span class="k">class</span> <span class="nc">Note</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="s2">&quot;Musical note 1 ÷ `fraction` measures long.&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fraction</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fraction</span> <span class="o">=</span> <span class="n">fraction</span>
+
+    <span class="k">def</span> <span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Note</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fraction</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Sharp</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="s2">&quot;The symbol ♯.&quot;</span>
+    <span class="k">def</span> <span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Sharp</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">Flat</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="s2">&quot;The symbol ♭.&quot;</span>
+    <span class="k">def</span> <span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Flat</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>While we could make this example more complicated —
+for example,
+each <code class="docutils literal notranslate"><span class="pre">clone()</span></code> method should probably call <code class="docutils literal notranslate"><span class="pre">type(self)</span></code>
+instead of hard-coding its class name,
+in case the method gets called on a subclass —
+this at least illustrates the pattern.
+The Prototype Pattern is not as convenient
+as the mechanisms available in the Python language,
+but this clever simplification made it much easier
+for the Gang of Four to accomplish parametrized object creation
+in some of the underpowered object oriented languages
+that were popular last century.</p>
+</div>
+</div>
+
+    </article>
+    <hr>
+    <p class="copyright">
+      © 2018–2020 <a href="http://rhodesmill.org/brandon/">Brandon Rhodes</a>
+    </p>
+  </body>
+</html>

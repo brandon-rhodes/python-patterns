@@ -1,0 +1,432 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Builder Pattern</title>
+    <link rel="stylesheet" type="text/css"
+          href="../../_static/style.css">
+  </head>
+  <body>
+    
+    <p class="motto">
+      •
+      <a href="/">Home Page</a>
+      •
+    </p>
+    
+    <article>
+      <div class="section" id="the-builder-pattern">
+<h1>The Builder Pattern<a class="headerlink" href="#the-builder-pattern" title="Permalink to this headline">¶</a></h1>
+<p><em>A “Creational Pattern” from the</em> <a class="reference internal" href="../"><span class="doc">Gang of Four book</span></a></p>
+<div class="admonition-verdict admonition">
+<p class="first admonition-title">Verdict</p>
+<p>The full-fledged Builder Pattern as imagined by the Gang of Four
+arranged for a single series of method calls
+to power the creation of several different object hierarchies —
+but that use of the pattern
+has turned out to be vanishingly rare in Python.
+Instead, the Builder is wildly popular
+simply for its convenience.</p>
+<p class="last">You might also have seen a more recent pattern
+calling itself the “Builder”
+which pairs each immutable class in a program
+with a more convenient builder class.
+That pattern, happily, is never necessary in Python
+since the language itself provides built-in syntactic support
+for optional constructor arguments.</p>
+</div>
+<div class="contents topic" id="contents">
+<p class="topic-title">Contents:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#the-builder-pattern" id="id1">The Builder Pattern</a><ul>
+<li><a class="reference internal" href="#the-builder-as-convenience" id="id2">The Builder as convenience</a></li>
+<li><a class="reference internal" href="#nuance" id="id3">Nuance</a></li>
+<li><a class="reference internal" href="#dueling-builders" id="id4">Dueling builders</a></li>
+<li><a class="reference internal" href="#a-degenerate-case-simulating-optional-arguments" id="id5">A degenerate case: simulating optional arguments</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<p>The Builder pattern has a most interesting history.
+Its primary intent,
+as described by the Gang of Four in the very first sentence
+of their chapter on the pattern,
+has wound being the rarest purpose for which the pattern is used.
+Instead, the Builder is used almost everywhere
+for what the Gang of Four considered a secondary benefit:
+its convenience.</p>
+<p>More recently,
+an even simpler pattern has adopted the name “Builder”
+that appears in certain less expressive programming languages
+to make up for their lack of optional parameters
+in a call to a constructor.</p>
+<p>This article will start by describing
+the Builder pattern’s most popular use in Python programs.
+Next we will glance at what the Gang of Four
+thought the pattern’s primary purpose was going to be,
+and explore why it is rarely used that way in Python.
+Finally, for completeness,
+we will look at the more recent use of the pattern
+to help languages whose syntax is less flexible than Python’s.</p>
+<div class="section" id="the-builder-as-convenience">
+<h2>The Builder as convenience<a class="headerlink" href="#the-builder-as-convenience" title="Permalink to this headline">¶</a></h2>
+<p>The Builder pattern is wildly popular in Python
+because it lets client code stay simple and sleek
+even while directing the creation of an elaborate hierarchy of objects.</p>
+<p>The formal definition is that the Builder pattern is present
+whenever a library lets you make
+a simple series of function and method calls that,
+behind the scenes,
+the library reacts to by building a whole hierarchy of objects.
+Thanks to the Builder pattern,
+the caller is exempted
+from needing to manually instantiate each object
+or understand how the objects fit together once constructed.</p>
+<p>A classic example in Python
+is the <a class="reference external" href="https://matplotlib.org/">matplotlib</a> library’s
+<code class="docutils literal notranslate"><span class="pre">pyplot</span></code> interface.
+It lets the caller build a simple plot with just a single line of code,
+and save the diagram to disk with just one line more:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">6.2</span><span class="p">,</span> <span class="mf">6.2</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;sine.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../../_images/sine.png" src="../../_images/sine.png" />
+<p>What the pyplot interface has hidden from the caller
+is that more than a dozen objects had to be created
+for matplotlib to represent even this simple plot.
+Here, for example, are eight of the objects
+that were generated behind the scenes
+by the <code class="docutils literal notranslate"><span class="pre">plot()</span></code> call above:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+<span class="go">&lt;Figure size 640x480 with 1 Axes&gt;</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="go">&lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff910917a20&gt;</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span><span class="o">.</span><span class="n">bbox</span>
+<span class="go">TransformedBbox(</span>
+<span class="go">    Bbox(x0=0.125, y0=0.10999999999999999, x1=0.9, y1=0.88),</span>
+<span class="go">    BboxTransformTo(</span>
+<span class="go">        TransformedBbox(</span>
+<span class="go">            Bbox(x0=0.0, y0=0.0, x1=6.4, y1=4.8),</span>
+<span class="go">            Affine2D(</span>
+<span class="go">                [[100.   0.   0.]</span>
+<span class="go">                 [  0. 100.   0.]</span>
+<span class="go">                 [  0.   0.   1.]]))))</span>
+</pre></div>
+</div>
+<p>While matplotlib will let us provide more keyword arguments
+or make additional calls to customize the plot,
+<code class="docutils literal notranslate"><span class="pre">pyplot</span></code> is happy to insulate us from all of the details
+of how plots are represented as objects.</p>
+<p>The Builder pattern is now deeply ingrained in Python culture
+thanks in part to the pressure that library authors feel
+to make the sample code on their front page
+as impressively brief as possible.
+But even in the face of this pressure,
+there still exist libraries that expect you —
+their caller — to build an entire object hierarchy yourself
+in the course of using the library.</p>
+<p>The fact that some libraries
+rely on their callers to tediously instantiate objects
+is even used as advertisement by their competitors.
+For example,
+the <a class="reference external" href="http://docs.python-requests.org/en/master/">Requests library</a>
+famously introduces itself to users
+by comparing its one-liner for an HTTP request with authentication
+to the same maneuver performed with the old
+<a class="reference external" href="https://docs.python.org/2/library/urllib2.html">urllib2</a>
+Standard Library module —
+which, in fairness, does require the caller to build a small pile of objects
+any time they want to do anything interesting.
+The “Examples” section of the <code class="docutils literal notranslate"><span class="pre">urllib2</span></code> documentation
+provides an illustration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">urllib2</span>
+
+<span class="c1"># Create an OpenerDirector with support for Basic HTTP Authentication...</span>
+
+<span class="n">auth_handler</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">HTTPBasicAuthHandler</span><span class="p">()</span>
+<span class="n">auth_handler</span><span class="o">.</span><span class="n">add_password</span><span class="p">(</span><span class="n">realm</span><span class="o">=</span><span class="s1">&#39;PDQ Application&#39;</span><span class="p">,</span>
+                          <span class="n">uri</span><span class="o">=</span><span class="s1">&#39;https://mahler:8092/site-updates.py&#39;</span><span class="p">,</span>
+                          <span class="n">user</span><span class="o">=</span><span class="s1">&#39;klem&#39;</span><span class="p">,</span>
+                          <span class="n">passwd</span><span class="o">=</span><span class="s1">&#39;kadidd!ehopper&#39;</span><span class="p">)</span>
+<span class="n">opener</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">build_opener</span><span class="p">(</span><span class="n">auth_handler</span><span class="p">)</span>
+
+<span class="c1"># ...and install it globally so it can be used with urlopen.</span>
+
+<span class="n">urllib2</span><span class="o">.</span><span class="n">install_opener</span><span class="p">(</span><span class="n">opener</span><span class="p">)</span>
+<span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="s1">&#39;http://www.example.com/login.html&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Had the Builder pattern been used here,
+the library would instead have offered functions or methods
+that concealed from client code
+the structure and classes
+in the opener - builder - authentication handler hierarchy.</p>
+</div>
+<div class="section" id="nuance">
+<h2>Nuance<a class="headerlink" href="#nuance" title="Permalink to this headline">¶</a></h2>
+<p>My claim that the matplotlib <code class="docutils literal notranslate"><span class="pre">pyplot</span></code> interface is a Builder
+is complicated by the second-to-last paragraph in the Gang of Four’s
+chapter on the Builder:</p>
+<blockquote>
+<div>“Builder <strong>returns the product as a final step</strong>, but as far as the
+Abstract Factory pattern is concerned, the product gets returned
+immediately.”</div></blockquote>
+<p>While this stipulation focuses on the difference between the Builder
+and the <a class="reference internal" href="../abstract-factory/"><span class="doc">Abstract Factory</span></a>,
+it makes clear that — for the Gang of Four —
+both patterns are supposed to conclude
+with the return of the constructed object to the caller.
+Absent the crucial final step of returning the object that has been built,
+the Builder arguably devolves into the Facade pattern instead.</p>
+<p>So by the strict definition,
+<code class="docutils literal notranslate"><span class="pre">pyplot</span></code> might not qualify as a Builder in my example code above
+because I never ask for an actual reference to the object
+that my <code class="docutils literal notranslate"><span class="pre">plot()</span></code> call constructed.
+To rescue my example in case anyone decides to press the point,
+I can ask for a reference to the plot
+and ask the plot itself to save a rendered image to a file.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+<span class="n">sine_figure</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>  <span class="c1"># “gcf” = “get current figure”</span>
+<span class="n">sine_figure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;sine.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Such are the demands of pedantry: an extra line of code.</p>
+</div>
+<div class="section" id="dueling-builders">
+<h2>Dueling builders<a class="headerlink" href="#dueling-builders" title="Permalink to this headline">¶</a></h2>
+<p>When the Gang of Four introduced the Builder,
+they had greater ambitions for the pattern
+than mere convenience and encapsulation.
+The opening sentence of their chapter on the Builder
+declared the following “Intent”:</p>
+<blockquote>
+<div>“Separate the construction of a complex object from its
+representation so that the same construction process can create
+different representations.”</div></blockquote>
+<p>For the Gang of Four, then,
+the Builder pattern is only operating at full tilt
+when a library offers several implementations of the same Builder,
+each of which returns a different hierarchy of objects
+in response to the same series of client calls.</p>
+<p>I cannot find evidence that the full-tilt Builder pattern
+is in frequent use across today’s most popular python libraries.</p>
+<p>Why has the pattern not come into widespread use?</p>
+<p>I think the answer is the supremacy of data, and of data structures,
+as the common currency that is usually passed
+between one phase of a Python program’s execution and the next.
+To understand why,
+let’s turn to the Gang of Four’s own sample code.
+Here, for example, is one situation in which their Builder is placed
+as it responds to calls describing the creation of a maze
+(the example has been lightly edited to translate it into Python):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">StandardMazeBuilder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="c1"># ...</span>
+    <span class="k">def</span> <span class="nf">build_door</span><span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">):</span>
+        <span class="n">room1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_maze</span><span class="o">.</span><span class="n">get_room</span><span class="p">(</span><span class="n">n1</span><span class="p">)</span>
+        <span class="n">room2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_maze</span><span class="o">.</span><span class="n">get_room</span><span class="p">(</span><span class="n">n2</span><span class="p">)</span>
+        <span class="n">door</span> <span class="o">=</span> <span class="n">Door</span><span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">r2</span><span class="p">)</span>
+
+        <span class="n">room1</span><span class="o">.</span><span class="n">set_side</span><span class="p">(</span><span class="n">common_wall</span><span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">r2</span><span class="p">),</span> <span class="n">d</span><span class="p">)</span>
+        <span class="n">room2</span><span class="o">.</span><span class="n">set_side</span><span class="p">(</span><span class="n">common_wall</span><span class="p">(</span><span class="n">r2</span><span class="p">,</span> <span class="n">r1</span><span class="p">),</span> <span class="n">d</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Notice the awkward responsive pattern into which the code is forced.
+It knows that a maze is under construction,
+but has to recover a reference to the maze
+by asking <code class="docutils literal notranslate"><span class="pre">self</span></code> for its <code class="docutils literal notranslate"><span class="pre">current_maze</span></code> attribute.
+It then has to make several adjustments
+to update the room objects with the new information
+so that subsequent interactions will start from a new state.
+This looks suspiciously like I/O code
+that has been contorted into a series of callbacks,
+each needing to re-fetch and re-assemble the current state of the world
+in order to ratchet its state machine forward one further click.</p>
+<p>If a modern Python Library
+does want to drive two very different kinds of activity
+from the same series of client constructor calls,
+it would be very unusual for that library
+to offer two completely separate implementations
+of the same Builder interface —
+two builders that both have to be capable
+of being prodded through the same series of incremental
+client-driven updates
+to produce a coherent result.</p>
+<p>Instead, modern python libraries are overwhelmingly likely
+to have a single implementation of a given Builder,
+one that produces a single well-defined intermediate representation
+from the caller’s function and method invocations.
+That representation,
+whether publicly documented or private and internal to the library,
+can then be provided as the input
+to any number of downstream transformation or output routines —
+whose processing will now be simpler
+because they are free to roam across the intermediate data structure
+at their own pace and in whatever order they want.</p>
+<p>To compare the popularity of callback programming
+with the popularity of foregrounding an intermediate representation,
+compare the paltry number of Python libraries that use the <a class="reference external" href="https://docs.python.org/3/library/xml.sax.html">Standard Library <code class="docutils literal notranslate"><span class="pre">lmx.sax</span></code> package</a> —
+which learns about a document by responding to a long series
+of <code class="docutils literal notranslate"><span class="pre">startElement()</span></code> and <code class="docutils literal notranslate"><span class="pre">endElement()</span></code> calls —
+with the wide popularity of the
+<a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html">ElementTree</a>
+API that presumes the XML is already completely parsed
+and offers the caller a Document Object Module
+to traverse in whatever order it wants.</p>
+<p>It is, therefore, probably Python’s very rich collection of data types
+for representing deep compound information —
+tuples, lists, dictionaries, classes —
+and the convenience of writing code to traverse them
+that has produced almost an entire absence
+of the full-tilt Builder pattern
+from today’s popular Python libraries.</p>
+</div>
+<div class="section" id="a-degenerate-case-simulating-optional-arguments">
+<h2>A degenerate case: simulating optional arguments<a class="headerlink" href="#a-degenerate-case-simulating-optional-arguments" title="Permalink to this headline">¶</a></h2>
+<p>For the sake of completeness,
+I should describe an alternative Builder pattern
+that differs from the pattern described by the Gang of Four,
+in case you have seen it in blog posts or books
+and have been confused by the difference.
+It has arisen recently
+in some of the less convenient programming languages than Python,
+and substitutes for those languages’ lack
+of optional parameters.</p>
+<p>The degenerate Builder addresses this problem:</p>
+<ul class="simple">
+<li>A programmer designs a class
+with immutable attributes.
+Once a class instance is created,
+its attributes will be impossible to modify.</li>
+<li>The class has not just one or two, but many attributes —
+imagine that it has a dozen.</li>
+<li>The programmer is trapped in a programming language
+that lacks Python’s support for optional arguments.
+A&nbsp;call to the class constructor will need to supply a value
+for every single attribute each time the class is instantiated.</li>
+</ul>
+<p>You can imagine the verbose and unhappy consequences.
+Not only will every single object instantiation
+have to specify every one of the dozen attributes,
+but if the language does not support keyword arguments
+then each value in the long list of attributes will also be unlabeled.
+Imagine reading a long list of values like
+<code class="docutils literal notranslate"><span class="pre">None</span></code> <code class="docutils literal notranslate"><span class="pre">None</span></code> <code class="docutils literal notranslate"><span class="pre">0</span></code> <code class="docutils literal notranslate"><span class="pre">''</span></code> <code class="docutils literal notranslate"><span class="pre">None</span></code>
+and trying to visually pair each value
+with the corresponding name in the attribute list.
+A&nbsp;comment next to each value can improve readability,
+but the language will not provide any guard rail
+if a later edit accidentally moves the comments out of sync
+with the actual attributes.</p>
+<p>To escape their dilemma
+and achieve some approximation of the happy brevity
+that Python programmers take for granted,
+programmers facing this situation
+can supplement each class they write with a second class
+that serves as a builder for the first.
+The differences between the builder and the class it constructs are that:</p>
+<ul class="simple">
+<li>The Builder class carries all the same attributes as the target class.</li>
+<li>The Builder class is <em>not</em> immutable.</li>
+<li>The Builder class requires very few arguments to instantiate.
+Most or all of its attributes start off with default values.</li>
+<li>The Builder offers a mechanism
+for each attribute that starts with a default value
+to be rewritten with a different value.</li>
+<li>Finally, the Builder offers a method
+that creates an instance of the original immutable class
+whose attributes are copied from the corresponding attributes
+of the Builder instance.</li>
+</ul>
+<p>Here is a tiny example in Python —
+non-tiny examples are, alas, painful to read
+because of their rampant repetition:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Slightly less convenient in Python &lt; 3.6:</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NamedTuple</span>
+
+<span class="k">class</span> <span class="nc">Port</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+    <span class="n">number</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">protocol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+<span class="c1"># Real Python code takes advantage of optional arguments</span>
+<span class="c1"># to specify whatever combination of attributes it wants:</span>
+
+<span class="n">Port</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">Port</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;echo&#39;</span><span class="p">)</span>
+<span class="n">Port</span><span class="p">(</span><span class="mi">69</span><span class="p">,</span> <span class="s1">&#39;tftp&#39;</span><span class="p">,</span> <span class="s1">&#39;UDP&#39;</span><span class="p">)</span>
+
+<span class="c1"># Keyword arguments even let you skip earlier arguments:</span>
+
+<span class="n">Port</span><span class="p">(</span><span class="mi">517</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="s1">&#39;UDP&#39;</span><span class="p">)</span>
+
+<span class="c1"># But what if Python lacked optional arguments?</span>
+<span class="c1"># Then we might engage in contortions like:</span>
+
+<span class="k">class</span> <span class="nc">PortBuilder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">port</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Port</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="p">)</span>
+
+<span class="c1"># The Builder lets the caller create a Port without</span>
+<span class="c1"># needing to specify a value for every attribute.</span>
+<span class="c1"># Here we skip providing a “name”:</span>
+
+<span class="n">b</span> <span class="o">=</span> <span class="n">PortBuilder</span><span class="p">(</span><span class="mi">517</span><span class="p">)</span>
+<span class="n">b</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="s1">&#39;UDP&#39;</span>
+<span class="n">b</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>At the expense of a good deal of boilerplate —
+which becomes even worse if the author
+insists on writing a setter for each of the Builder’s attributes —
+this pattern allows programmers in deeply compromised programming languages
+to enjoy some of the same conveniences
+that are built into the design of the Python “call” operator.</p>
+<p>This is clearly not the Builder pattern from the Gang of Four.
+It fails to achieve every one of the “Consequences”
+their chapter lists for the Builder pattern:
+its <code class="docutils literal notranslate"><span class="pre">build()</span></code> method always returns the same class,
+instead of exercising the freedom
+to return any of several subclasses of the target class;
+it does not isolate the caller
+from how the target class represents its data
+since the builder and target attributes correspond one-to-one;
+and no fine control over the build process is achieved
+since the effect is the same — though less verbose —
+as if the caller had simply instantiated the target class directly.</p>
+<p>Hopefully you will never see a Builder like this in Python,
+even to correct the awkward fact that named tuples
+provide no obvious way to set a default value for each field —
+the
+<a class="reference external" href="https://stackoverflow.com/questions/11351032/namedtuple-and-default-values-for-optional-keyword-arguments">excellent answers to this Stack Overflow question</a>
+provide several more Pythonic alternatives.
+But you might see it in other languages
+when reading or even porting their code,
+in which case you will want to recognize the pattern
+so that you can replace it with something simpler
+if the code is re-implemented in Python.</p>
+</div>
+</div>
+
+    </article>
+    <hr>
+    <p class="copyright">
+      © 2018–2020 <a href="http://rhodesmill.org/brandon/">Brandon Rhodes</a>
+    </p>
+  </body>
+</html>

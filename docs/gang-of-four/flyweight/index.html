@@ -1,0 +1,290 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Flyweight Pattern</title>
+    <link rel="stylesheet" type="text/css"
+          href="../../_static/style.css">
+  </head>
+  <body>
+    
+    <p class="motto">
+      •
+      <a href="/">Home Page</a>
+      •
+    </p>
+    
+    <article>
+      <div class="section" id="the-flyweight-pattern">
+<h1>The Flyweight Pattern<a class="headerlink" href="#the-flyweight-pattern" title="Permalink to this headline">¶</a></h1>
+<p><em>A “Structural Pattern” from the</em> <a class="reference internal" href="../"><span class="doc">Gang of Four book</span></a></p>
+<div class="admonition-verdict admonition">
+<p class="first admonition-title">Verdict</p>
+<p class="last">Flyweight objects are such a perfect fit for Python
+that the language itself uses the pattern for such popular values
+as identifiers, some integers, and Boolean true and false.</p>
+</div>
+<p>A perfect example of the Flyweight Pattern
+is the Python <a class="reference external" href="https://docs.python.org/3/library/sys.html#sys.intern"><code class="docutils literal notranslate"><span class="pre">intern()</span></code></a> function.
+It’s a builtin in Python&nbsp;2
+which was moved into the <a class="reference external" href="https://docs.python.org/3/library/sys.html"><code class="docutils literal notranslate"><span class="pre">sys</span></code></a> module in Python&nbsp;3.
+When you pass it a string,
+it returns an exactly equal string.
+Its advantage is that it saves space:
+no matter how many different string objects you pass it
+for a particular value like <code class="docutils literal notranslate"><span class="pre">'xyzzy'</span></code>,
+it returns the same <code class="docutils literal notranslate"><span class="pre">'xyzzy'</span></code> object each time.</p>
+<p>It’s used internally in Python to save memory.
+As Python parses your program
+it’s likely to encounter a given identifier like <code class="docutils literal notranslate"><span class="pre">range</span></code>
+several times.
+Instead of storing each of them as a separate string object,
+it uses <code class="docutils literal notranslate"><span class="pre">intern()</span></code> so that all mentions of <code class="docutils literal notranslate"><span class="pre">range</span></code> in your code
+can share a single string object in memory that represents them all.</p>
+<p>We can see its behavior
+by computing the string <code class="docutils literal notranslate"><span class="pre">'python'</span></code> two different ways
+(to make it likely that any given Python implementation
+will really give us two different strings)
+and pass them to the intern function:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">intern</span>  <span class="c1"># not necessary in Python 2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">intern</span><span class="p">(</span><span class="s1">&#39;py&#39;</span> <span class="o">+</span> <span class="s1">&#39;thon&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">intern</span><span class="p">(</span><span class="s1">&#39;PYTHON&#39;</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span>
+<span class="go">&#39;python&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span>
+<span class="go">&#39;python&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="ow">is</span> <span class="n">b</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Strings are natural candidates for the Flyweight Pattern
+because they have all three of the key properties of a flyweight object:</p>
+<ul class="simple">
+<li>Python strings are immutable,
+which makes them safe to share.
+Otherwise a routine that decided to change one of the string’s characters
+would affect the single copy shared with everyone else.</li>
+<li>A Python string carries no context about how it is being used.
+If it needed to maintain a reference back
+to the list, dictionary, or other object that was using it,
+then each string could only serve in one context at a time.</li>
+<li>Strings are important for their value,
+not their object identity.
+We compare them with <code class="docutils literal notranslate"><span class="pre">==</span></code> instead of with the <code class="docutils literal notranslate"><span class="pre">is</span></code> keyword.
+A&nbsp;well-written Python program will not even notice
+whether the string <code class="docutils literal notranslate"><span class="pre">&quot;brandon&quot;</span></code> used in one place as a directory name
+and somewhere else as a username
+are the same object or two different objects.</li>
+</ul>
+<p>The Gang of Four describe these same requirements a bit differently
+when they require that, “Most object state can be made extrinsic.”
+They imagine starting with an object that’s a mix
+of what they call “extrinsic” and “intrinsic” state:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">a1</span> <span class="o">=</span> <span class="n">Glyph</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">ascent</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">descent</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">a2</span> <span class="o">=</span> <span class="n">Glyph</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">ascent</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">descent</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Given a typeface and size,
+each occurrence of a given letter — say, the letter <em>M</em> —
+will have the same width,
+the same ascent above the baseline,
+and the same descent below it.
+The Gang of Four call these attributes “intrinsic”
+to what it means to be the letter <em>M.</em>
+But each <em>M</em> on a page will have a different <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> coordinate;
+that state is “extrinsic” and varies
+from one occurrence of the letter to another.</p>
+<p>Given an object that mixes intrinsic and extrinsic state,
+the Gang of Four arrives at the Flyweight by refactoring
+to separate the two kinds of state:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="o">=</span> <span class="n">Glyph</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">ascent</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">descent</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">a1</span> <span class="o">=</span> <span class="n">DrawnGlyph</span><span class="p">(</span><span class="n">glyph</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">a2</span> <span class="o">=</span> <span class="n">DrawnGlyph</span><span class="p">(</span><span class="n">glyph</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Not only can the space savings from the Flyweight Pattern be considerable,
+but the <a class="reference external" href="https://www.researchgate.net/profile/Mark_Linton2/publication/220877079_Glyphs_flyweight_objects_for_user_interfaces/links/58adbb6345851503be91e1dc/Glyphs-flyweight-objects-for-user-interfaces.pdf?origin=publication_detail">original 1990 paper introducing Flyweights</a>
+found that a document editor written using the pattern
+had considerably simpler code.</p>
+<div class="section" id="factory-or-constructor">
+<h2>Factory or Constructor<a class="headerlink" href="#factory-or-constructor" title="Permalink to this headline">¶</a></h2>
+<p>The Gang of Four only imagined using a factory function like <code class="docutils literal notranslate"><span class="pre">intern()</span></code>
+for managing a collection of flyweights,
+but Python often moves the logic into a class’s constructor instead.</p>
+<p>The simplest example in Python is the <code class="docutils literal notranslate"><span class="pre">bool</span></code> type.
+It has exactly two instances.
+While they can be accessed
+through their builtin names <code class="docutils literal notranslate"><span class="pre">True</span></code> and <code class="docutils literal notranslate"><span class="pre">False</span></code>,
+they are also returned by their class
+when it is passed an object to test for truthiness or falsehood.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Another example is integers.
+As an implementation detail,
+the default C&nbsp;language version of Python
+treats the integers −5 through 256 as flyweights.
+Those integers are created ahead of time as the interpreter launches,
+and are returned when an integer with one of those values is needed.
+Computing any other integer value
+results in a unique object from each computation.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="mi">1</span> <span class="o">+</span> <span class="mi">4</span> <span class="ow">is</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">3</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">100</span> <span class="o">+</span> <span class="mi">400</span> <span class="ow">is</span> <span class="mi">200</span> <span class="o">+</span> <span class="mi">300</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>There are a few other flyweights hiding in the Standard Library
+for very common immutable objects,
+like the empty string and the empty tuple.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">str</span><span class="p">()</span> <span class="ow">is</span> <span class="s1">&#39;&#39;</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">tuple</span><span class="p">([])</span> <span class="ow">is</span> <span class="p">()</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Note that not every object pre-built by the interpreter
+qualifies as a flyweight.
+The <code class="docutils literal notranslate"><span class="pre">None</span></code> object, for example, does not qualify:
+a class needs more than one instance to be a true Flyweight,
+but <code class="docutils literal notranslate"><span class="pre">None</span></code> is the only instance of <code class="docutils literal notranslate"><span class="pre">NoneType</span></code>.</p>
+</div>
+<div class="section" id="implementing">
+<h2>Implementing<a class="headerlink" href="#implementing" title="Permalink to this headline">¶</a></h2>
+<p>The simplest flyweights are allocated ahead of time.
+A&nbsp;system for assigning letter grades
+might use flyweights for the grades themselves:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_grades</span> <span class="o">=</span> <span class="p">[</span><span class="n">letter</span> <span class="o">+</span> <span class="n">suffix</span>
+           <span class="k">for</span> <span class="n">letter</span> <span class="ow">in</span> <span class="s1">&#39;ABCD&#39;</span>
+           <span class="k">for</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">compute_grade</span><span class="p">(</span><span class="n">percent</span><span class="p">):</span>
+    <span class="n">percent</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">59</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mi">99</span><span class="p">,</span> <span class="n">percent</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">_grades</span><span class="p">[(</span><span class="mi">99</span> <span class="o">-</span> <span class="n">percent</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">//</span> <span class="mi">10</span><span class="p">]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">compute_grade</span><span class="p">(</span><span class="mi">55</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">compute_grade</span><span class="p">(</span><span class="mi">89</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">compute_grade</span><span class="p">(</span><span class="mi">90</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>F
+B+
+A-
+</pre></div>
+</div>
+<p>Factories that need to build a flyweight population dynamically
+are more complicated:
+they’ll need a dynamic data structure
+in which to enroll the flyweights and find them again later.
+A&nbsp;dictionary is a typical choice:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_strings</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">def</span> <span class="nf">my_intern</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">_strings</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">string</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">s</span>
+
+<span class="n">a1</span> <span class="o">=</span> <span class="n">my_intern</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">)</span>
+<span class="n">b1</span> <span class="o">=</span> <span class="n">my_intern</span><span class="p">(</span><span class="s1">&#39;B&#39;</span><span class="p">)</span>
+<span class="n">a2</span> <span class="o">=</span> <span class="n">my_intern</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">a1</span> <span class="ow">is</span> <span class="n">b1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">a1</span> <span class="ow">is</span> <span class="n">a2</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>False
+True
+</pre></div>
+</div>
+<p>One danger of dynamically allocated flyweights
+is the possibility of eventually exhausting memory,
+if the number of possible values is very large
+and callers might request a large number of unique values
+over a program’s runtime.
+In such cases you might consider using a <code class="docutils literal notranslate"><span class="pre">WeakValueDictionary</span></code>
+from the <code class="docutils literal notranslate"><span class="pre">weakref</span></code> module.</p>
+<p>Weak references wouldn’t work in the simple example given above,
+because <code class="docutils literal notranslate"><span class="pre">my_intern</span></code> uses each interned string
+not only as a value but also as the corresponding key.
+But it should work fine in the more common case
+where the indexes are simple values
+but the keys are more complicated object instances.</p>
+<p>The Gang of Four define the Flyweight Pattern as using a factory function,
+but Python provides another possibility:
+a class can implement the pattern right in its constructor,
+just like <code class="docutils literal notranslate"><span class="pre">bool()</span></code> and <code class="docutils literal notranslate"><span class="pre">int()</span></code>.
+Rewriting the above example as a class&nbsp;—
+and, for the sake of example, allocating objects on-demand
+instead of building them ahead of time —
+would produce something like:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Grade</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">_instances</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">percent</span><span class="p">):</span>
+        <span class="n">percent</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mi">99</span><span class="p">,</span> <span class="n">percent</span><span class="p">))</span>
+        <span class="n">letter</span> <span class="o">=</span> <span class="s1">&#39;FDCBA&#39;</span><span class="p">[(</span><span class="n">percent</span> <span class="o">-</span> <span class="mi">50</span><span class="p">)</span> <span class="o">//</span> <span class="mi">10</span><span class="p">]</span>
+        <span class="bp">self</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instances</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">letter</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instances</span><span class="p">[</span><span class="n">letter</span><span class="p">]</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">Grade</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">letter</span> <span class="o">=</span> <span class="n">letter</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;Grade </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">letter</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">Grade</span><span class="p">(</span><span class="mi">55</span><span class="p">),</span> <span class="n">Grade</span><span class="p">(</span><span class="mi">85</span><span class="p">),</span> <span class="n">Grade</span><span class="p">(</span><span class="mi">95</span><span class="p">),</span> <span class="n">Grade</span><span class="p">(</span><span class="mi">100</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Grade</span><span class="o">.</span><span class="n">_instances</span><span class="p">))</span>    <span class="c1"># number of instances</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">Grade</span><span class="p">(</span><span class="mi">95</span><span class="p">)</span> <span class="ow">is</span> <span class="n">Grade</span><span class="p">(</span><span class="mi">100</span><span class="p">))</span>  <span class="c1"># ask for ‘A’ two more times</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Grade</span><span class="o">.</span><span class="n">_instances</span><span class="p">))</span>    <span class="c1"># number stayed the same?</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Grade &#39;F&#39; Grade &#39;B&#39; Grade &#39;A&#39; Grade &#39;A&#39;
+3
+True
+3
+</pre></div>
+</div>
+<p>You can see that once a <code class="docutils literal notranslate"><span class="pre">Grade</span></code> object for <em>A</em> has been created,
+all further requests for it receive the same object;
+the instances dictionary doesn’t continue to grow.</p>
+<p>Note that we don’t define <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> in a class like this
+whose <code class="docutils literal notranslate"><span class="pre">__new__()</span></code> might return an existing object.
+That’s because Python always calls <code class="docutils literal notranslate"><span class="pre">__init__()</span></code>
+on the object received back from <code class="docutils literal notranslate"><span class="pre">__new__()</span></code>
+(as long as the object is an instance of the class itself),
+which would be useful the first time we returned a new Flyweight object,
+but redundant on subsequent occasions
+when we returned the already-initialized object.
+So we instead do the work of initialization
+right in the middle of <code class="docutils literal notranslate"><span class="pre">__new__()</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">letter</span> <span class="o">=</span> <span class="n">letter</span>
+</pre></div>
+</div>
+<p>Having illustrated the possibility
+of hiding your Flyweight Pattern factory inside of <code class="docutils literal notranslate"><span class="pre">__new__()</span></code>,
+I recommend against it
+because it produces code whose behavior does not match its spelling.
+When a Python programmer sees <code class="docutils literal notranslate"><span class="pre">Grade(95)</span></code>,
+they are going to think “new object instance”
+along with all of the consequences,
+unless they are in on the secret that <code class="docutils literal notranslate"><span class="pre">__new__()</span></code> has been overridden
+and unless they always remember that fact when reading code.</p>
+<p>A traditional Flyweight Pattern factory function
+will be less likely to trigger assumptions
+like “this code is building a new object”
+and in any case is simpler both to implement and debug.</p>
+</div>
+</div>
+
+    </article>
+    <hr>
+    <p class="copyright">
+      © 2018–2020 <a href="http://rhodesmill.org/brandon/">Brandon Rhodes</a>
+    </p>
+  </body>
+</html>

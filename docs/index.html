@@ -1,0 +1,187 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Design Patterns</title>
+    <link rel="stylesheet" type="text/css"
+          href="_static/style.css">
+  </head>
+  <body>
+    
+    <article>
+      <div class="section" id="python-design-patterns">
+<h1>Python Design Patterns<a class="headerlink" href="#python-design-patterns" title="Permalink to this headline">¶</a></h1>
+<p>Welcome!</p>
+<p>I’m <strong>Brandon Rhodes</strong>
+(<a class="reference external" href="https://rhodesmill.org/brandon/">website</a>,
+<a class="reference external" href="https://twitter.com/brandon_rhodes">Twitter</a>)
+and this is my evolving guide to design patterns in the
+<a class="reference external" href="https://www.python.org/">Python programming language</a>.</p>
+<ul class="simple">
+<li>This site is letting me collect my ideas about Python
+and Design Patterns all in one place.</li>
+<li>My hope is that these pages make the patterns more discoverable —
+easier to find in web searches, and easier to read —
+than when they were scattered across the videos and slides
+of my <a class="reference external" href="http://rhodesmill.org/brandon/talks/">Python conference talks</a>.</li>
+<li>The weight of other obligations makes my progress intermittent.
+To check for new material,
+simply visit the commit history of this site’s
+<a class="reference external" href="https://github.com/brandon-rhodes/python-patterns">project repository on GitHub</a>,
+where you can also select “Watch” to get updates.</li>
+</ul>
+<p>With those preliminaries complete, here are the patterns!</p>
+<div class="section" id="gang-of-four-principles">
+<h2>Gang of Four: Principles<a class="headerlink" href="#gang-of-four-principles" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="gang-of-four/composition-over-inheritance/">The Composition Over Inheritance Principle</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/composition-over-inheritance/#problem-the-subclass-explosion">Problem: the subclass explosion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/composition-over-inheritance/#solution-1-the-adapter-pattern">Solution #1: The Adapter Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/composition-over-inheritance/#solution-2-the-bridge-pattern">Solution #2: The Bridge Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/composition-over-inheritance/#solution-3-the-decorator-pattern">Solution #3: The Decorator Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/composition-over-inheritance/#solution-4-beyond-the-gang-of-four-patterns">Solution #4: Beyond the Gang of Four patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/composition-over-inheritance/#dodge-if-statements">Dodge: “if” statements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/composition-over-inheritance/#dodge-multiple-inheritance">Dodge: Multiple Inheritance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/composition-over-inheritance/#dodge-mixins">Dodge: Mixins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/composition-over-inheritance/#dodge-building-classes-dynamically">Dodge: Building classes dynamically</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="python-specific-patterns">
+<h2>Python-Specific Patterns<a class="headerlink" href="#python-specific-patterns" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="python/module-globals/">The Global Object Pattern</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="python/module-globals/#the-constant-pattern">The Constant Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python/module-globals/#import-time-computation">Import-time computation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python/module-globals/#dunder-constants">Dunder Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python/module-globals/#id1">The Global Object Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python/module-globals/#global-objects-that-are-mutable">Global Objects that are mutable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python/module-globals/#import-time-i-o">Import-time I/O</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="python/prebound-methods/">The Prebound Method Pattern</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="python/prebound-methods/#alternatives">Alternatives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python/prebound-methods/#the-pattern">The pattern</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="python/sentinel-object/">The Sentinel Object Pattern</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="python/sentinel-object/#sentinel-value">Sentinel Value</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python/sentinel-object/#the-null-pointer-pattern">The Null Pointer Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python/sentinel-object/#the-null-object-pattern">The Null Object Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python/sentinel-object/#sentinel-objects">Sentinel Objects</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="gang-of-four-creational-patterns">
+<h2>Gang of Four: Creational Patterns<a class="headerlink" href="#gang-of-four-creational-patterns" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="gang-of-four/abstract-factory/">The Abstract Factory Pattern</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/abstract-factory/#the-pythonic-approach-callable-factories">The Pythonic approach: callable factories</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/abstract-factory/#restriction-outlaw-passing-callables">Restriction: outlaw passing callables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/abstract-factory/#restriction-outlaw-passing-classes">Restriction: outlaw passing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/abstract-factory/#generalizing-the-complete-abstract-factory">Generalizing: the complete Abstract Factory</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gang-of-four/builder/">The Builder Pattern</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/builder/#the-builder-as-convenience">The Builder as convenience</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/builder/#nuance">Nuance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/builder/#dueling-builders">Dueling builders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/builder/#a-degenerate-case-simulating-optional-arguments">A degenerate case: simulating optional arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gang-of-four/factory-method/">The Factory Method Pattern</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/factory-method/#dodge-use-dependency-injection">Dodge: use Dependency Injection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/factory-method/#instead-use-a-class-attribute-factory">Instead: use a Class Attribute Factory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/factory-method/#instead-use-an-instance-attribute-factory">Instead: use an Instance Attribute Factory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/factory-method/#instance-attributes-override-class-attributes">Instance attributes override class attributes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/factory-method/#any-callables-accepted">Any callables accepted</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/factory-method/#implementing">Implementing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gang-of-four/prototype/">The Prototype Pattern</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/prototype/#the-problem">The problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/prototype/#pythonic-solutions">Pythonic solutions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/prototype/#implementing">Implementing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gang-of-four/singleton/">The Singleton Pattern</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/singleton/#disambiguation">Disambiguation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/singleton/#the-gang-of-fours-implementation">The Gang of Four’s implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/singleton/#a-more-pythonic-implementation">A more Pythonic implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/singleton/#verdict">Verdict</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="gang-of-four-structural-patterns">
+<h2>Gang of Four: Structural Patterns<a class="headerlink" href="#gang-of-four-structural-patterns" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="gang-of-four/composite/">The Composite Pattern</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/composite/#example-the-unix-file-system">Example: the UNIX file system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/composite/#on-hierarchies">On hierarchies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/composite/#example-gui-programming-with-tkinter">Example: GUI programming with Tkinter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/composite/#implementation-to-inherit-or-not">Implementation: to inherit, or not?</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gang-of-four/decorator-pattern/">The Decorator Pattern</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/decorator-pattern/#definition">Definition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/decorator-pattern/#implementing-static-wrapper">Implementing: Static wrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/decorator-pattern/#implementing-tactical-wrapper">Implementing: Tactical wrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/decorator-pattern/#implementing-dynamic-wrapper">Implementing: Dynamic wrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/decorator-pattern/#caveat-wrapping-doesnt-actually-work">Caveat: Wrapping doesn’t actually work</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/decorator-pattern/#hack-monkey-patch-each-object">Hack: Monkey-patch each object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/decorator-pattern/#hack-monkey-patch-the-class">Hack: Monkey-patch the class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/decorator-pattern/#further-reading">Further Reading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gang-of-four/flyweight/">The Flyweight Pattern</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/flyweight/#factory-or-constructor">Factory or Constructor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/flyweight/#implementing">Implementing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="gang-of-four-behavioral-patterns">
+<h2>Gang of Four: Behavioral Patterns<a class="headerlink" href="#gang-of-four-behavioral-patterns" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="gang-of-four/iterator/">The Iterator Pattern</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/iterator/#iterating-with-the-for-loop">Iterating with the “for” loop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/iterator/#the-pattern-the-iterable-and-its-iterator">The pattern: the iterable and its iterator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/iterator/#a-twist-objects-which-are-their-own-iterator">A twist: objects which are their own iterator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/iterator/#implementing-an-iterable-and-iterator">Implementing an Iterable and Iterator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gang-of-four/iterator/#pythons-extra-level-of-indirection">Python’s extra level of indirection</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="bibliography">
+<h2>Bibliography<a class="headerlink" href="#bibliography" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="gang-of-four/">Gang of Four book</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fowler-refactoring/"><em>Refactoring</em> by Martin Fowler</a></li>
+</ul>
+</div>
+</div>
+</div>
+
+    </article>
+    <hr>
+    <p class="copyright">
+      © 2018–2020 <a href="http://rhodesmill.org/brandon/">Brandon Rhodes</a>
+    </p>
+  </body>
+</html>

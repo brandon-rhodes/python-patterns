@@ -1,0 +1,565 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Global Object Pattern</title>
+    <link rel="stylesheet" type="text/css"
+          href="../../_static/style.css">
+  </head>
+  <body>
+    
+    <p class="motto">
+      •
+      <a href="/">Home Page</a>
+      •
+    </p>
+    
+    <article>
+      <div class="section" id="the-global-object-pattern">
+<h1>The Global Object Pattern<a class="headerlink" href="#the-global-object-pattern" title="Permalink to this headline">¶</a></h1>
+<div class="admonition-verdict admonition">
+<p class="first admonition-title">Verdict</p>
+<p class="last">Like several other scripting languages,
+Python parses the outer level of each module as normal code.
+Un-indented assignment statements, expressions,
+and even loops and conditionals
+will execute as the module is imported.
+This presents an excellent opportunity
+to supplement a module’s classes and functions
+with constants and data structures that callers will find useful —
+but also offers dangerous temptations:
+mutable global objects can wind up coupling distant code,
+and I/O operations impose import-time expense and side effects.</p>
+</div>
+<p>Every Python module is a separate namespace.
+A&nbsp;module like <code class="docutils literal notranslate"><span class="pre">json</span></code> can offer a <code class="docutils literal notranslate"><span class="pre">loads()</span></code> function
+without conflicting with, replacing, or overwriting
+the completely different <code class="docutils literal notranslate"><span class="pre">loads()</span></code> function
+defined over in the <code class="docutils literal notranslate"><span class="pre">pickle</span></code> module.</p>
+<p>Separate namespaces are crucial to making a programming language tractable.
+If Python modules were not separate namespaces,
+you would be unable to read or write Python code
+by keeping your attention focused on the module in front of you —
+a line of code might use, or accidentally conflict with,
+a name defined anywhere else in the Standard Library
+or a third-party module you have installed.
+Upgrading a third-party module could break your entire program
+if the new version defined a new global that conflicted with yours.
+Programmers who are forced to code in a language without namespaces
+soon find themselves festooning global names
+with prefixes, suffixes, and extra punctuation
+in a desperate race to keep them from conflicting.</p>
+<p>While every function and class is, of course, an object —
+in Python, everything is an object —
+the Module Global pattern more specifically refers
+to normal object instances
+that are given names at the global level of a module.</p>
+<p>Two patterns use Module Globals
+but are important enough to warrant their own articles:</p>
+<ul class="simple">
+<li><a class="reference internal" href="../prebound-methods/"><span class="doc">Prebound Methods</span></a>
+are generated when a module builds an object
+and then assigns one or more of the object’s bound methods
+to names at the module’s global level.
+The names can be used to call the methods later
+without needing to find the object itself.</li>
+<li>While a <a class="reference internal" href="../sentinel-object/"><span class="doc">Sentinel Object</span></a>
+doesn’t have to live in a module’s global namespace —
+some sentinel objects are defined as class attributes,
+while others are private and live inside of a closure —
+many sentinels, both in the Standard Library and beyond,
+are defined and accessed as module globals.</li>
+</ul>
+<p>This article will cover some other common cases.</p>
+<div class="section" id="the-constant-pattern">
+<h2>The Constant Pattern<a class="headerlink" href="#the-constant-pattern" title="Permalink to this headline">¶</a></h2>
+<p>Modules often assign useful numbers, strings, and other values
+to names in their global scope.
+The Standard Library includes many such assignments,
+from which we can excerpt a few examples.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">January</span> <span class="o">=</span> <span class="mi">1</span>                   <span class="c1"># calendar.py</span>
+<span class="n">WARNING</span> <span class="o">=</span> <span class="mi">30</span>                  <span class="c1"># logging.py</span>
+<span class="n">MAX_INTERPOLATION_DEPTH</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># configparser.py</span>
+<span class="n">SSL_HANDSHAKE_TIMEOUT</span> <span class="o">=</span> <span class="mf">60.0</span>  <span class="c1"># asyncio.constants.py</span>
+<span class="n">TICK</span> <span class="o">=</span> <span class="s2">&quot;&#39;&quot;</span>                    <span class="c1"># email.utils.py</span>
+<span class="n">CRLF</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span>                 <span class="c1"># smtplib.py</span>
+</pre></div>
+</div>
+<p>Remember that these are “constants” only in the sense
+that the objects themselves are immutable.
+The names can still be reassigned.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calendar</span>
+<span class="n">calendar</span><span class="o">.</span><span class="n">January</span> <span class="o">=</span> <span class="mi">13</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">calendar</span><span class="o">.</span><span class="n">January</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>13
+</pre></div>
+</div>
+<p>Or deleted, for that matter.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">del</span> <span class="n">calendar</span><span class="o">.</span><span class="n">January</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">calendar</span><span class="o">.</span><span class="n">January</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Traceback (most recent call last):
+  ...
+AttributeError: module &#39;calendar&#39; has no attribute &#39;January&#39;
+</pre></div>
+</div>
+<p>In addition to integers, floats, and strings,
+constants also include immutable containers like tuples and frozen sets:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">all_errors</span> <span class="o">=</span> <span class="p">(</span><span class="n">Error</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">,</span> <span class="ne">EOFError</span><span class="p">)</span>  <span class="c1"># ftplib.py</span>
+<span class="n">bytes_types</span> <span class="o">=</span> <span class="p">(</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">)</span>         <span class="c1"># pickle.py</span>
+<span class="n">DIGITS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="s2">&quot;0123456789&quot;</span><span class="p">)</span>         <span class="c1"># sre_parse.py</span>
+</pre></div>
+</div>
+<p>More specialized immutable data types also serve as constants:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">_EPOCH</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">1970</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>  <span class="c1"># datetime</span>
+</pre></div>
+</div>
+<p>On rare occasions,
+a module global
+which the code clearly never intends to modify
+uses a mutable data structure anyway.
+Plain mutable sets
+are common in code that pre-dates the invention of the <code class="docutils literal notranslate"><span class="pre">frozenset</span></code>.
+Dictionaries are still used today
+because, alas, the Standard Library doesn’t offer a frozen dictionary.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># socket.py</span>
+<span class="n">_blocking_errnos</span> <span class="o">=</span> <span class="p">{</span> <span class="n">EAGAIN</span><span class="p">,</span> <span class="n">EWOULDBLOCK</span> <span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># locale.py</span>
+<span class="n">windows_locale</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="mh">0x0436</span><span class="p">:</span> <span class="s2">&quot;af_ZA&quot;</span><span class="p">,</span> <span class="c1"># Afrikaans</span>
+  <span class="mh">0x041c</span><span class="p">:</span> <span class="s2">&quot;sq_AL&quot;</span><span class="p">,</span> <span class="c1"># Albanian</span>
+  <span class="mh">0x0484</span><span class="p">:</span> <span class="s2">&quot;gsw_FR&quot;</span><span class="p">,</span><span class="c1"># Alsatian - France</span>
+  <span class="o">...</span>
+  <span class="mh">0x0435</span><span class="p">:</span> <span class="s2">&quot;zu_ZA&quot;</span><span class="p">,</span> <span class="c1"># Zulu</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Constants are often introduced as a refactoring:
+the programmer notices that the same value <code class="docutils literal notranslate"><span class="pre">60.0</span></code>
+is appearing repeatedly in their code,
+and so introduces a constant <code class="docutils literal notranslate"><span class="pre">SSL_HANDSHAKE_TIMEOUT</span></code>
+for the value instead.
+Each use of the name
+will now incur the slight cost of a search into the global scope,
+but this is balanced by a couple of advantages.
+The constant’s name now documents the value’s meaning,
+improving the code’s readability.
+And the constant’s assignment statement
+now provides a single location
+where the value can be edited in the future
+without needing to hunt through the code for each place <code class="docutils literal notranslate"><span class="pre">60.0</span></code> was used.</p>
+<p>These advantages are weighty enough
+that a constant is sometimes introduced
+even for a value that’s used only once,
+hoisting a literal that was hidden deep in the code
+up into visibility as a global.</p>
+<p>Some programmers place constant assignments
+close to the code that use them;
+others put all constants at the top of the file.
+Unless a constant is placed so close to its code
+that it will always be in view of human readers,
+it can be more friendly to put constants at the top of the module
+for the easy reference of readers
+who haven’t yet configured their editors to support jump-to-definition.</p>
+<p>Another kind of constant is not directed inwards,
+towards the code in the module itself,
+but outwards as part of the module’s advertised API.
+A&nbsp;constant like <code class="docutils literal notranslate"><span class="pre">WARNING</span></code> from the <code class="docutils literal notranslate"><span class="pre">logging</span></code> module
+offers the advantages of a constant to the caller:
+code will be more readable,
+and the constant’s value could be adjusted later
+without every caller needing to edit their code.</p>
+<p>You might expect that a constant intended for the module’s own use,
+but not intended for callers,
+would always start with an underscore to mark it private.
+But Python programmers are not consistent in marking constants private,
+perhaps because the cost of needing to keep a constant around forever
+because a caller might have decided to start using it
+is smaller than the cost of having
+a helper function or class’s API forever locked up.</p>
+</div>
+<div class="section" id="import-time-computation">
+<h2>Import-time computation<a class="headerlink" href="#import-time-computation" title="Permalink to this headline">¶</a></h2>
+<p>Sometimes constants are introduced for efficiency,
+to avoid recomputing a value every time code is called.
+For example,
+even though math operations involving literal numbers
+are in fact optimized away in all modern Python implementations,
+developers often still feel more comfortable
+making it explicit that the math should be done at import time
+by assigning the result to a module global:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># zipfile.py</span>
+<span class="n">ZIP_FILECOUNT_LIMIT</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">16</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>When the math expression is complicated,
+assigning a name also enhances the code’s readability.</p>
+<p>As another example,
+there exist special floating point values
+that cannot be written in Python as literals;
+they can only be generated by passing a string to the float type.
+To avoid calling <code class="docutils literal notranslate"><span class="pre">float()</span></code> with <code class="docutils literal notranslate"><span class="pre">'nan'</span></code> or <code class="docutils literal notranslate"><span class="pre">'inf'</span></code>
+every single time such a value is needed,
+modules often build such values only once as module globals.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># encoder.py</span>
+<span class="n">INFINITY</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A constant can also capture the result of a conditional
+to avoid re-evaluating it each time the value is needed —
+as long, of course, as the condition
+won’t be changing while the program is running.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># shutil.py</span>
+<span class="n">COPY_BUFSIZE</span> <span class="o">=</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span> <span class="k">if</span> <span class="n">_WINDOWS</span> <span class="k">else</span> <span class="mi">16</span> <span class="o">*</span> <span class="mi">1024</span>
+</pre></div>
+</div>
+<p>My favorite example of computed constants in the Standard Library
+is the <code class="docutils literal notranslate"><span class="pre">types</span></code> module.
+I&nbsp;had always assumed it was implemented in C,
+to gain special access to built-in type objects like <code class="docutils literal notranslate"><span class="pre">FunctionType</span></code>
+and <code class="docutils literal notranslate"><span class="pre">LambdaType</span></code> that are defined by the language implementation itself.</p>
+<p>It turns out? I&nbsp;was wrong. The <code class="docutils literal notranslate"><span class="pre">types</span></code> module is written in plain Python!</p>
+<p>Without any special access to language internals,
+it does what anyone else would do to learn what type functions have.
+It creates a function, then asks its type:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># types.py</span>
+<span class="k">def</span> <span class="nf">_f</span><span class="p">():</span> <span class="k">pass</span>
+<span class="n">FunctionType</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">_f</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>On the one hand,
+this makes the <code class="docutils literal notranslate"><span class="pre">types</span></code> module seem almost superfluous —
+you could always use the same trick to discover <code class="docutils literal notranslate"><span class="pre">FunctionType</span></code> yourself.
+But on the other hand,
+importing it from <code class="docutils literal notranslate"><span class="pre">types</span></code>
+lets both major benefits of the Constant Pattern shine:
+code becomes more readable
+because <code class="docutils literal notranslate"><span class="pre">FunctionType</span></code> will have the same name everywhere,
+and more efficient
+because the constant only needs to be computed once
+no matter how many modules in a large system might use it.</p>
+</div>
+<div class="section" id="dunder-constants">
+<h2>Dunder Constants<a class="headerlink" href="#dunder-constants" title="Permalink to this headline">¶</a></h2>
+<p>A special case of constants defined at a module’s global level
+are “dunder” constants whose names start and end with double underscores.</p>
+<p>Several Module Global dunder constants are set by the language itself.
+For the official list,
+look for the “Modules” subheading in the Python Reference’s section on
+<a class="reference external" href="https://docs.python.org/3/reference/datamodel.html#the-standard-type-hierarchy">the standard type hierarchy</a>.
+The two encountered most often are <code class="docutils literal notranslate"><span class="pre">__name__</span></code>,
+which programs need to check because of Python’s awful design decision
+to assign the fake name <code class="docutils literal notranslate"><span class="pre">'__main__'</span></code>
+to the module invoked from the command line,
+and <code class="docutils literal notranslate"><span class="pre">__file__</span></code>,
+the full filesystem path to the module’s Python file itself —
+which is almost universally used to find data files included in a package,
+even though the official recommendation these days
+is to use <a class="reference external" href="https://docs.python.org/3/library/pkgutil.html#pkgutil.get_data"><code class="docutils literal notranslate"><span class="pre">pkgutil.get_data()</span></code></a> instead.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">here</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Beyond the dunder constants set by the language runtime,
+there is one Python recognizes if a module chooses to set it:
+if <code class="docutils literal notranslate"><span class="pre">__all__</span></code> is assigned a sequence of identifiers,
+then only those names will be imported into another module
+that does <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">…</span> <span class="pre">import</span> <span class="pre">*</span></code>.
+You might have expected <code class="docutils literal notranslate"><span class="pre">__all__</span></code> to become less popular
+as <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">*</span></code> gained a reputation as an anti-pattern,
+but it has gained a happy second career
+limiting the list of symbols included
+by automatic documentation engines like
+<a class="reference external" href="http://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html">Sphinx autodoc module</a>.</p>
+<p>Even though most modules never plan to modify <code class="docutils literal notranslate"><span class="pre">__all__</span></code>,
+they inexplicably specify it as a Python list.
+It is more elegant to use a tuple.</p>
+<p>Beyond these official dunder constants,
+some modules —
+despite unattractive how many people find dunder names —
+indulge in the creation of even more.
+Assignments to names like <code class="docutils literal notranslate"><span class="pre">__author__</span></code> and <code class="docutils literal notranslate"><span class="pre">__version__</span></code>
+are scattered across the Standard Library and beyond.
+While they don’t appear consistently enough
+for tooling can assume their presence,
+occasional readers probably find them informative,
+and they’re easier to get to than official package metadata.</p>
+<p>Beware that there does not seem to be agreement,
+even within the Standard Library,
+about what type <code class="docutils literal notranslate"><span class="pre">__author__</span></code> should have.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># bz2.py</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Nadeem Vawda &lt;nadeem.vawda@gmail.com&gt;&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># inspect.py</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Ka-Ping Yee &lt;ping@lfw.org&gt;&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;Yury Selivanov &lt;yselivanov@sprymix.com&gt;&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Why not <code class="docutils literal notranslate"><span class="pre">author</span></code> and <code class="docutils literal notranslate"><span class="pre">version</span></code> instead, without the dunders?
+An early reader probably misunderstood dunders,
+which really meant “special to the Python language runtime,”
+as a vague indication
+that a value was module metadata rather than module code.
+A&nbsp;few Standard Library modules do offer their version without dunders,
+but without even agreeing on the capitalization.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">VERSION</span> <span class="o">=</span> <span class="s2">&quot;1.3.0&quot;</span>  <span class="c1"># etree/ElementTree.py</span>
+<span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.20&quot;</span>   <span class="c1"># sax/expatreader.py</span>
+<span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.9.0&quot;</span>  <span class="c1"># tarfile.py</span>
+</pre></div>
+</div>
+<p>To avoid the inconsistencies surrounding
+these informal and ad-hoc metadata conventions,
+a package that expects to be installed with <code class="docutils literal notranslate"><span class="pre">pip</span></code>
+can learn the names and versions of other installed packages
+directly from the Python package installation system.
+More information is available in the <a class="reference external" href="https://setuptools.readthedocs.io/en/latest/pkg_resources.html">setuptools documentation on the <code class="docutils literal notranslate"><span class="pre">pkg_resources</span></code> module</a>.</p>
+</div>
+<div class="section" id="id1">
+<h2>The Global Object Pattern<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>In the full-fledged Global Object pattern,
+as in the Constant pattern,
+a module instantiates an object at import time
+and assigns it a name in the module’s global scope.
+But the object does not simply serve as data;
+it is not merely an integer, string, or data structure.
+Instead, the object is made available
+for the sake of the methods it offers — for the actions it can perform.</p>
+<p>The simplest Global Objects are immutable.
+A&nbsp;common example is a compiled regular expression —
+here are a few examples from the Standard Library:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">escapesre</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[</span><span class="se">\\</span><span class="s1">&quot;]&#39;</span><span class="p">)</span>       <span class="c1"># email/utils.py</span>
+<span class="n">magic_check</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;([*?[])&#39;</span><span class="p">)</span>    <span class="c1"># glob.py</span>
+<span class="n">commentclose</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;--\s*&gt;&#39;</span><span class="p">)</span>   <span class="c1"># html/parser.py</span>
+<span class="n">HAS_UTF8</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;[</span><span class="se">\x80</span><span class="s1">-</span><span class="se">\xff</span><span class="s1">]&#39;</span><span class="p">)</span>  <span class="c1"># json/encoder.py</span>
+</pre></div>
+</div>
+<p>Compiling a regular expression as a module global
+is a good example of the more general Global Object pattern.
+It achieves an elegant and safe transfer of expense
+from later in a program’s runtime to import time instead.
+The tradeoffs are:</p>
+<ul class="simple">
+<li>The cost of importing the module increases
+by the cost of compiling the regular expression
+(plus the tiny cost of assigning it to a global name).</li>
+<li>The import-time cost is now borne by every program that imports the module.
+Even if a program doesn’t happen to call any code
+that uses the <code class="docutils literal notranslate"><span class="pre">HAS_UTF8</span></code> regular expression shown above,
+it will incur the expense of compiling it
+whenever it imports the <code class="docutils literal notranslate"><span class="pre">json</span></code> module.
+(Plot twist: in Python&nbsp;3, the pattern is no longer even used in the module!
+But its name was not marked private with a leading underscore,
+so I suppose it’s not safe to remove —
+and every <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">json</span></code> gets to pay its cost forever?)</li>
+<li>But functions and methods that do, in fact,
+need to use the regular expression
+will no longer incur a repeated cost for its compilation.
+The compiled regular expression
+is ready to start scanning a string immediately!
+If the regular expression is used frequently,
+like in the inner loop of a costly operation like parsing,
+the savings can be considerable.</li>
+<li>The global name will make calling code more readable
+than if the regular expression, when used locally,
+is used anonymously in a larger expression.
+(If readability is the only concern, though,
+remember that you can define the regular expression’s string as a global
+but skip the cost of compiling it at module level.)</li>
+</ul>
+<p>This list of tradeoffs is about the same, by the way,
+if you move a regular expression out into a class attribute
+instead of moving it all the way out to the global scope.
+When I finally get around to writing about Python and classes,
+I’ll link from here to further thoughts on class attributes.</p>
+</div>
+<div class="section" id="global-objects-that-are-mutable">
+<h2>Global Objects that are mutable<a class="headerlink" href="#global-objects-that-are-mutable" title="Permalink to this headline">¶</a></h2>
+<p>But what about Global Objects that are mutable?</p>
+<p>They are easiest to justify when they wrap system resources
+that are by their nature also global to an operating system process.
+One example in the Standard Library itself is the <code class="docutils literal notranslate"><span class="pre">environ</span></code>
+<a class="reference external" href="https://docs.python.org/3/library/os.html#os.environ">object</a>
+that gives your Python program the “environment” —
+the text keys and values supplying your timezone, terminal type, so forth —
+that was passed to your Python program from its parent process.</p>
+<p>Now,
+it is arguable whether your program
+should really be writing new values into its environment as it runs.
+If you’re launching a subprocess
+that needs an environment variable adjusted,
+the <code class="docutils literal notranslate"><span class="pre">subprocess</span></code> routines offer an <code class="docutils literal notranslate"><span class="pre">env</span></code> parameter.
+But if code does need to manipulate this global resource,
+then it makes sense for that access to be mediated
+by a correspondingly global Python object:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># os.py</span>
+<span class="n">environ</span> <span class="o">=</span> <span class="n">_createenviron</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Through this global object,
+the various routines, and perhaps threads, in a Python program
+coordinate their access to this process-wide resource.
+Any&nbsp;change:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TERM&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;xterm&#39;</span>
+</pre></div>
+</div>
+<p>— will be immediately visible to any other part of the program
+that reads that environment key:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TERM&#39;</span><span class="p">]</span>
+<span class="go">&#39;xterm&#39;</span>
+</pre></div>
+</div>
+<p>The problems with coupling distant parts of your codebase,
+and even unrelated parts of different libraries,
+through a unique global object are well known.</p>
+<ul class="simple">
+<li>Tests that were previously independent
+are suddenly coupled through the global object
+and can no longer safely be run in parallel.
+If one test makes a temporary assignment to <code class="docutils literal notranslate"><span class="pre">environ['PATH']</span></code>
+just before another test launches a binary with <code class="docutils literal notranslate"><span class="pre">subprocess</span></code>,
+the binary will inherit the test value of <code class="docutils literal notranslate"><span class="pre">$PATH</span></code> —
+possibly causing an error.</li>
+<li>You can sometimes serialize access to a global object through a lock.
+But unless you do a thorough audit
+of all of the libraries your code uses,
+and continue to audit them when upgrading to new versions,
+it can be difficult to even know which tests call code
+that ultimately touches particular global object like <code class="docutils literal notranslate"><span class="pre">environ</span></code>.</li>
+<li>Even tests run serially, not in parallel, will now wind up coupled
+if one test fails to restore <code class="docutils literal notranslate"><span class="pre">environ</span></code> to its original state
+before the next test runs.
+This can, it’s true, be mitigated with teardown routines
+or with mocks that automatically restore state.
+But unless every single test is perfectly cautious,
+your test suite can still suffer from exceptions
+that depend on random test ordering
+or on whether a previous test succeeded or exited early.</li>
+<li>These dangers beset not only tests but production runs as well.
+Even if your application doesn’t launch multiple threads,
+there can be surprising cases
+where a refactoring winds up calling code
+that performs one operation on <code class="docutils literal notranslate"><span class="pre">environ</span></code>
+right in the middle of another routine
+that was also in the middle of transforming its state.</li>
+</ul>
+<p>The Standard Library has more examples of the Mutable Global pattern —
+both public globals and private ones litter its modules.
+Some correspond to unique resources at the system level:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Lib/multiprocessing/process.py</span>
+<span class="n">_current_process</span> <span class="o">=</span> <span class="n">_MainProcess</span><span class="p">()</span>
+<span class="n">_process_counter</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Others correspond to no outside resource
+but instead serve as single points of coordination
+for a process-wide activity like logging:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Lib/logging/__init__.py</span>
+<span class="n">root</span> <span class="o">=</span> <span class="n">RootLogger</span><span class="p">(</span><span class="n">WARNING</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Third-party libraries can supply dozens of more examples,
+from global HTTP thread pools and database connections
+to registries of request handlers, library plugins, and third-party codecs.
+But in every case,
+the Mutable Global courts all of the dangers listed above
+in return for the convenience
+of putting a resource where every module can reach it.</p>
+<p>My advice, to the extent that you can,
+is to write code that accepts arguments
+and returns values computed from them.
+Failing that, try passing database connections or open sockets
+to code that will need to interact with the outside world.
+It is a compromise
+for code that finds itself stranded from the resources it needs
+to resort to accessing a global.</p>
+<p>The glory of Python, of course,
+is that it usually makes even anti-patterns and compromises
+read fairly elegantly in code.
+An assignment statement at the global level of a module
+is as easy to write and read as any other assignment statement,
+and callers can access the Mutable Global
+through exactly the same import statement
+they use for functions and classes.</p>
+</div>
+<div class="section" id="import-time-i-o">
+<h2>Import-time I/O<a class="headerlink" href="#import-time-i-o" title="Permalink to this headline">¶</a></h2>
+<p>Many of the worst Global Objects are those
+that perform file or network I/O at import time.
+They not only impose the cost of that I/O
+on every library, script, and test that need the module,
+but expose them to failure if a file or network is not available.</p>
+<p>Library authors have an unfortunate tendency to make assumptions like
+“the file <code class="docutils literal notranslate"><span class="pre">/etc/hosts</span></code> will always exist”
+when, in fact, they can’t know ahead of time
+all the exotic environments their code will one day face —
+maybe a tiny embedded system that in fact lacks that file;
+maybe a continuous integration environment
+spinning up containers that lack any network configuration at all.</p>
+<p>Even when faced with this possibility,
+a module author might still try to defend their import-time I/O:
+“But delaying the I/O until after import time
+simply postpones the inevitable —
+if the system doesn’t have <code class="docutils literal notranslate"><span class="pre">/etc/hosts</span></code>
+then the user will get exactly the same exception later anyway.”
+The attempt to make this excuse reveals three misunderstandings:</p>
+<ol class="arabic simple">
+<li>Errors at import time are far more serious than errors at runtime.
+Remember that at the moment your package is imported,
+the program’s main routine has probably not started running —
+the caller is usually still up in the middle
+of the stack of <code class="docutils literal notranslate"><span class="pre">import</span></code> statements at the top of their file.
+They have probably not yet set up logging
+and have not yet entered their application’s main <code class="docutils literal notranslate"><span class="pre">try…except</span></code>
+block that catches and reports failures,
+so any errors during import
+will probably print directly to the standard output
+instead of getting properly reported.</li>
+<li>Applications are often written
+to survive the failure of some operations
+so that in an emergency they can still perform other functions.
+Even if features that need your library will now hit an exception,
+the application might have many others it can continue to offer —
+or could,
+if you didn’t kill it with an exception at import time.</li>
+<li>Finally, library authors need to keep in mind
+that a Python program that imports their library
+might not even use it!
+Never assume that simply because your code has been imported,
+it will be used.
+There are many situations where a module gets imported incidentally,
+as the dependency of yet further modules,
+but never happens to get called.
+By performing I/O at import time,
+you could impose expense and risk on hundreds of programs and tests
+that don’t even need or care about your network port,
+connection pool, or open file.</li>
+</ol>
+<p>For all of these reasons,
+it’s best for your global objects
+to wait until they’re first called
+before opening files and creating sockets —
+because it’s at the moment of that first call
+that the library knows the main program is now up and running,
+and knows that its services are in fact definitely needed
+in this particular run of the program.</p>
+<p>I’ll admit that,
+when my package needs to load a small data file
+that’s embedded in the package itself,
+I do sometimes break this rule.</p>
+</div>
+</div>
+
+    </article>
+    <hr>
+    <p class="copyright">
+      © 2018–2020 <a href="http://rhodesmill.org/brandon/">Brandon Rhodes</a>
+    </p>
+  </body>
+</html>

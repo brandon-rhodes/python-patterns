@@ -1,0 +1,688 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Decorator Pattern</title>
+    <link rel="stylesheet" type="text/css"
+          href="../../_static/style.css">
+  </head>
+  <body>
+    
+    <p class="motto">
+      •
+      <a href="/">Home Page</a>
+      •
+    </p>
+    
+    <article>
+      <div class="section" id="the-decorator-pattern">
+<h1>The Decorator Pattern<a class="headerlink" href="#the-decorator-pattern" title="Permalink to this headline">¶</a></h1>
+<p><em>A “Structural Pattern” from the</em> <a class="reference internal" href="../"><span class="doc">Gang of Four book</span></a></p>
+<div class="admonition-warning admonition">
+<p class="first admonition-title">Warning</p>
+<p>The “Decorator Pattern” ≠ Python “decorators”!</p>
+<p class="last">If you are interested in Python decorators like <code class="docutils literal notranslate"><span class="pre">&#64;classmethod</span></code>
+and <code class="docutils literal notranslate"><span class="pre">&#64;contextmanager</span></code> and <code class="docutils literal notranslate"><span class="pre">&#64;wraps()</span></code>,
+then stay tuned for a later phase of this project
+in which I start tackling Python language features.</p>
+</div>
+<div class="admonition-verdict admonition">
+<p class="first admonition-title">Verdict</p>
+<p class="last">The Decorator Pattern can be useful in Python code!
+Happily, the pattern can be easier to implement
+in a dynamic language like Python
+than in the static languages where it was first practiced.
+Use it on the rare occasion
+when you need to adjust the behavior of an object
+that you can’t subclass but can only wrap at runtime.</p>
+</div>
+<div class="contents topic" id="contents">
+<p class="topic-title">Contents:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#the-decorator-pattern" id="id1">The Decorator Pattern</a><ul>
+<li><a class="reference internal" href="#definition" id="id2">Definition</a></li>
+<li><a class="reference internal" href="#implementing-static-wrapper" id="id3">Implementing: Static wrapper</a></li>
+<li><a class="reference internal" href="#implementing-tactical-wrapper" id="id4">Implementing: Tactical wrapper</a></li>
+<li><a class="reference internal" href="#implementing-dynamic-wrapper" id="id5">Implementing: Dynamic wrapper</a></li>
+<li><a class="reference internal" href="#caveat-wrapping-doesnt-actually-work" id="id6">Caveat: Wrapping doesn’t actually work</a></li>
+<li><a class="reference internal" href="#hack-monkey-patch-each-object" id="id7">Hack: Monkey-patch each object</a></li>
+<li><a class="reference internal" href="#hack-monkey-patch-the-class" id="id8">Hack: Monkey-patch the class</a></li>
+<li><a class="reference internal" href="#further-reading" id="id9">Further Reading</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<p>The Python core developers made the terminology
+surrounding this design pattern more confusing than necessary
+by using the <em>decorator</em> for an entirely
+<a class="reference external" href="https://www.python.org/dev/peps/pep-0318/">unrelated language feature</a>.
+The timeline:</p>
+<ul class="simple">
+<li>The design pattern was developed and named in the early 1990s
+by participants in the “Architecture Handbook” series of workshops
+that were kicked off at OOPSLA&nbsp;’90,
+a conference for researchers of object-oriented programming languages.</li>
+<li>The design pattern became famous as the “Decorator Pattern”
+with the 1994 publication
+of the Gang of Four’s <em>Design Patterns</em> book.</li>
+<li>In 2003, the Python core developers
+decided to re-use the term <em>decorator</em>
+for a completely unrelated feature they were adding to Python&nbsp;2.4.</li>
+</ul>
+<p>Why were the Python core developers
+not more concerned about the name collision?
+It may simply be that Python’s dynamic features
+kept its programming community so separate
+from the world of design-pattern literature for heavyweight languages
+that the core developers never imagined that confusion could arise.</p>
+<p>To try to keep the two concepts straight,
+I will use the term <em>decorator class</em>
+instead of just <em>decorator</em>
+when referring to a class that implements the Decorator Pattern.</p>
+<div class="section" id="definition">
+<h2>Definition<a class="headerlink" href="#definition" title="Permalink to this headline">¶</a></h2>
+<p>A <em>decorator</em> class:</p>
+<ul class="simple">
+<li>Is an <em>adapter</em> (see the <em>Adapter Pattern</em>)</li>
+<li>That implements the same interface as the object it wraps</li>
+<li>That delegates method calls to the object it wraps</li>
+</ul>
+<p>The decorator class’s purpose
+is to add to, remove from, or adjust the behaviors
+that the wrapped object would normally implement
+when its methods are called.
+With a decorator class, you might:</p>
+<ul class="simple">
+<li>Log method calls that would normally work silently</li>
+<li>Perform extra setup or cleanup around a method</li>
+<li>Pre-process method arguments</li>
+<li>Post-process return values</li>
+<li>Forbid actions that the wrapped object would normally allow</li>
+</ul>
+<p>These purposes might remind you of situations
+in which you would also think of subclassing an existing class.
+But the Decorator Pattern has a crucial advantage over a subclass:
+you can only solve a problem with a subclass
+when your own code is in charge
+of creating the objects in the first place.
+For example, it isn’t helpful
+to subclass the Python file object
+if a library you’re using is returning normal file objects
+and you have no way to intercept their construction —
+your new <code class="docutils literal notranslate"><span class="pre">MyEvenBetterFile</span></code> subclass would sit unused.
+A&nbsp;decorator class does not have that limitation.
+It can be wrapped around a plain old file object any time you want,
+without the need for you be in control
+when the wrapped object was created.</p>
+</div>
+<div class="section" id="implementing-static-wrapper">
+<h2>Implementing: Static wrapper<a class="headerlink" href="#implementing-static-wrapper" title="Permalink to this headline">¶</a></h2>
+<p>First, let’s learn the drudgery
+of creating the kind of decorator class you would write in C++ or Java.
+We will not take advantage of the fact
+that Python is a dynamic language,
+but will instead write static (non-dynamic) code
+where every method and attribute appears literally,
+on the page.</p>
+<p>To be complete —
+to provide a real guarantee
+that every method called and attribute manipulated
+on the decorator object
+will be backed by the real behavior of the adapted object —
+the decorator class will need to implement:</p>
+<ul class="simple">
+<li>Every method of the adapted class</li>
+<li>A getter for every attribute</li>
+<li>A setter for every attribute</li>
+<li>A deleter for every attribute</li>
+</ul>
+<p>This approach is conceptually simple
+but, wow, it involves a lot of code!</p>
+<p>Imagine that one library is giving you open Python file objects,
+and you need to pass them to another routine or library —
+but to debug some product issues with latency,
+you want to log each time that data is written to the file.</p>
+<p>Python file objects often seem quite simple.
+We usually <code class="docutils literal notranslate"><span class="pre">read()</span></code> from them,
+<code class="docutils literal notranslate"><span class="pre">write()</span></code> to them,
+and not much else.
+But in fact the file object supports more than a dozen methods
+and offers five different attributes!
+A&nbsp;wrapper class that really wants to implement that full behavior
+runs to nearly 100 lines of code —
+as shown here, in our first working example of the Decorator Pattern:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Traditional Decorator pattern: noticeably verbose</span>
+
+<span class="k">class</span> <span class="nc">WriteLoggingFile1</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">logger</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file</span> <span class="o">=</span> <span class="n">file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span> <span class="o">=</span> <span class="n">logger</span>
+
+    <span class="c1"># We need to implement every file method,</span>
+    <span class="c1"># and in the truly general case would need</span>
+    <span class="c1"># a getter, setter, and deleter for every</span>
+    <span class="c1"># single attribute!  Here goes:</span>
+
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="fm">__enter__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">excinfo</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="fm">__exit__</span><span class="p">(</span><span class="o">*</span><span class="n">excinfo</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="fm">__next__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">closed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">closed</span>
+
+    <span class="nd">@closed</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">closed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">closed</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@closed</span><span class="o">.</span><span class="n">deleter</span>
+    <span class="k">def</span> <span class="nf">closed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">closed</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">encoding</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">encoding</span>
+
+    <span class="nd">@encoding</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">encoding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">encoding</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@encoding</span><span class="o">.</span><span class="n">deleter</span>
+    <span class="k">def</span> <span class="nf">encoding</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">encoding</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">errors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">errors</span>
+
+    <span class="nd">@errors</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">errors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">errors</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@errors</span><span class="o">.</span><span class="n">deleter</span>
+    <span class="k">def</span> <span class="nf">errors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">errors</span>
+
+    <span class="k">def</span> <span class="nf">fileno</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">fileno</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">flush</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">isatty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">isatty</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">mode</span>
+
+    <span class="nd">@mode</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@mode</span><span class="o">.</span><span class="n">deleter</span>
+    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">mode</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="nd">@name</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@name</span><span class="o">.</span><span class="n">deleter</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">newlines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">newlines</span>
+
+    <span class="nd">@newlines</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">newlines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">newlines</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@newlines</span><span class="o">.</span><span class="n">deleter</span>
+    <span class="k">def</span> <span class="nf">newlines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">newlines</span>
+
+    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">readinto</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">buffer</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">readinto</span><span class="p">(</span><span class="n">buffer</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">readline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">readline</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">readlines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">readlines</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">seek</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">tell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">truncate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">truncate</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="c1"># Finally, we reach the two methods</span>
+    <span class="c1"># that we actually want to specialize!</span>
+    <span class="c1"># These log each time data is written:</span>
+
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;wrote </span><span class="si">%s</span><span class="s1"> bytes to </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">writelines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strings</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">closed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;this file is closed&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">strings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>So for the sake of the half-dozen lines of code at the bottom
+that supplement the behavior of <code class="docutils literal notranslate"><span class="pre">write()</span></code> and <code class="docutils literal notranslate"><span class="pre">writelines()</span></code>,
+another hundred or so lines of code wound up being necessary.</p>
+<p>You will notice that each Python object attribute
+goads us into being even more verbose than Java!
+A&nbsp;typical Java attribute is implemented as exactly two methods,
+like <code class="docutils literal notranslate"><span class="pre">getEncoding()</span></code> and <code class="docutils literal notranslate"><span class="pre">setEncoding()</span></code>.
+A&nbsp;Python attribute, on the other hand,
+will in the general case need to be backed by <em>three</em> actions —
+get, set, and delete —
+because Python’s object model is dynamic
+and supports the idea that an attribute might disappear from an instance.</p>
+<p>Of course,
+if the class you are decorating
+does not have as many methods and attributes
+as the Python file object we took as our example,
+then your wrapper will be shorter.
+But in the general case,
+writing out a full wrapper class will be tedious
+unless you have a tool like an IDE that can automate the process.
+Also, the wrapper will need to be updated in the future
+if the underlying object gains (or loses)
+any methods, arguments, or attributes.</p>
+</div>
+<div class="section" id="implementing-tactical-wrapper">
+<h2>Implementing: Tactical wrapper<a class="headerlink" href="#implementing-tactical-wrapper" title="Permalink to this headline">¶</a></h2>
+<p>The wrapper in the previous section
+might have struck you as ridiculous.
+It tackled the Python file object as a general example
+of a class that needed to be wrapped,
+instead of studying the how file objects work to look for shortcuts:</p>
+<ul class="simple">
+<li>File objects are implemented in the C&nbsp;language and don’t,
+in fact, permit deletion of any of their attributes.
+So our wrapper could have omitted all 6 deleter methods
+without any consequence, since the default behavior of a property
+in the absence of a deleter is to disallow deletion anyway.
+This would have saved 18 lines of code.</li>
+<li>All file attributes except <code class="docutils literal notranslate"><span class="pre">mode</span></code> are read-only
+and raise an <code class="docutils literal notranslate"><span class="pre">AttributeError</span></code> if assigned to —
+which is the behavior if a property lacks a setter method.
+So 5 of our 6 setters can be omitted, saving 15 more lines of code
+and bringing our wrapper to ⅓ its original length
+without sacrificing correctness.</li>
+</ul>
+<p>It might also have occurred to you
+that the code to which you are passing the wrapper
+is unlikely to call every single file method that exists.
+What if it only calls two methods?
+Or only one?
+In many cases a programmer has found
+that a trivial wrapper like the following
+will perfectly satisfy real-world code
+that just wants to write to a file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Tactical version of Decorator Pattern:</span>
+<span class="c1"># what if you read the code, and the only thing</span>
+<span class="c1"># the library really needs is the write() method?</span>
+
+<span class="k">class</span> <span class="nc">WriteLoggingFile2</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">logger</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file</span> <span class="o">=</span> <span class="n">file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span> <span class="o">=</span> <span class="n">logger</span>
+
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;wrote </span><span class="si">%s</span><span class="s1"> bytes to </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Yes, this can admittedly be a bit dangerous.
+A&nbsp;routine that seems so happy with a minimal wrapper like this
+can suddenly fail later
+if rare circumstances
+make it dig into methods or attributes
+that you never implemented
+because you never saw it use them.
+Even if you audit the library’s code
+and are sure it can never call any method besides <code class="docutils literal notranslate"><span class="pre">write()</span></code>,
+that could change
+the next time you upgrade the library to a new version.</p>
+<p>In a more formal programming language,
+a duck typing requirement like “this function requires a file object”
+would likely be replaced with an exact specification like
+“this argument needs to support a <code class="docutils literal notranslate"><span class="pre">writelines()</span></code> method”
+or “pass an object
+that offers every methods in the interface <code class="docutils literal notranslate"><span class="pre">IWritableFile</span></code>.”
+But most Python code lacks this precision
+and will force you, as the author of a wrapper class,
+to decide where to draw the line
+between the magnificent pedantry of wrapping every possible method
+and the danger of not wrapping enough.</p>
+</div>
+<div class="section" id="implementing-dynamic-wrapper">
+<h2>Implementing: Dynamic wrapper<a class="headerlink" href="#implementing-dynamic-wrapper" title="Permalink to this headline">¶</a></h2>
+<p>A very common approach to the Decorator Pattern in Python
+is the dynamic wrapper.
+Instead of trying to implement a method and property
+for every method and attribute on the wrapped object,
+a dynamic wrapper intercepts live attribute accesses
+as the program executes
+and responds by trying to access the same attribute
+on the wrapped object.</p>
+<p>A dynamic wrapper implements
+the dunder methods <code class="docutils literal notranslate"><span class="pre">__getattr__()</span></code>, <code class="docutils literal notranslate"><span class="pre">__setattr__()</span></code>, and
+— if it really wants to be feature-complete —
+<code class="docutils literal notranslate"><span class="pre">__delattr__()</span></code> and responds to each of them
+by performing the equivalent operation on the wrapped object.
+Because <code class="docutils literal notranslate"><span class="pre">__getattr__()</span></code> is only invoked
+for attributes that are in fact missing on the wrapper,
+the wrapper is free to offer real implementations
+of any methods or properties it wants to intercept.</p>
+<p>There are a few edge cases that prevent every attribute access
+from being handled with <code class="docutils literal notranslate"><span class="pre">__getattr__()</span></code>.
+For example, if the wrapped object is iterable,
+then the basic operation <code class="docutils literal notranslate"><span class="pre">iter()</span></code> will fail on the wrapper
+if the wrapper is not given a real <code class="docutils literal notranslate"><span class="pre">__iter__()</span></code> method of its own.
+Similarly, even if the wrapped object is an iterator,
+<code class="docutils literal notranslate"><span class="pre">next()</span></code> will fail unless the wrapper offers a real <code class="docutils literal notranslate"><span class="pre">__next__()</span></code>,
+because these two operations examine an object’s class
+for dunder methods
+instead of hitting the object directly with a <code class="docutils literal notranslate"><span class="pre">__getattr__()</span></code>.</p>
+<p>As a result of these special cases,
+a getattr-powered wrapper usually involves at least a half-dozen methods
+in addition to the methods you specifically want to specialize:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Dynamic version of Decorator Pattern: intercept live attributes</span>
+
+<span class="k">class</span> <span class="nc">WriteLoggingFile3</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">logger</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file</span> <span class="o">=</span> <span class="n">file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span> <span class="o">=</span> <span class="n">logger</span>
+
+    <span class="c1"># The two methods we actually want to specialize,</span>
+    <span class="c1"># to log each occasion on which data is written.</span>
+
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;wrote </span><span class="si">%s</span><span class="s1"> bytes to </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">writelines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strings</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">closed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;this file is closed&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">strings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+    <span class="c1"># Two methods we don&#39;t actually want to intercept,</span>
+    <span class="c1"># but iter() and next() will be upset without them.</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s1">&#39;_file&#39;</span><span class="p">]</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s1">&#39;_file&#39;</span><span class="p">]</span><span class="o">.</span><span class="fm">__next__</span><span class="p">()</span>
+
+    <span class="c1"># Offer every other method and property dynamically.</span>
+
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s1">&#39;_file&#39;</span><span class="p">],</span> <span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;_file&#39;</span><span class="p">,</span> <span class="s1">&#39;_logger&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s1">&#39;_file&#39;</span><span class="p">],</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__delattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="nb">delattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s1">&#39;_file&#39;</span><span class="p">],</span> <span class="n">name</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As you can see,
+the code can be quite economical
+compared to the vast slate of methods
+we saw earlier in <code class="docutils literal notranslate"><span class="pre">WriteLoggingFile1</span></code>
+for manually implementing every possible attribute.</p>
+<p>This extra level of indirection
+does carry a small performance penalty for every attribute access,
+but is usually preferred to the burden of writing a static wrapper.</p>
+<p>Dynamic wrappers also offer pleasant insulation
+against changes that might happen in the future
+to the object being wrapped.
+If a future version of Python adds or removes
+an attribute or method from the file object,
+the code of <code class="docutils literal notranslate"><span class="pre">WriteLoggingFile3</span></code> will require no change at all.</p>
+</div>
+<div class="section" id="caveat-wrapping-doesnt-actually-work">
+<h2>Caveat: Wrapping doesn’t actually work<a class="headerlink" href="#caveat-wrapping-doesnt-actually-work" title="Permalink to this headline">¶</a></h2>
+<p>If Python didn’t support introspection —
+if the only operation you could perform on an object
+was attribute lookup,
+whether statically through an identifier like <code class="docutils literal notranslate"><span class="pre">f.write</span></code>
+or dynamically via <code class="docutils literal notranslate"><span class="pre">getattr(f,</span> <span class="pre">attrname)</span></code> string lookup —
+then a decorator could be foolproof.
+As long as every attribute lookup that succeeds on the wrapped object
+will return the same sort of value when performed on the wrapper,
+then other Python code would never know the difference.</p>
+<p>But Python is not merely a dynamic programming language;
+it also supports introspection.
+And introspection is the downfall of the Decorator Pattern.
+If the code to which you pass the wrapper decides to look deeper,
+all kinds of differences become apparent.
+The native file object, for example,
+is buttressed with many private methods and attributes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">getLogger</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/etc/passwd&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">dir</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="go">[&#39;_CHUNK_SIZE&#39;, &#39;__class__&#39;, &#39;__del__&#39;, &#39;__delattr__&#39;, &#39;__dict__&#39;, &#39;__dir__&#39;, &#39;__doc__&#39;, &#39;__enter__&#39;, &#39;__eq__&#39;, &#39;__exit__&#39;, &#39;__format__&#39;, &#39;__ge__&#39;, &#39;__getattribute__&#39;, &#39;__getstate__&#39;, &#39;__gt__&#39;, &#39;__hash__&#39;, &#39;__init__&#39;, &#39;__init_subclass__&#39;, &#39;__iter__&#39;, &#39;__le__&#39;, &#39;__lt__&#39;, &#39;__ne__&#39;, &#39;__new__&#39;, &#39;__next__&#39;, &#39;__reduce__&#39;, &#39;__reduce_ex__&#39;, &#39;__repr__&#39;, &#39;__setattr__&#39;, &#39;__sizeof__&#39;, &#39;__str__&#39;, &#39;__subclasshook__&#39;, &#39;_checkClosed&#39;, &#39;_checkReadable&#39;, &#39;_checkSeekable&#39;, &#39;_checkWritable&#39;, &#39;_finalizing&#39;, &#39;buffer&#39;, &#39;close&#39;, &#39;closed&#39;, &#39;detach&#39;, &#39;encoding&#39;, &#39;errors&#39;, &#39;fileno&#39;, &#39;flush&#39;, &#39;isatty&#39;, &#39;line_buffering&#39;, &#39;mode&#39;, &#39;name&#39;, &#39;newlines&#39;, &#39;read&#39;, &#39;readable&#39;, &#39;readline&#39;, &#39;readlines&#39;, &#39;seek&#39;, &#39;seekable&#39;, &#39;tell&#39;, &#39;truncate&#39;, &#39;writable&#39;, &#39;write&#39;, &#39;writelines&#39;]</span>
+</pre></div>
+</div>
+<p>Your wrapper, on the other hand —
+if you have crafted it around the file’s public interface —
+will lack all of those private accouterments.
+Behind your carefully implemented public methods and attributes
+are the bare dunder methods of a generic Python <code class="docutils literal notranslate"><span class="pre">object</span></code>,
+plus the few you had to implement to maintain compatibility:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">w</span> <span class="o">=</span> <span class="n">WriteLoggingFile1</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">getLogger</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">dir</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+<span class="go">[&#39;__class__&#39;, &#39;__delattr__&#39;, &#39;__dict__&#39;, &#39;__dir__&#39;, &#39;__doc__&#39;, &#39;__enter__&#39;, &#39;__eq__&#39;, &#39;__exit__&#39;, &#39;__format__&#39;, &#39;__ge__&#39;, &#39;__getattribute__&#39;, &#39;__gt__&#39;, &#39;__hash__&#39;, &#39;__init__&#39;, &#39;__init_subclass__&#39;, &#39;__iter__&#39;, &#39;__le__&#39;, &#39;__lt__&#39;, &#39;__module__&#39;, &#39;__ne__&#39;, &#39;__new__&#39;, &#39;__next__&#39;, &#39;__reduce__&#39;, &#39;__reduce_ex__&#39;, &#39;__repr__&#39;, &#39;__setattr__&#39;, &#39;__sizeof__&#39;, &#39;__str__&#39;, &#39;__subclasshook__&#39;, &#39;__weakref__&#39;, &#39;_file&#39;, &#39;_logger&#39;, &#39;close&#39;, &#39;closed&#39;, &#39;encoding&#39;, &#39;errors&#39;, &#39;fileno&#39;, &#39;flush&#39;, &#39;isatty&#39;, &#39;mode&#39;, &#39;name&#39;, &#39;newlines&#39;, &#39;read&#39;, &#39;readinto&#39;, &#39;readline&#39;, &#39;readlines&#39;, &#39;seek&#39;, &#39;tell&#39;, &#39;truncate&#39;, &#39;write&#39;, &#39;writelines&#39;]</span>
+</pre></div>
+</div>
+<p>The tactical wrapper, of course,
+looks spectacularly different than a real file object,
+because it does not even attempt to provide
+the full range of methods available on the wrapped object:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">w</span> <span class="o">=</span> <span class="n">WriteLoggingFile2</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">getLogger</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">dir</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+<span class="go">[&#39;__class__&#39;, &#39;__delattr__&#39;, &#39;__dict__&#39;, &#39;__dir__&#39;, &#39;__doc__&#39;, &#39;__eq__&#39;, &#39;__format__&#39;, &#39;__ge__&#39;, &#39;__getattribute__&#39;, &#39;__gt__&#39;, &#39;__hash__&#39;, &#39;__init__&#39;, &#39;__init_subclass__&#39;, &#39;__le__&#39;, &#39;__lt__&#39;, &#39;__module__&#39;, &#39;__ne__&#39;, &#39;__new__&#39;, &#39;__reduce__&#39;, &#39;__reduce_ex__&#39;, &#39;__repr__&#39;, &#39;__setattr__&#39;, &#39;__sizeof__&#39;, &#39;__str__&#39;, &#39;__subclasshook__&#39;, &#39;__weakref__&#39;, &#39;_file&#39;, &#39;_logger&#39;, &#39;write&#39;]</span>
+</pre></div>
+</div>
+<p>More interesting is the getattr wrapper.
+Even though, in practice,
+it offers access to every attribute and method of the wrapped class,
+they are completely missing from its <code class="docutils literal notranslate"><span class="pre">dir()</span></code>
+because each attribute only springs into existence
+when accessed by name.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">w</span> <span class="o">=</span> <span class="n">WriteLoggingFile3</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">getLogger</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">dir</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+<span class="go">[&#39;__class__&#39;, &#39;__delattr__&#39;, &#39;__dict__&#39;, &#39;__dir__&#39;, &#39;__doc__&#39;, &#39;__eq__&#39;, &#39;__format__&#39;, &#39;__ge__&#39;, &#39;__getattr__&#39;, &#39;__getattribute__&#39;, &#39;__gt__&#39;, &#39;__hash__&#39;, &#39;__init__&#39;, &#39;__init_subclass__&#39;, &#39;__iter__&#39;, &#39;__le__&#39;, &#39;__lt__&#39;, &#39;__module__&#39;, &#39;__ne__&#39;, &#39;__new__&#39;, &#39;__next__&#39;, &#39;__reduce__&#39;, &#39;__reduce_ex__&#39;, &#39;__repr__&#39;, &#39;__setattr__&#39;, &#39;__sizeof__&#39;, &#39;__str__&#39;, &#39;__subclasshook__&#39;, &#39;__weakref__&#39;, &#39;_file&#39;, &#39;_logger&#39;, &#39;write&#39;, &#39;writelines&#39;]</span>
+</pre></div>
+</div>
+<p>Could even these differences be ironed out?
+If you scroll through the many dunder methods in the <a class="reference external" href="https://docs.python.org/3/reference/datamodel.html">Python Data Model</a>,
+your might be struck by a sudden wild hope
+when you see the <a class="reference external" href="https://docs.python.org/3/reference/datamodel.html#object.__dir__">__dir__ method</a> —
+surely this is the final secret to camouflaging your wrapper?</p>
+<p>Alas, it will not be enough.
+Even if you implement <code class="docutils literal notranslate"><span class="pre">__dir__()</span></code>
+and forward it through to the wrapped object,
+Python special-cases the <code class="docutils literal notranslate"><span class="pre">__dict__</span></code> attribute —
+accessing it always provides direct access
+to the dictionary that holds a Python class instance’s attributes.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="vm">__dict__</span>
+<span class="go">{&#39;mode&#39;: &#39;r&#39;}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">w</span><span class="o">.</span><span class="vm">__dict__</span>
+<span class="go">{&#39;_file&#39;: &lt;_io.TextIOWrapper name=&#39;/etc/passwd&#39; mode=&#39;r&#39; encoding=&#39;UTF-8&#39;&gt;, &#39;_logger&#39;: &lt;RootLogger root (WARNING)&gt;}</span>
+</pre></div>
+</div>
+<p>You might begin to think of even more obscure ways
+to subvert Python’s introspection —
+at this point you might already be thinking of <code class="docutils literal notranslate"><span class="pre">__slots__</span></code>,
+for example —
+but all roads lead to the same place.
+However clever and obscure your maneuvers,
+at least a small chink will still be left in your wrapper’s armor
+which will allow careful enough introspection to see the difference.
+Thus we are lead to a conclusion:</p>
+<div class="admonition-maxim admonition">
+<p class="first admonition-title">Maxim</p>
+<p class="last">The Decorator Pattern in Python
+supports <em>programming</em> — but not <em>metaprogramming</em>.
+Code that is happy to simply access attributes
+will be happy to accept a Decorator Pattern wrapper instead.
+But code that indulges in introspection will see the difference.</p>
+</div>
+<p>Among other things,
+Python code that attempts to list an object’s attributes,
+examine its <code class="docutils literal notranslate"><span class="pre">__class__</span></code>, or directly access its <code class="docutils literal notranslate"><span class="pre">__dict__</span></code>
+will see differences between the object it expected
+and the decorator object you have in fact given it instead.
+Well-written application code would never do such things, of course —
+they are necessary only when implementing a developer tool
+like a framework, test harness, or debugger.
+But as you don’t always have the option
+of dealing solely with well-written libraries,
+be prepared to see and work around
+any symptoms of intrusive introspection
+as you deploy the Decorator Pattern.</p>
+</div>
+<div class="section" id="hack-monkey-patch-each-object">
+<h2>Hack: Monkey-patch each object<a class="headerlink" href="#hack-monkey-patch-each-object" title="Permalink to this headline">¶</a></h2>
+<p>There are two final approaches to decoration
+based on the questionable practice of monkey patching.
+The first approach takes each object that needs decoration
+and installs a new method directly on the object,
+shadowing the official method that remains on the class itself.</p>
+<p>If you have ever attempted this maneuver yourself,
+you might have run aground on the fact
+that a function installed on a Python object instance
+does <em>not</em> receive an automatic <code class="docutils literal notranslate"><span class="pre">self</span></code> argument —
+instead, it sees only the arguments with which it is literally invoked.
+So a first try at supplementing a file’s <code class="docutils literal notranslate"><span class="pre">write()</span></code> with logging:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">bind_write_method</span><span class="p">(</span><span class="n">logger</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="c1"># Does not work: will not receive `self` argument</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">write_and_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;wrote </span><span class="si">%s</span><span class="s1"> bytes to </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">write_and_log</span>
+</pre></div>
+</div>
+<p>— will die with an error
+because the new method sees only one argument, not two:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/dev/null&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">write</span>
+<span class="go">&lt;built-in method write ...&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">write</span> <span class="o">=</span> <span class="n">bind_write_method</span><span class="p">(</span><span class="n">getLogger</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Hello, world.&#39;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+  <span class="c">...</span>
+<span class="gr">TypeError</span>: <span class="n">write_and_log() missing 1 required positional argument: &#39;s&#39;</span>
+</pre></div>
+</div>
+<p>The quick way to resolve the dilemma
+is to do the binding yourself,
+by providing the object instance
+to the closure that wraps the new method itself:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">bind_write_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logger</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">write_and_log</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;wrote </span><span class="si">{}</span><span class="s1"> bytes to </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+<span class="gp">... </span>    <span class="n">write</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">write</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">write_and_log</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/dev/null&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">write</span> <span class="o">=</span> <span class="n">bind_write_method</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">getLogger</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Hello, world.&#39;</span><span class="p">)</span>
+<span class="go">wrote 13 bytes to /dev/null</span>
+</pre></div>
+</div>
+<p>While clunky,
+this approach does let you update the action of a single method
+on a single object instance
+while leaving the entire rest of its behavior alone.</p>
+</div>
+<div class="section" id="hack-monkey-patch-the-class">
+<h2>Hack: Monkey-patch the class<a class="headerlink" href="#hack-monkey-patch-the-class" title="Permalink to this headline">¶</a></h2>
+<p>Another approach you might see in the wild
+is to create a subclass that has the desired behaviors overridden,
+and then to surgically change the class of the object instance.
+This is not, alas, possible in the general case,
+and in fact fails for our example here because the file class,
+like all built-in classes,
+does not permit assignment to its <code class="docutils literal notranslate"><span class="pre">__class__</span></code> attribute:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/etc/passwd&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">f</span><span class="p">)):</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">write_and_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;wrote </span><span class="si">%s</span><span class="s1"> bytes to </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="n">Foo</span>
+<span class="gt">Traceback (most recent call last):</span>
+  <span class="c">...</span>
+<span class="gr">TypeError</span>: <span class="n">__class__ assignment only supported for heap types or ModuleType subclasses</span>
+</pre></div>
+</div>
+<p>But in cases where the surgery does work,
+you will have an object whose behavior
+is that of your subclass rather than of its original class.</p>
+</div>
+<div class="section" id="further-reading">
+<h2>Further Reading<a class="headerlink" href="#further-reading" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>If dynamic wrappers and monkey patching spur your interest,
+check out Graham Dumpleton’s
+<a class="reference external" href="http://wrapt.readthedocs.io/en/latest/quick-start.html">wrapt library</a>,
+his accompanying series of
+<a class="reference external" href="http://blog.dscpl.com.au/p/decorators-and-monkey-patching.html">blog posts</a>,
+and his <a class="reference external" href="https://www.youtube.com/watch?v=GCZmGgtWi3M">monkey patching talk at Kiwi PyCon</a>
+that delve deep into the arcane technical details of the practice.</li>
+</ul>
+</div>
+</div>
+
+    </article>
+    <hr>
+    <p class="copyright">
+      © 2018–2020 <a href="http://rhodesmill.org/brandon/">Brandon Rhodes</a>
+    </p>
+  </body>
+</html>

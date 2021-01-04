@@ -228,5 +228,12 @@ dummy:
 
 .PHONY: sync
 sync: dirhtml
-	rsync -av --chmod=a+rX \
-		_build/dirhtml/ wf-rhodesmill:webapps/python_patterns/
+	mkdir -p docs
+	cp -ru \
+		_build/dirhtml/fowler-refactoring \
+		_build/dirhtml/gang-of-four \
+		_build/dirhtml/index.html \
+		_build/dirhtml/python \
+		_build/dirhtml/_images \
+		docs/
+	cp -ru _static docs/

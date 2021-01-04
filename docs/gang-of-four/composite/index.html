@@ -1,0 +1,476 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Composite Pattern</title>
+    <link rel="stylesheet" type="text/css"
+          href="../../_static/style.css">
+  </head>
+  <body>
+    
+    <p class="motto">
+      •
+      <a href="/">Home Page</a>
+      •
+    </p>
+    
+    <article>
+      <div class="section" id="the-composite-pattern">
+<h1>The Composite Pattern<a class="headerlink" href="#the-composite-pattern" title="Permalink to this headline">¶</a></h1>
+<p><em>A “Structural Pattern” from the</em> <a class="reference internal" href="../"><span class="doc">Gang of Four book</span></a></p>
+<div class="admonition-verdict admonition">
+<p class="first admonition-title">Verdict</p>
+<p class="last">The Composite Pattern can bring symmetry
+not only to object hierarchies in Python,
+but even to hierarchies exposed by low-level system calls
+and high-level network applications.
+In Python, the Composite Pattern can often be implemented
+with less fuss than in tightly constrained object oriented languages.
+You won’t be forced to inherit your container objects
+and the objects inside of them
+from a common parent class.
+Instead, you can build classes
+that share only a common interface&nbsp;rather than any implementation —
+or that are simply duck typed to offer common behavior.</p>
+</div>
+<p>The Composite Pattern suggests
+that whenever you design “container” objects
+that collect and organize what we’ll call “content” objects,
+you will simplify many operations
+if you give container objects and content objects a shared set of methods
+and thereby support as many operations as possible
+without the caller having to care
+whether they have been passed an individual content object
+or an entire container.</p>
+<p>This is such a general idea
+that we can begin by stepping back from Python
+and even from object-based programming,
+and looking at how the Composite Pattern works
+at the level of an operating system.</p>
+<div class="section" id="example-the-unix-file-system">
+<h2>Example: the UNIX file system<a class="headerlink" href="#example-the-unix-file-system" title="Permalink to this headline">¶</a></h2>
+<p>The admirably pithy two-letter UNIX command <code class="docutils literal notranslate"><span class="pre">ls</span></code>,
+according to its manual page, stands for “list directory”
+and when given the path to a directory
+will list the files and subdirectories inside.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ ls /usr
+3bnet/       bin/         lbin/        lost+found/  options/     spool/
+adm/         gnu/         lib/         mail/        preserve/    src/
+admin/       include/     local/       news/        pub/         tmp/
+</pre></div>
+</div>
+<p>But the name “list directory” is misleadingly narrow,
+because <code class="docutils literal notranslate"><span class="pre">ls</span></code> is also happy to be given a single file’s path
+as its argument!</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ ls /usr/bin/banner
+/usr/bin/banner
+</pre></div>
+</div>
+<p>Of course, users rarely invoke <code class="docutils literal notranslate"><span class="pre">ls</span></code> on a single file like this,
+without specifying any option;
+the only thing you learn is that the file exists
+(if it doesn’t, <code class="docutils literal notranslate"><span class="pre">ls</span></code> will complain “No such file or directory”).
+Its ability to accept single file names makes more sense
+when combined with its “long listing” option.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ ls -l /usr/bin/banner
+-r-xr-xr-x   1 bin      bin        12620 Mar  3  1988 /usr/bin/banner
+</pre></div>
+</div>
+<p>This symmetry —
+that <code class="docutils literal notranslate"><span class="pre">ls</span></code> operates without complaint
+on both individual files and also on the directories that contain them —
+seems so natural to most users
+that you might not notice the powerful design decision behind it.
+It would have been very easy for an operating system author
+to provide one command for listing a directory,
+and an entirely different command
+to show the attributes of one particular file.
+But the lack of symmetry would have carried a cost.
+While exploring the filesystem,
+you would then have had to constantly remember
+to switch from one command to the other
+depending on whether the object of your attention was a directory or file.</p>
+<p>Worse yet, two separate commands
+would have provided no way to support wildcard operations
+that might match both files and directories.
+But, happily, <code class="docutils literal notranslate"><span class="pre">ls</span></code> has no problem with a heterogeneous
+argument list that has both individual files and also a directory inside:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ ls -C /etc/l*
+/etc/labelit    /etc/ldsysdump  /etc/led        /etc/link
+
+/etc/log:
+filesave.log
+</pre></div>
+</div>
+<p>Here, <code class="docutils literal notranslate"><span class="pre">ls</span></code> has transparently detected
+that four of the names matched by the wildcard <code class="docutils literal notranslate"><span class="pre">/etc/l*</span></code> are files
+but that <code class="docutils literal notranslate"><span class="pre">/etc/log</span></code> is a directory with more files inside.
+(Well, with one file inside.)
+Had UNIX supplied separate commands
+for listing a file and listing a directory,
+this wildcard could not safely have been an argument to either command.</p>
+<p>This, at the level of a command line interface,
+is the Composite Pattern.
+Operations like <code class="docutils literal notranslate"><span class="pre">ls</span></code> and <code class="docutils literal notranslate"><span class="pre">du</span></code> and <code class="docutils literal notranslate"><span class="pre">chmod</span></code>
+that make sense on both files and directories
+are implemented so that they run transparently on both.
+This not only lowers cognitive overhead,
+but makes shell scripts easier to write —
+there are many operations that a script can simply run blindly
+without needing to stop and check first whether a path
+names a file or a directory.</p>
+<p>The art of using the Composite Pattern
+is determining where to break the symmetry.
+For example, the UNIX filesystem provides completely different commands
+<code class="docutils literal notranslate"><span class="pre">touch</span></code> for creating a new file
+and <code class="docutils literal notranslate"><span class="pre">mkdir</span></code> for creating a new directory.
+This could instead have been a single command
+with an option that flipped it from file-creating mode
+to directory-creating mode.
+But the designers thought that the two operations
+were conceptually different enough to deserve separate commands.
+The decision of how much symmetry to create
+will weigh upon each operation that a designer implements.</p>
+<p>Forcing symmetry where there is really a difference
+can create awkward special cases.
+For example,
+two of the three permission bits in UNIX
+apply equally to directories and files:
+<code class="docutils literal notranslate"><span class="pre">r</span></code> gives read permission and <code class="docutils literal notranslate"><span class="pre">w</span></code> gives write permission.
+But the symmetry breaks at <code class="docutils literal notranslate"><span class="pre">x</span></code>, the third bit,
+which gives permission to “execute” a file
+but to “search” a directory by using it in a path.
+Should there have been two different <code class="docutils literal notranslate"><span class="pre">chmod</span></code> commands,
+one for files and one for directories?
+Or should the single <code class="docutils literal notranslate"><span class="pre">chmod</span></code> binary
+at least have used a different letter for that third bit,
+maybe <code class="docutils literal notranslate"><span class="pre">x</span></code> when applied to a file but <code class="docutils literal notranslate"><span class="pre">s</span></code> for “search”
+when applied to a directory?
+I&nbsp;myself think the designers of UNIX made the right decision here,
+because I find it easier to remember
+that <code class="docutils literal notranslate"><span class="pre">x</span></code> means something a little different for a directory
+than to remember a separate letter for directories,
+or a separate command.
+But the decision could have gone either way,
+and making decisions like these
+are where the designer applying the Composite Pattern needs finesse.</p>
+<p>It should be noted that the symmetries
+that exist between files and directories on the command line
+are not exactly the same symmetries that exist
+down beneath <code class="docutils literal notranslate"><span class="pre">ls</span></code> and <code class="docutils literal notranslate"><span class="pre">chmod</span></code> at the level of system calls.
+At each level, the Composite Pattern was applied a bit differently.
+For system calls, some symmetry does exist:
+<code class="docutils literal notranslate"><span class="pre">stat()</span></code> and <code class="docutils literal notranslate"><span class="pre">chmod()</span></code> and <code class="docutils literal notranslate"><span class="pre">chown()</span></code>
+operate happily on both files and directories.</p>
+<p>But <code class="docutils literal notranslate"><span class="pre">ls</span></code> is hiding the fact that if <code class="docutils literal notranslate"><span class="pre">stat()</span></code>
+reveals that a path names a directory,
+then <code class="docutils literal notranslate"><span class="pre">ls</span></code> needs to switch to a directory-specific system call
+to list the files inside.
+There is no symmetry
+between the UNIX system call for reading a normal file’s content
+and the call for reading the list of files in a directory,
+and for a crucial reason:
+the two operations return different types of data.
+A&nbsp;file contains an unstructured stream of bytes;
+a directory, a series of distinct filenames.
+The question of return type
+will serve as a very important guardrail when you are designing in Python:
+if your desire to create symmetry between container and content
+leads you to engineer calls
+that require an <code class="docutils literal notranslate"><span class="pre">if</span></code> statement or <code class="docutils literal notranslate"><span class="pre">isinstance()</span></code>
+to safely handle their return value,
+then the desire for symmetry has led you astray.</p>
+</div>
+<div class="section" id="on-hierarchies">
+<h2>On hierarchies<a class="headerlink" href="#on-hierarchies" title="Permalink to this headline">¶</a></h2>
+<p>As we now turn our attention
+to how the Composite Pattern looks in a programming language like Python,
+we should ponder a question
+that hangs above so much
+of the object-oriented and design-pattern literature
+from the 1990s:</p>
+<p>Where have all the hierarchies gone?</p>
+<p>The construction and manipulation of extensive hierarchies
+was both a frequent exercise for new programmers
+and a tedious labor for more experienced programmers.
+Hours were spent deciding how hierarchies would be constructed,
+what operations they would support,
+and how their destructors could be safely invoked.
+Hierarchies were everywhere.</p>
+<p>And then they began to recede,
+like a tide that having run far up the sand
+begins to finally sweep out again.</p>
+<ul class="simple">
+<li>Popular languages in the late 1990s
+went wild for deeply nested package namespaces.
+To take a modern example from Go,
+the package <code class="docutils literal notranslate"><span class="pre">google.golang.org/appengine</span></code>, one must admit,
+comes with a hard guarantee
+that it won’t conflict with the name of a package from another firm.
+The Zope&nbsp;3 project, in its heyday,
+happily festooned the Python Package Index
+with multi-level package names
+like <code class="docutils literal notranslate"><span class="pre">zope.app.form</span></code> and <code class="docutils literal notranslate"><span class="pre">zope.app.i18n</span></code>.
+But today most Python packages
+opt for a simple non-compound name
+that jostles alongside the names of all other Python packages.
+And it almost never causes problems.</li>
+<li>The programming curricula of yore were rife with binary search trees,
+B+&nbsp;trees, and tree balancing algorithms.
+But in real code, trees are very scarce.
+For every programmer who works on trees to, say,
+to write a persistent storage engine like BoltDB or Redis,
+a thousand programmers get to skip the exercise.
+Python programmers don’t tend to use binary search trees;
+we use the even faster hash table (the Python “dictionary”)
+whose structure, as it happens, is entirely flat — not a hierarchy.</li>
+<li>There was an era when hierarchy
+was inherent in the structure of databases.
+An employee record might hold a salary history right inside of it.
+But while hierarchy continues to exist around the edges of data storage,
+most recently in the form of NoSQL and document databases,
+our workhorse data stores tend to be flat ones:
+the relational database, the CSV file, the Pandas dataframe.</li>
+</ul>
+<p>Again and again our discipline seems to revert back, where we can,
+to tables and lists and arrays
+where hierarchies might have reigned instead.
+The principle has even been enshrined in the famous <em>Zen of Python:</em></p>
+<blockquote>
+<div>“Flat is better than nested.”</div></blockquote>
+<p>The big exception,
+the realm in which hierarchy does reign supreme today,
+is the document.
+Documents are almost universally processed and represented
+as a hierarchy of sections and paragraphs
+beneath which are spans of bold and italics and hyperlinks.
+But the whole point of their being documents
+is that we aren’t always forced
+to build them in code using object and method calls.
+Instead, when we can, we parse them from a native representation
+that makes the hierarchy explicit and natural.
+The great monument to the Composite Pattern on today’s web
+is not document construction&nbsp;—
+documents are usually delivered as HTML&nbsp;—
+but document manipulation,
+through the Document Object Model exposed for the use of JavaScript code.</p>
+<p>I will leave for another time
+my discussion of how the Document Object Model delivered a hierarchy,
+so programmers invented jQuery because they preferred an array instead.</p>
+<p>Let’s now turn to what the Composite pattern looks like in code.</p>
+</div>
+<div class="section" id="example-gui-programming-with-tkinter">
+<h2>Example: GUI programming with Tkinter<a class="headerlink" href="#example-gui-programming-with-tkinter" title="Permalink to this headline">¶</a></h2>
+<p>Let’s imagine that we want to print to the screen
+the hierarchy of frames and buttons
+out of which we have built a graphical user interface (GUI) using Tkinter,
+which comes built in to Python.</p>
+<p>It would have been easy enough for Tkinter’s designers
+to have decided that only <code class="docutils literal notranslate"><span class="pre">Frame</span></code> containers
+needed <code class="docutils literal notranslate"><span class="pre">winfo_children()</span></code> methods to list their children —
+after all, simpler widgets like <code class="docutils literal notranslate"><span class="pre">Label</span></code> and <code class="docutils literal notranslate"><span class="pre">Button</span></code>
+aren’t supposed to contain children,
+and could have omitted the method entirely.
+But that asymmetry would have forced an <code class="docutils literal notranslate"><span class="pre">if</span></code> statement
+into any routine that wanted to visit both frames and their children:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># If Frame objects alone had offered winfo_children()</span>
+
+<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">Frame</span><span class="p">):</span>
+    <span class="n">children</span> <span class="o">=</span> <span class="n">widget</span><span class="o">.</span><span class="n">winfo_children</span><span class="p">()</span>
+    <span class="o">...</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="c1"># carefully avoid calling winfo_children()</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>This pattern, when it can’t be avoided,
+can at least be improved by dodging the <code class="docutils literal notranslate"><span class="pre">isinstance()</span></code> call
+and instead using <code class="docutils literal notranslate"><span class="pre">getattr()</span></code> with three arguments
+to safely examine whether the object has the necessary method.
+This decouples the code from the vexed question
+of whether any other Tkinter widgets besides <code class="docutils literal notranslate"><span class="pre">Frame</span></code>,
+either today or in the future,
+can also include children widgets inside:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Improvement: check for methods, not classes</span>
+<span class="o">...</span>
+<span class="n">winfo_children</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">Frame</span><span class="p">,</span> <span class="s1">&#39;winfo_children&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">winfo_children</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">children</span> <span class="o">=</span> <span class="n">winfo_children</span><span class="p">()</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>In either case,
+the difference between container widgets and normal widgets
+would have haunted every piece of code
+that wanted to perform general processing.</p>
+<p>But the authors of Tk chose, happily, to implement the Composite Pattern.
+Instead of making <code class="docutils literal notranslate"><span class="pre">winfo_children()</span></code> a special method
+that only <code class="docutils literal notranslate"><span class="pre">Frame</span></code> widgets offer,
+they made it a general method that is available
+on <em>every single widget object!</em>
+You never need to check whether it is present.
+For containers, it returns their list of child widgets.
+For other widgets? It simply returns an empty list.</p>
+<p>Your code can therefore fly forward
+and always assume the presence of the method.
+Here, so that you can see a working example,
+is a complete program that builds a simple Tkinter GUI
+that can print out the widget hierarchy to the terminal:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tkinter</span> <span class="kn">import</span> <span class="n">Tk</span><span class="p">,</span> <span class="n">Frame</span><span class="p">,</span> <span class="n">Button</span>
+
+<span class="c1"># Our routine, that gets to treat all widgets the same.</span>
+
+<span class="k">def</span> <span class="nf">print_tree</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Print a hierarchy of Tk widgets in the terminal.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;{:&lt;</span><span class="si">{}</span><span class="s1">} * </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">indent</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span> <span class="n">widget</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">widget</span><span class="o">.</span><span class="n">winfo_children</span><span class="p">():</span>
+        <span class="n">print_tree</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">indent</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># A small sample GUI application with several widgets.</span>
+
+<span class="n">root</span> <span class="o">=</span> <span class="n">Tk</span><span class="p">()</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Frame</span><span class="p">(</span><span class="n">master</span><span class="o">=</span><span class="n">root</span><span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">pack</span><span class="p">()</span>
+
+<span class="n">tree_button</span> <span class="o">=</span> <span class="n">Button</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="n">tree_button</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Print widget tree&#39;</span>
+<span class="n">tree_button</span><span class="p">[</span><span class="s1">&#39;command&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">print_tree</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="n">tree_button</span><span class="o">.</span><span class="n">pack</span><span class="p">({</span><span class="s1">&#39;side&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">})</span>
+
+<span class="n">quit_button</span> <span class="o">=</span> <span class="n">Button</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="n">quit_button</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Quit Tk application&#39;</span>
+<span class="n">quit_button</span><span class="p">[</span><span class="s1">&#39;command&#39;</span><span class="p">]</span> <span class="o">=</span>  <span class="n">f</span><span class="o">.</span><span class="n">quit</span>
+<span class="n">quit_button</span><span class="o">.</span><span class="n">pack</span><span class="p">({</span><span class="s1">&#39;side&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">})</span>
+
+<span class="n">f</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span>
+<span class="n">root</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The resulting printout looks like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>* &lt;tkinter.Frame object .!frame&gt;
+    * &lt;tkinter.Button object .!frame.!button&gt;
+    * &lt;tkinter.Button object .!frame.!button2&gt;
+</pre></div>
+</div>
+<p>Thanks to the Composite Pattern symmetry between widgets,
+no <code class="docutils literal notranslate"><span class="pre">if</span></code> statement is necessary
+to handle whatever kind of widget is passed to <code class="docutils literal notranslate"><span class="pre">print_tree()</span></code>.</p>
+<p>Note that there is controversy among Composite Pattern
+enthusiasts over whether all widgets should really act like containers&nbsp;—
+isn’t it fraudulent, they ask,
+for a widget to implement <code class="docutils literal notranslate"><span class="pre">winfo_children()</span></code>
+if it’s not going to let you add child widgets?
+What sense does it make for it to act like a halfway container
+that supports read operations (“list children”)
+without the corresponding write operations (“add child”)?
+The more restrictive option
+would be to avoid putting <code class="docutils literal notranslate"><span class="pre">winfo_children()</span></code> on all widgets
+and instead only making truly general operations
+like <code class="docutils literal notranslate"><span class="pre">winfo_rootx()</span></code> universal
+(general, because all widgets have an <em>x</em>-coordinate).
+I&nbsp;myself tend to enjoy interfaces more
+when there is as much symmetry as possible.</p>
+<p>If you study the Tkinter library —
+which is perhaps the most classic object oriented module
+in the entire Python Standard Library —
+you will find several more instances
+where a method that could have been limited to a few widgets
+was instead made a common operation on them all
+for the sake of simplicity
+and for the convenience of all the code that uses them.
+This is the Composite Pattern.</p>
+</div>
+<div class="section" id="implementation-to-inherit-or-not">
+<h2>Implementation: to inherit, or not?<a class="headerlink" href="#implementation-to-inherit-or-not" title="Permalink to this headline">¶</a></h2>
+<p>The benefits of the symmetry that the Composite Pattern creates
+between containers and their contents
+only accrue if the symmetry makes the objects interchangeable.
+But here, some statically typed languages impose an obstacle.</p>
+<p>One problem is posed by the most limited of the static languages.
+In those languages,
+objects of two different classes are only interchangeable
+if they are subclasses of a single parent class
+that implements the methods they have in common —
+or, if one of the two classes inherits directly from the other.</p>
+<p>In static languages that are a bit more powerful,
+the restriction is gentler.
+There is no strict need for a container and its contents
+to share an implementation.
+As long as both of them conform to an “interface”
+that declares exactly which methods they implement in common,
+the objects can be called symmetrically.</p>
+<p>In Python, both of these restrictions evaporate!
+You are free to position your code anywhere along the spectrum
+of safety versus brevity that you prefer.
+You can go the classic route and have a common superclass:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Widget</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+<span class="k">class</span> <span class="nc">Frame</span><span class="p">(</span><span class="n">Widget</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">child_widgets</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">child_widgets</span> <span class="o">=</span> <span class="n">child_widgets</span>
+
+    <span class="k">def</span> <span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">child_widgets</span>
+
+<span class="k">class</span> <span class="nc">Label</span><span class="p">(</span><span class="n">Widget</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span>
+</pre></div>
+</div>
+<p>Or your objects can simply duck type the same interface,
+and you can rely on tests to help you maintain the symmetries
+between containers and contents.
+(Where, for very simple scripts,
+your “test” might simply be the fact that the code runs.)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Frame</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">child_widgets</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">child_widgets</span> <span class="o">=</span> <span class="n">child_widgets</span>
+
+    <span class="k">def</span> <span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">child_widgets</span>
+
+<span class="k">class</span> <span class="nc">Label</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span>
+
+    <span class="k">def</span> <span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[]</span>
+</pre></div>
+</div>
+<p>Or you can choose another point
+on the design spectrum between these two extremes.
+Python supports many approaches:</p>
+<ul class="simple">
+<li>The classic common superclass architecture,
+shown in the first example above.</li>
+<li>Making the superclass an abstract base class
+with the tools inside Standard Library’s <code class="docutils literal notranslate"><span class="pre">abc</span></code> module.</li>
+<li>Having the two classes share an interface,
+like those supported by the old <code class="docutils literal notranslate"><span class="pre">zope.interface</span></code> package.</li>
+<li>You could spin up a type checking library like MyPy
+and use annotations to ask for hard guarantees
+that all of the objects processed by your code —
+both container and contents —
+implement the runtime behaviors that your code requires.</li>
+<li>You could duck type, and ask for neither permission or forgiveness!</li>
+</ul>
+<p>Because Python offers this whole range of approaches,
+I choose not to define the Composite Pattern classically,
+where it’s defined as one particular mechanism (a superclass)
+for creating or enforcing symmetry.
+Instead, I define it simply as the creation of symmetry
+— by whatever means —
+among the objects involved in concentric object hierarchies.</p>
+</div>
+</div>
+
+    </article>
+    <hr>
+    <p class="copyright">
+      © 2018–2020 <a href="http://rhodesmill.org/brandon/">Brandon Rhodes</a>
+    </p>
+  </body>
+</html>

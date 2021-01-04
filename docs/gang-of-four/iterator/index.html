@@ -1,0 +1,625 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Iterator Pattern</title>
+    <link rel="stylesheet" type="text/css"
+          href="../../_static/style.css">
+  </head>
+  <body>
+    
+    <p class="motto">
+      •
+      <a href="/">Home Page</a>
+      •
+    </p>
+    
+    <article>
+      <div class="section" id="the-iterator-pattern">
+<h1>The Iterator Pattern<a class="headerlink" href="#the-iterator-pattern" title="Permalink to this headline">¶</a></h1>
+<p><em>A “Behavioral Pattern” from the</em> <a class="reference internal" href="../"><span class="doc">Gang of Four book</span></a></p>
+<div class="admonition-verdict admonition">
+<p class="first admonition-title">Verdict</p>
+<p>Python supports the Iterator Pattern
+at the most fundamental level available to a programming language:
+it’s built into Python’s syntax.</p>
+<p class="last">But to support not only the object-based Iterator Pattern
+but also its own legacy iteration protocol,
+Python relegates the actual iteration object protocol
+to a pair of dunder methods.
+Instead of calling these directly,
+programmers are expected to invoke iteration
+through a pair of builtin functions.</p>
+</div>
+<p>The least expressive computer languages
+make no attempt to hide the inner workings of their data structures.
+In those languages,
+if you want to visit every element in an array,
+you have to generate the integer indexes yourself.</p>
+<p>Code in such languages struggles to stay at the high level
+of describing programmer intent.
+Instead, the flow of each thought
+is interrupted with low-level data structure details.
+When code can’t abstract away the mechanics of iteration,
+it becomes more difficult to read;
+it’s more liable to errors,
+because the same iteration details need to be repeated over and over;
+and changing how a data structure is traversed
+requires finding and changing every place in the code
+where that data structure is iterated over.</p>
+<p>The remedy is encapsulation.
+The Iterator Pattern proposes
+that the details about how a data structure is traversed
+should be moved into an “iterator” object that,
+from the outside,
+simply yields one item after another
+without exposing the internals of how the data structure is designed.</p>
+<div class="section" id="iterating-with-the-for-loop">
+<h2>Iterating with the “for” loop<a class="headerlink" href="#iterating-with-the-for-loop" title="Permalink to this headline">¶</a></h2>
+<p>Python’s <code class="docutils literal notranslate"><span class="pre">for</span></code> loop
+abstracts the Iterator Pattern so thoroughly
+that most Python programmers are never even aware
+of the object design pattern that it enacts beneath the surface.
+The <code class="docutils literal notranslate"><span class="pre">for</span></code> loop performs repeated assignment,
+running its indented block of code
+once for each item in the sequence it is iterating over.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">some_primes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">prime</span> <span class="ow">in</span> <span class="n">some_primes</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">prime</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>2
+3
+5
+</pre></div>
+</div>
+<p>The above loop has performed a series of three assignment statements
+<code class="docutils literal notranslate"><span class="pre">prime</span> <span class="pre">=</span> <span class="pre">2</span></code>, <code class="docutils literal notranslate"><span class="pre">prime</span> <span class="pre">=</span> <span class="pre">3</span></code>, and <code class="docutils literal notranslate"><span class="pre">prime</span> <span class="pre">=</span> <span class="pre">5</span></code>,
+running the indented block of code after each assignment.
+The block can include the C-style loop control statements
+<code class="docutils literal notranslate"><span class="pre">break</span></code> to leave the loop early
+and <code class="docutils literal notranslate"><span class="pre">continue</span></code> to skip back to the top of the loop.</p>
+<p>Because <code class="docutils literal notranslate"><span class="pre">for</span></code> is a repeated assignment statement,
+it has the same flexibility as Python’s normal <code class="docutils literal notranslate"><span class="pre">=</span></code> assignment operator:
+by listing several names separated by commas,
+you can upgrade from assigning to a single name to unpacking a whole tuple.
+This lets you skip a separate unpacking step.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">elements</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="mf">1.008</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;He&#39;</span><span class="p">,</span> <span class="mf">4.003</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;Li&#39;</span><span class="p">,</span> <span class="mf">6.94</span><span class="p">)]</span>
+
+<span class="c1"># You’re not limited to a single name like “tup”...</span>
+<span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+    <span class="n">symbol</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="n">tup</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">weight</span><span class="p">)</span>
+
+<span class="c1"># ...instead, unpack right inside the &quot;for&quot; statement</span>
+<span class="k">for</span> <span class="n">symbol</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">weight</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Famously, this can be coupled with the Python dictionary’s <code class="docutils literal notranslate"><span class="pre">item()</span></code> method
+to easily visit each dictionary key and value
+without the expense of a key lookup at the top of each loop.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;H&#39;</span><span class="p">:</span> <span class="mf">1.008</span><span class="p">,</span> <span class="s1">&#39;He&#39;</span><span class="p">:</span> <span class="mf">4.003</span><span class="p">,</span> <span class="s1">&#39;Li&#39;</span><span class="p">:</span> <span class="mf">6.94</span><span class="p">}</span>
+
+<span class="c1"># You don’t need to...</span>
+<span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="n">weight</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">weight</span><span class="p">)</span>
+
+<span class="c1"># ...instead, you can simply:</span>
+<span class="k">for</span> <span class="n">symbol</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">weight</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">for</span></code> loop combines such admirable concision and expressiveness
+that Python not only supports it as a stand-alone statement,
+but has incorporated it into four different expressions —
+Python’s famous “comprehensions” that build lists, sets, dictionaries,
+and generators directly from inline loops:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">symbol</span> <span class="k">for</span> <span class="n">symbol</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">weight</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">]</span>
+<span class="p">{</span><span class="n">symbol</span> <span class="k">for</span> <span class="n">symbol</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">weight</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">}</span>
+<span class="p">{</span><span class="n">symbol</span><span class="p">:</span> <span class="n">weight</span> <span class="k">for</span> <span class="n">symbol</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">weight</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">}</span>
+<span class="nb">list</span><span class="p">(</span><span class="n">symbol</span> <span class="k">for</span> <span class="n">symbol</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">weight</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Python’s decision to re-use its <code class="docutils literal notranslate"><span class="pre">for</span></code> statement syntax
+inside of expressions —
+instead of going to the trouble of inventing
+a separate special-purpose syntax for inline iteration —
+makes the language simpler, easier to learn, and easier to remember.</p>
+</div>
+<div class="section" id="the-pattern-the-iterable-and-its-iterator">
+<h2>The pattern: the iterable and its iterator<a class="headerlink" href="#the-pattern-the-iterable-and-its-iterator" title="Permalink to this headline">¶</a></h2>
+<p>Let’s now step behind the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop
+and learn about the design pattern that powers it.
+The traditional Iterator Pattern involves three kinds of object.</p>
+<p>First, there’s a <em>container</em> object.</p>
+<p>Second, the container’s internal logic
+lets it corral and organize a number of <em>item</em> objects.</p>
+<p>Finally, there’s the key to the pattern:
+instead of the container inventing its own unique method calls
+for stepping through its items —
+which would force the programmer to learn
+a different approach for every container —
+it offers sequential access to its items
+through a generic <em>iterator</em> object
+that implements the exact same interface
+as the iterator of every other kind of container.</p>
+<p>Python provides a pair of builtins
+that let you step behind the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop
+and pull the levers of iteration yourself.</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">iter()</span></code> takes a container object as its argument
+and asks it to build and return a new iterator object.
+If the argument you pass isn’t actually a container,
+a <code class="docutils literal notranslate"><span class="pre">TypeError</span></code> is raised: <code class="docutils literal notranslate"><span class="pre">object</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">iterable</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">next()</span></code> takes the iterator as its argument and,
+each time it’s called,
+returns the next item from the container.
+Once the container has no more objects to return,
+the exception <code class="docutils literal notranslate"><span class="pre">StopIteration</span></code> is raised.</li>
+</ul>
+<p>To manually reenact the previous section’s first <code class="docutils literal notranslate"><span class="pre">for</span></code> loop,
+we make a single call to <code class="docutils literal notranslate"><span class="pre">iter()</span></code>
+followed by four calls to <code class="docutils literal notranslate"><span class="pre">next()</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">it</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">some_primes</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">it</span>
+<span class="go">&lt;list_iterator object at 0x7f072ffdb518&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">))</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">))</span>
+<span class="go">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">))</span>
+<span class="go">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">))</span>
+<span class="gt">Traceback (most recent call last):</span>
+  <span class="c">...</span>
+<span class="gr">StopIteration</span>
+</pre></div>
+</div>
+<p>These are precisely the actions
+that were taken by Python’s <code class="docutils literal notranslate"><span class="pre">for</span></code> loop.
+Of course,
+the real <code class="docutils literal notranslate"><span class="pre">for</span></code> loop doesn’t hard-code
+exactly the right number of <code class="docutils literal notranslate"><span class="pre">next()</span></code> calls
+like I did here —
+instead, <code class="docutils literal notranslate"><span class="pre">for</span></code> is implemented as something like the following <code class="docutils literal notranslate"><span class="pre">while</span></code> loop:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">it</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">some_primes</span><span class="p">)</span>
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">prime</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+        <span class="k">break</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">prime</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>2
+3
+5
+</pre></div>
+</div>
+<p>My first question when I learned the Iterator Pattern was:
+why does the iterator need to be a separate object from the container?
+Why can’t each container simply include a counter inside
+that reminds it which object to yield next?</p>
+<p>The answer is that a single internal counter would work
+as long as only one <code class="docutils literal notranslate"><span class="pre">for</span></code> loop at a time
+were ever iterating over a container.
+But there are many situations where several <code class="docutils literal notranslate"><span class="pre">for</span></code> loops
+are working on the same container at once.
+For example, to generate all combinations of two coin flips,
+a programmer might write concentric loops:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sides</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;heads&#39;</span><span class="p">,</span> <span class="s1">&#39;tails&#39;</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">coin1</span> <span class="ow">in</span> <span class="n">sides</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">coin2</span> <span class="ow">in</span> <span class="n">sides</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">coin1</span><span class="p">,</span> <span class="n">coin2</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>heads heads
+heads tails
+tails heads
+tails tails
+</pre></div>
+</div>
+<p>If the Python list object <code class="docutils literal notranslate"><span class="pre">sides</span></code>
+had tried to support iteration using only a single internal counter,
+then the inner <code class="docutils literal notranslate"><span class="pre">for</span></code> loop would have used up all of the items
+and left the outer <code class="docutils literal notranslate"><span class="pre">for</span></code> loop without any further items to visit.
+Instead, we are given a separate iterator on each call to <code class="docutils literal notranslate"><span class="pre">iter()</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">it1</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">sides</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">it2</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">sides</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">it1</span>
+<span class="go">&lt;list_iterator object at 0x7fa8b8b292b0&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">it2</span>
+<span class="go">&lt;list_iterator object at 0x7fa8b8b29400&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">it1</span> <span class="ow">is</span> <span class="n">it2</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>Not only concentric loops, but multiple threads of control —
+whether operating system threads or coroutines —
+also offer plenty of circumstances
+under which an object might be operated on
+by several <code class="docutils literal notranslate"><span class="pre">for</span></code> loops at the same time,
+so each of those <code class="docutils literal notranslate"><span class="pre">for</span></code> loops will also need their own iterator
+to avoid throwing each other off track.</p>
+</div>
+<div class="section" id="a-twist-objects-which-are-their-own-iterator">
+<h2>A twist: objects which are their own iterator<a class="headerlink" href="#a-twist-objects-which-are-their-own-iterator" title="Permalink to this headline">¶</a></h2>
+<p>Each time you pass a normal Python container
+like a list, set, or dictionary to <code class="docutils literal notranslate"><span class="pre">iter()</span></code>,
+you receive a new iterator object
+that starts visiting the container’s items over again from the beginning.</p>
+<p>Some Python objects, however, exhibit a different behavior.</p>
+<p>The Python file object is a good example.
+It conveniently yields lines of text
+when you iterate across it with a <code class="docutils literal notranslate"><span class="pre">for</span></code> loop.
+But, unlike a list or dictionary,
+it doesn’t start over again at the first line
+when traversed with a new <code class="docutils literal notranslate"><span class="pre">for</span></code> loop.
+Instead, it remembers its previous place in the file
+and continues yielding lines from where you previously left off.</p>
+<p>The fact that a file picks up where it left off
+can be used to loop over a file in phases.
+A&nbsp;simple example of a file format that’s composed of different sections
+is the traditional UNIX mailbox file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">From</span> <span class="n">jdoe</span><span class="nd">@machine</span><span class="o">.</span><span class="n">example</span> <span class="n">Fri</span> <span class="n">Nov</span> <span class="mi">21</span> <span class="mi">09</span><span class="p">:</span><span class="mi">55</span><span class="p">:</span><span class="mi">06</span> <span class="mi">1997</span>
+<span class="n">From</span><span class="p">:</span> <span class="n">John</span> <span class="n">Doe</span> <span class="o">&lt;</span><span class="n">jdoe</span><span class="nd">@machine</span><span class="o">.</span><span class="n">example</span><span class="o">&gt;</span>
+<span class="n">To</span><span class="p">:</span> <span class="n">Mary</span> <span class="n">Smith</span> <span class="o">&lt;</span><span class="n">mary</span><span class="nd">@example</span><span class="o">.</span><span class="n">net</span><span class="o">&gt;</span>
+<span class="n">Subject</span><span class="p">:</span> <span class="n">Saying</span> <span class="n">Hello</span>
+<span class="n">Date</span><span class="p">:</span> <span class="n">Fri</span><span class="p">,</span> <span class="mi">21</span> <span class="n">Nov</span> <span class="mi">1997</span> <span class="mi">09</span><span class="p">:</span><span class="mi">55</span><span class="p">:</span><span class="mi">06</span> <span class="o">-</span><span class="mi">0600</span>
+
+<span class="n">This</span> <span class="ow">is</span> <span class="n">a</span> <span class="n">message</span> <span class="n">just</span> <span class="n">to</span> <span class="n">say</span> <span class="n">hello</span><span class="o">.</span>
+<span class="n">So</span><span class="p">,</span> <span class="s2">&quot;Hello&quot;</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>This file needs to be parsed in three phases
+because each section is delimited by different rules.
+The initial “envelope line” that starts with the word <code class="docutils literal notranslate"><span class="pre">From</span></code>
+is always a single standalone line.
+The header follows,
+consisting of a series of colon-separated names and values
+which is terminated by a single blank line.
+The body comes last
+and ends at either the next envelope <code class="docutils literal notranslate"><span class="pre">From</span></code> line
+or the end of the file.
+Here’s how we might parse the first message from a mailbox file
+using only <code class="docutils literal notranslate"><span class="pre">for</span></code> loops:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">parse_email</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">envelope</span> <span class="o">=</span> <span class="n">line</span>
+        <span class="k">break</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">line</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">headers</span><span class="p">[</span><span class="n">name</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;From&#39;</span><span class="p">):</span>
+            <span class="k">break</span>
+        <span class="n">body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">envelope</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="n">body</span>
+</pre></div>
+</div>
+<p>This convenient pattern —
+in which we tackle each section of the file with its own <code class="docutils literal notranslate"><span class="pre">for</span></code> loop
+that does a <code class="docutils literal notranslate"><span class="pre">break</span></code> once it’s done processing its section —
+is possible because each time we start up another loop,
+the file object continues reading from right where we left off.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;email.txt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">envelope</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="n">body</span> <span class="o">=</span> <span class="n">parse_email</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;To&#39;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">body</span><span class="p">),</span> <span class="s1">&#39;lines&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Mary Smith &lt;mary@example.net&gt;
+2 lines
+</pre></div>
+</div>
+<p>How does the file object subvert normal iteration
+and preserve state between one <code class="docutils literal notranslate"><span class="pre">for</span></code> loop and the next?</p>
+<p>We can see the answer by stepping behind the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop,
+calling <code class="docutils literal notranslate"><span class="pre">iter()</span></code> ourselves,
+and examining the result:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;email.txt&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span>
+<span class="go">&lt;_io.TextIOWrapper name=&#39;email.txt&#39; mode=&#39;r&#39; encoding=&#39;UTF-8&#39;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">it1</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">it1</span>
+<span class="go">&lt;_io.TextIOWrapper name=&#39;email.txt&#39; mode=&#39;r&#39; encoding=&#39;UTF-8&#39;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">it2</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">it2</span>
+<span class="go">&lt;_io.TextIOWrapper name=&#39;email.txt&#39; mode=&#39;r&#39; encoding=&#39;UTF-8&#39;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">it1</span> <span class="ow">is</span> <span class="n">it2</span> <span class="ow">is</span> <span class="n">f</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>The file object is taking advantage of a technicality:
+the rule that <code class="docutils literal notranslate"><span class="pre">iter()</span></code> must return an iterator
+never says that the iterator can’t be the iterable object itself!
+Instead of creating a separate iterator object
+to keep up with which line from the file should be returned next,
+the file itself serves as its own iterator
+and yields a single continuous series of lines,
+delivering the next available line
+to whichever of possibly many consumers
+is the first to invoke <code class="docutils literal notranslate"><span class="pre">next()</span></code>.</p>
+<p>In the case of the file object,
+the decision to collapse the iterable and iterator
+together into a single object
+is driven by the behavior of the underlying operating system.
+Not every kind of file, after all, supports rewind and fast forward —
+Unix terminals and pipes don’t, for example —
+so the Python file object simply lets the operating system
+keep up with the current line
+and never tries to rewind on its own.</p>
+<p>But what if you wanted the ability to iterate in separate phases
+with other kinds of object, and not just files?</p>
+<p>For example,
+what if you pass a plain list of lines to <code class="docutils literal notranslate"><span class="pre">parse_email()</span></code>?
+Then the routine breaks — because the second and third <code class="docutils literal notranslate"><span class="pre">for</span></code> loops,
+instead of continuing from where the previous loop stopped,
+instead start again at the beginning of the list.
+Among other problems,
+this prevents the function from finding the email’s body:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;email.txt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+<span class="n">envelope</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="n">body</span> <span class="o">=</span> <span class="n">parse_email</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;To&#39;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">body</span><span class="p">),</span> <span class="s1">&#39;lines&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Mary Smith &lt;mary@example.net&gt;
+0 lines
+</pre></div>
+</div>
+<p>How can we support gradual iteration
+over a standard container like a Python list?</p>
+<p>The answer is another extension to the traditional Iterator Pattern:
+in Python, iterators return themselves if passed to <code class="docutils literal notranslate"><span class="pre">iter()</span></code>!
+This means that iterators themselves can be passed to <code class="docutils literal notranslate"><span class="pre">for</span></code> loops,
+and lets you write programs that switch back and forth whenever they want
+between manual single steps with <code class="docutils literal notranslate"><span class="pre">next()</span></code>
+and automatic iteration with a <code class="docutils literal notranslate"><span class="pre">for</span></code> loop:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">it</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">some_primes</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">prime</span> <span class="ow">in</span> <span class="n">it</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">prime</span><span class="p">)</span>
+    <span class="k">break</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>2
+3
+5
+</pre></div>
+</div>
+<p>Because the above code handles only a single iterator
+that we requested ourselves with <code class="docutils literal notranslate"><span class="pre">iter()</span></code>,
+both its manual <code class="docutils literal notranslate"><span class="pre">next()</span></code> calls as well as its <code class="docutils literal notranslate"><span class="pre">for()</span></code> loop
+are all advancing the same iterator
+along through the 3 items in the underlying list.
+The <code class="docutils literal notranslate"><span class="pre">for</span></code> loop works because the iterator object <code class="docutils literal notranslate"><span class="pre">it</span></code>
+returns itself when asked for its iterator:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">it</span>
+<span class="go">&lt;list_iterator object at 0x7f4fdce6c5f8&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">iter</span><span class="p">(</span><span class="n">it</span><span class="p">)</span>
+<span class="go">&lt;list_iterator object at 0x7f4fdce6c5f8&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">iter</span><span class="p">(</span><span class="n">it</span><span class="p">)</span> <span class="ow">is</span> <span class="n">it</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>So we can successfully use our <code class="docutils literal notranslate"><span class="pre">parse_email()</span></code> routine with a Python list if,
+instead of passing the underlying list,
+we instead pass an iterator that we’ve already constructed.
+With that change, the routine runs as successfully on a list
+as it originally did on an open file:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;email.txt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+<span class="n">it</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+<span class="n">envelope</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="n">body</span> <span class="o">=</span> <span class="n">parse_email</span><span class="p">(</span><span class="n">it</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;To&#39;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">body</span><span class="p">),</span> <span class="s1">&#39;lines&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Mary Smith &lt;mary@example.net&gt;
+2 lines
+</pre></div>
+</div>
+<p>If you ever really do implement a routine like <code class="docutils literal notranslate"><span class="pre">parse_email()</span></code>,
+it’s better not to make your caller remember to pass an iterator.
+Instead, have them pass the container
+and call <code class="docutils literal notranslate"><span class="pre">iter()</span></code> yourself.</p>
+</div>
+<div class="section" id="implementing-an-iterable-and-iterator">
+<h2>Implementing an Iterable and Iterator<a class="headerlink" href="#implementing-an-iterable-and-iterator" title="Permalink to this headline">¶</a></h2>
+<p>How can a class implement the Iterator Pattern
+and plug in to Python’s native iteration mechanisms
+<code class="docutils literal notranslate"><span class="pre">for</span></code>, <code class="docutils literal notranslate"><span class="pre">iter()</span></code>, and <code class="docutils literal notranslate"><span class="pre">next()</span></code>?</p>
+<ul class="simple">
+<li>The container must offer an <code class="docutils literal notranslate"><span class="pre">__iter__()</span></code> method
+that returns an iterator object.
+Supporting this method makes a container an <em>iterable</em>.</li>
+<li>Each iterator must offer a <code class="docutils literal notranslate"><span class="pre">__next__()</span></code> method
+(in old Python&nbsp;2 code, the spelling is <code class="docutils literal notranslate"><span class="pre">next()</span></code> without the dunder)
+that returns the next item from the container each time it is called.
+It should raise <code class="docutils literal notranslate"><span class="pre">StopIterator</span></code> when there are no further items.</li>
+<li>Remember the special case we learned about in the previous section —
+that some users pass iterators to a <code class="docutils literal notranslate"><span class="pre">for</span></code> loop
+instead of passing the underlying container?
+To cover this case, each iterator is also required
+to offer an <code class="docutils literal notranslate"><span class="pre">__iter__()</span></code> method that simply returns itself.</li>
+</ul>
+<p>We can see all of these requirements working together
+by implementing our own simple iterator!</p>
+<p>Note that there is no requirement that the items yielded by <code class="docutils literal notranslate"><span class="pre">__next__()</span></code>
+be stored as persistent values inside the container,
+or even exist until <code class="docutils literal notranslate"><span class="pre">__next__()</span></code> is called.
+This lets us offer a very simple Iterator Pattern example
+without even implementing storage in the container:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">OddNumbers</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="s2">&quot;An iterable object.&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maximum</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maximum</span> <span class="o">=</span> <span class="n">maximum</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">OddIterator</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">OddIterator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="s2">&quot;An iterator.&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">container</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="n">container</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">def</span> <span class="fm">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">+=</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">maximum</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">StopIteration</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</pre></div>
+</div>
+<p>With these three simple methods — one for the container object,
+and two for its iterator —
+an <code class="docutils literal notranslate"><span class="pre">OddNumbers</span></code> container is now eligible
+for full membership in Python’s rich iteration ecosystem.
+It will work seamlessly with a <code class="docutils literal notranslate"><span class="pre">for</span></code> loop:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">numbers</span> <span class="o">=</span> <span class="n">OddNumbers</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">numbers</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>1
+3
+5
+7
+</pre></div>
+</div>
+<p>And it works with the <code class="docutils literal notranslate"><span class="pre">iter()</span></code> and <code class="docutils literal notranslate"><span class="pre">next()</span></code> builtins.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">it</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">OddNumbers</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>1
+3
+</pre></div>
+</div>
+<p>And it can even dance with the comprehensions!</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">numbers</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">numbers</span> <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[1, 3, 5, 7]
+{5, 7}
+</pre></div>
+</div>
+<p>Three simple methods are all that’s needed
+to unlock access to Python’s syntax-level support for iteration.</p>
+</div>
+<div class="section" id="pythons-extra-level-of-indirection">
+<h2>Python’s extra level of indirection<a class="headerlink" href="#pythons-extra-level-of-indirection" title="Permalink to this headline">¶</a></h2>
+<p>But, one question:
+why does Python even have <code class="docutils literal notranslate"><span class="pre">iter()</span></code> and <code class="docutils literal notranslate"><span class="pre">next()</span></code>?</p>
+<p>The standard Iteration Pattern,
+out in the wider world of programming languages,
+involves no builtin functions.
+The pattern instead talks directly about object behavior:
+a container needs to implement one method,
+and an iterable needs to implement another.
+Why didn’t Python simply specify the names of the methods themselves,
+and let users call them directly using the well-understood
+<code class="docutils literal notranslate"><span class="pre">obj.method()</span></code> notation?</p>
+<p>The reason is that Python had a legacy iteration mechanism to support.</p>
+<p>Originally, Python’s <code class="docutils literal notranslate"><span class="pre">for</span></code> loop only supported containers
+that were integer-indexed, like the Python list and tuple.
+Its underlying operation looked something like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">some_primes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">some_primes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="go">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">some_primes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="go">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">some_primes</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+<span class="gt">Traceback (most recent call last):</span>
+  <span class="c">...</span>
+<span class="gr">IndexError</span>: <span class="n">list index out of range</span>
+</pre></div>
+</div>
+<p>It was the final <code class="docutils literal notranslate"><span class="pre">IndexError</span></code>
+that told the original Python <code class="docutils literal notranslate"><span class="pre">for</span></code> loop it was finished.
+To iterate over a container
+that wasn’t always addressable by sequential integer indices,
+like a dictionary,
+you had to first ask for a <code class="docutils literal notranslate"><span class="pre">list</span></code> of keys, values, or items,
+then iterate over the integer-indexed list object —
+because integer indexes were all the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop understood.</p>
+<p>When the time came for <a class="reference external" href="https://www.python.org/dev/peps/pep-0234/">PEP-234</a>
+to incorporate the Iterator Pattern into Python&nbsp;2.2,
+there was a problem.
+If the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop was now going to start calling
+<code class="docutils literal notranslate"><span class="pre">__iter__()</span></code> on the container it was given,
+what would happen to all of the simpler containers that programmers had built
+over the years —
+that accepted integer indices,
+trusting that this made them iterable?</p>
+<p>Happily,
+all problems in computer science
+can be solved by another level of indirection!<a class="reference external" href="https://en.wikipedia.org/wiki/Indirection">¹</a></p>
+<p>Python decided to interpose a pair of builtins
+in between users and the unfortunate fact
+that the language features two iteration patterns —
+one legacy, and one the object based Iterator Pattern itself.
+The PEP decreed that:</p>
+<ul class="simple">
+<li>The <code class="docutils literal notranslate"><span class="pre">for</span></code> loop would now prefer the Iterator Pattern.
+If a container offered <code class="docutils literal notranslate"><span class="pre">__iter__()</span></code>,
+then the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop would use the iterator it returned.</li>
+<li>To support old containers,
+<code class="docutils literal notranslate"><span class="pre">for</span></code> would fall back to looking for a <code class="docutils literal notranslate"><span class="pre">__getitem__()</span></code> method and,
+if it existed,
+passing it the integers 0,1,2,… to receive items
+until it received an <code class="docutils literal notranslate"><span class="pre">IndexError</span></code>.</li>
+<li>To expose this mechanism to Python programmers
+without every programmer needing to hand-implement
+this carefully crafted fallback themselves,
+<code class="docutils literal notranslate"><span class="pre">iter()</span></code> was introduced.
+It gives programmers access the underlying operation
+“create an iterator from an iterable”
+that would otherwise have only been natively available
+to the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop itself.</li>
+<li>Finally, <code class="docutils literal notranslate"><span class="pre">next()</span></code> was added in a later version of Python
+so that both halves of the Iterator Pattern —
+and not just the container half —
+would be symmetrically covered by builtins.</li>
+</ul>
+<p>While they were at it,
+they also tossed an obscure convenience into <code class="docutils literal notranslate"><span class="pre">iter()</span></code>
+that involves passing it two arguments instead of one.
+Since it’s not related to the classic Iterator Pattern itself,
+I’ll recommend you read about it
+<a class="reference external" href="https://docs.python.org/3/library/functions.html#iter">in the Standard Libary documention</a>
+for <code class="docutils literal notranslate"><span class="pre">iter()</span></code> if you’re curious,
+and then experiment with it for yourself.</p>
+</div>
+</div>
+
+    </article>
+    <hr>
+    <p class="copyright">
+      © 2018–2020 <a href="http://rhodesmill.org/brandon/">Brandon Rhodes</a>
+    </p>
+  </body>
+</html>

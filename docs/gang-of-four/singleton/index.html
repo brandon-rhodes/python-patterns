@@ -1,0 +1,373 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Singleton Pattern</title>
+    <link rel="stylesheet" type="text/css"
+          href="../../_static/style.css">
+  </head>
+  <body>
+    
+    <p class="motto">
+      •
+      <a href="/">Home Page</a>
+      •
+    </p>
+    
+    <article>
+      <div class="section" id="the-singleton-pattern">
+<h1>The Singleton Pattern<a class="headerlink" href="#the-singleton-pattern" title="Permalink to this headline">¶</a></h1>
+<p><em>A “Creational Pattern” from the</em> <a class="reference internal" href="../"><span class="doc">Gang of Four book</span></a></p>
+<div class="admonition-verdict admonition">
+<p class="first admonition-title">Verdict</p>
+<p class="last">Python programmers almost never implement the Singleton Pattern
+as described in the <a class="reference internal" href="../"><span class="doc">Gang of Four book</span></a>,
+whose Singleton class forbids normal instantiation
+and instead offers a class method that returns the singleton instance.
+Python is more elegant,
+and lets a class continue to support the normal syntax for instantiation
+while defining a custom <code class="docutils literal notranslate"><span class="pre">__new__()</span></code> method
+that returns the singleton instance.
+But an even more Pythonic approach,
+if your design forces you to offer global access to a singleton object,
+is to use <a class="reference internal" href="../../python/module-globals/"><span class="doc">The Global Object Pattern</span></a> instead.</p>
+</div>
+<div class="section" id="disambiguation">
+<h2>Disambiguation<a class="headerlink" href="#disambiguation" title="Permalink to this headline">¶</a></h2>
+<p>Python was already using the term <em>singleton</em>
+before the “Singleton Pattern” was defined by
+the object oriented design pattern community.
+So we should start by distinguishing the several meanings
+of “singleton” in Python.</p>
+<ol class="arabic simple">
+<li>A tuple of length one is called a <em>singleton.</em>
+While this definition might surprise some programmers,
+it reflects the original definition of a singleton in mathematics:
+a set containing exactly one element.
+The Python Tutorial itself introduces newcomers to this definition
+when its chapter on <a class="reference external" href="https://docs.python.org/3/tutorial/datastructures.html">Data Structures</a>
+calls a one-element tuple a “singleton”
+and the word continues to be used in that sense
+through the rest of Python’s documentation.
+When the <a class="reference external" href="https://docs.python.org/3/extending/extending.html#calling-python-functions-from-c">Extending and Embedding</a>
+guide says,
+“To call the Python function … with one argument,
+pass a singleton tuple,”
+it means a tuple containing exactly one item.</li>
+<li>Modules are “singletons” in Python
+because <code class="docutils literal notranslate"><span class="pre">import</span></code> only creates a single copy of each module;
+subsequent imports of the same name keep returning the same module object.
+For example,
+when the <a class="reference external" href="https://docs.python.org/3/c-api/module.html">Module Objects</a>
+chapter of the Python/C API Reference Manual
+asserts that “Single-phase initialization creates singleton modules,”
+it means by a “singleton module” a module
+for which only one object is ever created.</li>
+<li>A “singleton” is a class instance that has been assigned a global name
+through <a class="reference internal" href="../../python/module-globals/"><span class="doc">The Global Object Pattern</span></a>.
+For example, the official Python Programming FAQ
+answers the question
+<a class="reference external" href="https://docs.python.org/3/faq/programming.html#how-do-i-share-global-variables-across-modules">“How do I share global variables across modules?”</a>
+with the assertion that in Python
+“using a module is also the basis for implementing the Singleton design” —
+because not only can a module’s global namespace store constants
+(the FAQ’s example is <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">0</span></code> shared between several modules),
+but mutable class instances as well.</li>
+<li>Individual flyweight objects
+that are examples of <a class="reference internal" href="../flyweight/"><span class="doc">The Flyweight Pattern</span></a>
+are often called “singleton” objects by Python programmers.
+For example, a comment inside the Standard Library’s <code class="docutils literal notranslate"><span class="pre">itertoolsmodule.c</span></code>
+asserts that “CPython’s empty tuple is a singleton” —
+meaning that the Python interpreter
+only ever creates a single empty tuple object,
+which <code class="docutils literal notranslate"><span class="pre">tuple()</span></code> returns over and over again
+every time it’s passed a zero-length sequence.
+A&nbsp;comment in <code class="docutils literal notranslate"><span class="pre">marshal.c</span></code> similarly refers
+to the “empty frozenset singleton.”
+But neither of these singleton objects
+is an example of the Gang of Four’s Singleton Pattern,
+because neither object is the sole instance of its class:
+<code class="docutils literal notranslate"><span class="pre">tuple</span></code> lets you build other tuples besides the empty tuple,
+and <code class="docutils literal notranslate"><span class="pre">frozenset</span></code> lets you build other frozen sets.
+Similarly, the <code class="docutils literal notranslate"><span class="pre">True</span></code> and <code class="docutils literal notranslate"><span class="pre">False</span></code> objects are a pair of flyweights,
+not examples of the Singleton Pattern,
+because neither is the sole instance of <code class="docutils literal notranslate"><span class="pre">bool</span></code>.</li>
+<li>Finally, Python programmers on a few rare occasions
+do actually mean “The Singleton Pattern”
+when they call an object a “singleton”:
+the lone object returned by its class
+every time the class is called.</li>
+</ol>
+<p>The Python&nbsp;2 Standard Library included no examples of the Singleton Pattern.
+While it did feature singleton objects like <code class="docutils literal notranslate"><span class="pre">None</span></code> and <code class="docutils literal notranslate"><span class="pre">Ellipsis</span></code>,
+the language provided access to them through the more Pythonic
+<a class="reference internal" href="../../python/module-globals/"><span class="doc">Global Object Pattern</span></a>
+by giving them names in the <code class="docutils literal notranslate"><span class="pre">__builtin__</span></code> module.
+But their classes were not callable:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="go">&lt;type &#39;NoneType&#39;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">NoneType</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">NoneType</span><span class="p">()</span>
+<span class="go">TypeError: cannot create &#39;NoneType&#39; instances</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="bp">Ellipsis</span><span class="p">)()</span>
+<span class="go">TypeError: cannot create &#39;ellipsis&#39; instances</span>
+</pre></div>
+</div>
+<p>In Python&nbsp;3, however, the classes were upgraded to use the Singleton Pattern:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">NoneType</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">NoneType</span><span class="p">())</span>
+<span class="go">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="bp">Ellipsis</span><span class="p">)()</span>
+<span class="go">Ellipsis</span>
+</pre></div>
+</div>
+<p>This makes life easier for programmers
+who need a quick callable that always returns <code class="docutils literal notranslate"><span class="pre">None</span></code>,
+though such occasions are rare.
+In most Python projects these classes are never called
+and the benefit remains purely theoretical.
+When Python programmers need the <code class="docutils literal notranslate"><span class="pre">None</span></code> object
+they use <a class="reference internal" href="../../python/module-globals/"><span class="doc">The Global Object Pattern</span></a>
+and simply type its name.</p>
+</div>
+<div class="section" id="the-gang-of-fours-implementation">
+<h2>The Gang of Four’s implementation<a class="headerlink" href="#the-gang-of-fours-implementation" title="Permalink to this headline">¶</a></h2>
+<p>The C++ language that the Gang of Four were targeting
+imposed a distinct syntax on object creation,
+that looked something like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Object creation in a language</span>
+<span class="c1"># that has a “new” keyword.</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">new</span> <span class="n">Logger</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>A line of C++ that says <code class="docutils literal notranslate"><span class="pre">new</span></code> always creates a new class instance —
+it never returns a singleton.
+In the presence of this special syntax,
+what were their options for offering singleton objects?</p>
+<ol class="arabic simple">
+<li>The Gang of Four did not take the easy way out
+and use <a class="reference internal" href="../../python/module-globals/"><span class="doc">The Global Object Pattern</span></a>
+because it did not work particularly well
+in early versions of the C++ language.
+There, global names all shared a single crowded global namespace,
+so elaborate naming conventions were necessary
+to prevent names from different libraries from colliding.
+The Gang judged that adding both a class and its singleton instance
+to the crowded global namespace would be excessive.
+And since C++ programmers couldn’t control the order
+in which global objects were initialized,
+no global object could depend on being able to call any other,
+so the responsibility of initializing globals
+often fell on client code.</li>
+<li>There was no way to override the meaning of <code class="docutils literal notranslate"><span class="pre">new</span></code> in C++,
+so an alternative syntax was necessary
+if all clients were to receive the same object.
+It was, though, at least possible to make it a compile-time error
+for client code to call <code class="docutils literal notranslate"><span class="pre">new</span></code>
+by marking the class constructor as either <code class="docutils literal notranslate"><span class="pre">protected</span></code> or <code class="docutils literal notranslate"><span class="pre">private</span></code>.</li>
+<li>So the Gang of Four pivoted to a class method
+that would return the class’s singleton object.
+Unlike a global function,
+a class method avoided adding yet another name to the global namespace,
+and unlike a static method,
+it could support subclasses that were singletons as well.</li>
+</ol>
+<p>How could Python code illustrate their approach?
+Python lacks the complications of <code class="docutils literal notranslate"><span class="pre">new</span></code>, <code class="docutils literal notranslate"><span class="pre">protected</span></code>, and <code class="docutils literal notranslate"><span class="pre">private</span></code>.
+An alternative is to raise an exception in <code class="docutils literal notranslate"><span class="pre">__init__()</span></code>
+to make normal object instantiation impossible.
+The class method can then use a dunder method trick
+to create the object without triggering the exception:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># What the Gang of Four’s original Singleton Pattern</span>
+<span class="c1"># might look like in Python.</span>
+
+<span class="k">class</span> <span class="nc">Logger</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">_instance</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Call instance() instead&#39;</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">instance</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Creating new instance&#39;</span><span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+            <span class="c1"># Put any initialization here.</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span>
+</pre></div>
+</div>
+<p>This successfully prevents clients
+from creating new instances by calling the class:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">log</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Traceback (most recent call last):
+  ...
+RuntimeError: Call instance() instead
+</pre></div>
+</div>
+<p>Instead, callers are instructed to use the <code class="docutils literal notranslate"><span class="pre">instance()</span></code> class method,
+which creates and returns an object:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">log1</span> <span class="o">=</span> <span class="n">Logger</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">log1</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Creating new instance
+&lt;Logger object at 0x7f0ff5e7c080&gt;
+</pre></div>
+</div>
+<p>Subsequent calls to <code class="docutils literal notranslate"><span class="pre">instance()</span></code> return the singleton
+without repeating the initialization step
+(as we can see from the fact that “Creating new instance” isn’t printed again),
+exactly as the Gang of Four intended:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">log2</span> <span class="o">=</span> <span class="n">Logger</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">log2</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Are they the same object?&#39;</span><span class="p">,</span> <span class="n">log1</span> <span class="ow">is</span> <span class="n">log2</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;Logger object at 0x7f0ff5e7c080&gt;
+Are they the same object? True
+</pre></div>
+</div>
+<p>There are more complicated schemes that I can imagine
+for implementing the original Gang of Four class method in Python,
+but I think the above example does the best job
+of illustrating the original scheme with the least magic possible.
+Since the Gang of Four’s pattern is not a good fit for Python anyway,
+I’ll resist the temptation to iterate on it further,
+and instead move on to how the pattern is best supported in Python.</p>
+</div>
+<div class="section" id="a-more-pythonic-implementation">
+<h2>A more Pythonic implementation<a class="headerlink" href="#a-more-pythonic-implementation" title="Permalink to this headline">¶</a></h2>
+<p>In one sense,
+Python started out better prepared than C++ for the Singleton Pattern,
+because Python lacks a <code class="docutils literal notranslate"><span class="pre">new</span></code> keyword
+that forces a new object to be created.
+Instead, objects are created by invoking a callable,
+which imposes no syntactic limitation
+on what operation the callable really performs:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">log</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>To let authors take control of calls to a class,
+Python&nbsp;2.4 added the <code class="docutils literal notranslate"><span class="pre">__new__()</span></code> dunder method
+to support alternative creational patterns
+like the Singleton Pattern and <a class="reference internal" href="../flyweight/"><span class="doc">The Flyweight Pattern</span></a>.</p>
+<p>The Web is replete with Singleton Pattern recipes featuring <code class="docutils literal notranslate"><span class="pre">__new__()</span></code>
+that each propose a more or less complicated mechanism
+for working around the method’s biggest quirk:
+the fact that <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> always gets called on the return value,
+whether the object that’s being returned is new or not.
+To make my own example simple,
+I will simply not define an <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> method
+and thus avoid having to work around it:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Straightforward implementation of the Singleton Pattern</span>
+
+<span class="k">class</span> <span class="nc">Logger</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">_instance</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Creating the object&#39;</span><span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Logger</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+            <span class="c1"># Put any initialization here.</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span>
+</pre></div>
+</div>
+<p>The object is created on the first call to the class:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">log1</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">log1</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Creating the object
+&lt;Logger object at 0x7fa8e9cf7f60&gt;
+</pre></div>
+</div>
+<p>But the second call returns the same instance.
+The message “Creating the object” does not print,
+nor is a different object returned:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">log2</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">log2</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Are they the same object?&#39;</span><span class="p">,</span> <span class="n">log1</span> <span class="ow">is</span> <span class="n">log2</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;Logger object at 0x7fa8e9cf7f60&gt;
+Are they the same object? True
+</pre></div>
+</div>
+<p>The example above opts for simplicity,
+at the expense of doing the <code class="docutils literal notranslate"><span class="pre">cls._instance</span></code> attribute lookup twice
+in the common case.
+For programmers who cringe at such waste,
+the result can of course be assigned a name
+and re-used in the return statement.
+And various other improvements can be imagined
+that would result in faster bytecode.
+But however elaborately tweaked,
+the above pattern is the basis of every Python class
+that hides a singleton object
+behind what reads like normal class instantiation.</p>
+</div>
+<div class="section" id="verdict">
+<h2>Verdict<a class="headerlink" href="#verdict" title="Permalink to this headline">¶</a></h2>
+<p>While the Gang of Four’s original Singleton Pattern is a poor fit
+for a language like Python
+that lacks the concepts of <code class="docutils literal notranslate"><span class="pre">new</span></code>, <code class="docutils literal notranslate"><span class="pre">private</span></code>, and <code class="docutils literal notranslate"><span class="pre">protected</span></code>,
+it’s not as easy to dismiss the pattern when it’s built atop <code class="docutils literal notranslate"><span class="pre">__new__()</span></code> —
+after all, singletons were part of the reason
+the <code class="docutils literal notranslate"><span class="pre">__new__()</span></code> dunder method was introduced!</p>
+<p>But the Singleton Pattern in Python does suffer from several drawbacks.</p>
+<p>A first objection is that the Singleton Pattern’s implementation
+is difficult for many Python programmers to read.
+The alternative <a class="reference internal" href="../../python/module-globals/"><span class="doc">Global Object Pattern</span></a>
+is easy to read:
+it’s simply the familiar assignment statement,
+placed up at a module’s top level.
+But a Python programmer reading a <code class="docutils literal notranslate"><span class="pre">__new__()</span></code> method for the first time
+is probably going to have to stop and look for documentation
+to understand what’s going on.</p>
+<p>A second objection is that the Singleton Pattern
+makes calls to the class, like <code class="docutils literal notranslate"><span class="pre">Logger()</span></code>, misleading for readers.
+Unless the designer has put “Singleton”
+or some other hint in the class name,
+and the reader knows design patterns well enough to understand the hint,
+the code will read as though a new instance is being created and returned.</p>
+<p>A third objection is that the Singleton Pattern forces a design commitment
+that <a class="reference internal" href="../../python/module-globals/"><span class="doc">The Global Object Pattern</span></a> does not.
+Offering a global object still leaves a programmer free
+to create other instances of the class —
+which can be particularly helpful for tests,
+letting them each test a completely separate object
+without needing to reset a shared object back to a known good state.
+But the Singleton Pattern makes additional instances impossible.
+(Unless the caller is willing to stoop to monkey patching;
+or temporarily modifying <code class="docutils literal notranslate"><span class="pre">_instance</span></code> to subvert the logic in <code class="docutils literal notranslate"><span class="pre">__new__()</span></code>;
+or creating a subclass that replaces the method.
+But a pattern you have to work around
+is generally a pattern you should avoid.)</p>
+<p>Why, then, would you use the Singleton Pattern in Python?</p>
+<p>The one situation that would really demand the pattern
+would be an existing class that,
+because of a new requirement,
+will now operate best as a single instance.
+If it’s not possible to migrate all client code
+to stop calling the class directly
+and start using a global object,
+then the Singeton Pattern would be a natural approach
+to pivoting to a singleton while preserving the old syntax.</p>
+<p>But, otherwise, the pattern is best avoided
+in favor of following the advice
+of the <a class="reference external" href="https://docs.python.org/3/faq/programming.html#how-do-i-share-global-variables-across-modules">official Python FAQ</a>
+and using the <a class="reference internal" href="../../python/module-globals/"><span class="doc">The Global Object Pattern</span></a>.</p>
+</div>
+</div>
+
+    </article>
+    <hr>
+    <p class="copyright">
+      © 2018–2020 <a href="http://rhodesmill.org/brandon/">Brandon Rhodes</a>
+    </p>
+  </body>
+</html>
