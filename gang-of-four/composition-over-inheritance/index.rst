@@ -166,6 +166,7 @@ Here are adapters for each of the other two outputs:
 .. testcode::
 
     import socket
+    import syslog
 
     class FileLikeSocket:
         def __init__(self, sock):
