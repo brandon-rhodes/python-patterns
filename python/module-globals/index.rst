@@ -331,15 +331,11 @@ they inexplicably specify it as a Python list.
 It is more elegant to use a tuple.
 
 Beyond these official dunder constants,
-some modules —
-despite unattractive how many people find dunder names —
-indulge in the creation of even more.
+some modules add even more.
 Assignments to names like ``__author__`` and ``__version__``
 are scattered across the Standard Library and beyond.
-While they don’t appear consistently enough
-for tooling can assume their presence,
-occasional readers probably find them informative,
-and they’re easier to get to than official package metadata.
+Tools tend to ignore these non-standard names,
+but a human reader might occasionally find them informative.
 
 Beware that there does not seem to be agreement,
 even within the Standard Library,
