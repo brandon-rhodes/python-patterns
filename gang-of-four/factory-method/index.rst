@@ -90,7 +90,7 @@ and (b) if users will normally want to at least customize
 the parameters with which it is instantiated,
 you should strongly consider Dependency Injection.
 In that case, you might want to read Miško Hevery’s
-`2008 post about dependency injection <http://misko.hevery.com/2008/10/21/dependency-injection-myth-reference-passing/>`_
+`2008 post about dependency injection <https://web.archive.org/web/20230321074829/http://misko.hevery.com/2008/10/21/dependency-injection-myth-reference-passing/>`_
 for an important note about the dangers
 of applying Dependency Injection halfway!
 
