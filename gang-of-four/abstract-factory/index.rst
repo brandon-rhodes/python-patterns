@@ -281,6 +281,7 @@ And here is an updated loader that uses this factory:
 .. testcode::
 
     class Loader(object):
+        @staticmethod
         def load(string, factory):
             sequence = factory.build_sequence()
             for substring in string.split(','):
