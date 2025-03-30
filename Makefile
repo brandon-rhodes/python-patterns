@@ -227,7 +227,9 @@ dummy:
 	@echo "Build finished. Dummy builder generates no files."
 
 .PHONY: sync
-sync: dirhtml
+sync:
+	rm -rf _build/
+	make dirhtml
 	mkdir -p docs
 	cp -ru \
 		_build/dirhtml/fowler-refactoring \
