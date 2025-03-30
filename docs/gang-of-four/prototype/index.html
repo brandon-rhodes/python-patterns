@@ -16,12 +16,12 @@
     </p>
     
     <article>
-      <div class="section" id="the-prototype-pattern">
-<h1>The Prototype Pattern<a class="headerlink" href="#the-prototype-pattern" title="Permalink to this headline">¶</a></h1>
+      <section id="the-prototype-pattern">
+<h1>The Prototype Pattern<a class="headerlink" href="#the-prototype-pattern" title="Link to this heading">¶</a></h1>
 <p><em>A “Creational Pattern” from the</em> <a class="reference internal" href="../"><span class="doc">Gang of Four book</span></a></p>
 <div class="admonition-verdict admonition">
-<p class="first admonition-title">Verdict</p>
-<p class="last">The Prototype pattern isn’t necessary
+<p class="admonition-title">Verdict</p>
+<p>The Prototype pattern isn’t necessary
 in a language powerful enough to support first-class functions and classes.</p>
 </div>
 <p>It is almost embarrassing
@@ -33,8 +33,8 @@ We will define the problem,
 list several Pythonic solutions,
 and finish by studying how the Gang of Four
 solved the same problem under more onerous constraints.</p>
-<div class="section" id="the-problem">
-<h2>The problem<a class="headerlink" href="#the-problem" title="Permalink to this headline">¶</a></h2>
+<section id="the-problem">
+<h2>The problem<a class="headerlink" href="#the-problem" title="Link to this heading">¶</a></h2>
 <p>The Prototype Pattern suggests a mechanism
 by which a caller can provide a framework
 with a menu of classes to instantiate
@@ -43,18 +43,18 @@ or some other runtime source of dynamic requests —
 selects the classes from a menu of choices.</p>
 <p>The problem would be a much simpler one
 if none of the classes in the menu needed <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> arguments:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Sharp</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Sharp</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="s2">&quot;The symbol ♯.&quot;</span>
 
-<span class="k">class</span> <span class="nc">Flat</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Flat</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="s2">&quot;The symbol ♭.&quot;</span>
 </pre></div>
 </div>
 <p>Instead, the Prototype pattern is called into play
 when classes will need to be instantiated that require arguments:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Note</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Note</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="s2">&quot;Musical note 1 ÷ `fraction` measures long.&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fraction</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fraction</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fraction</span> <span class="o">=</span> <span class="n">fraction</span>
 </pre></div>
 </div>
@@ -63,9 +63,9 @@ supplying a framework
 with a menu of classes
 that will need to be instantiated with pre-specified argument lists —
 that the Prototype pattern is designed to address.</p>
-</div>
-<div class="section" id="pythonic-solutions">
-<h2>Pythonic solutions<a class="headerlink" href="#pythonic-solutions" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="pythonic-solutions">
+<h2>Pythonic solutions<a class="headerlink" href="#pythonic-solutions" title="Link to this heading">¶</a></h2>
 <p>Python offers several possible mechanisms
 for supplying a framework with the classes we want to instantiate
 and the arguments we want them instantiated with.</p>
@@ -135,7 +135,7 @@ for each item,
 which packages together a callable
 with both positional and keywords arguments
 that will be supplied when the partial itself is later called:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
 
 <span class="c1"># Keyword arguments for illustration only;</span>
 <span class="c1"># in this case could instead write ‘partial(Note, 1)’</span>
@@ -160,9 +160,9 @@ because classes and functions in Python are first-class
 and are therefore eligible to be passed as arguments
 and stored in data structures
 just like any other objects.</p>
-</div>
-<div class="section" id="implementing">
-<h2>Implementing<a class="headerlink" href="#implementing" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="implementing">
+<h2>Implementing<a class="headerlink" href="#implementing" title="Link to this heading">¶</a></h2>
 <p>But the Gang of Four
 did not have the luxury of such easy circumstances
 as Python programmers enjoy.
@@ -177,19 +177,19 @@ and then supply those arguments when they are asked for a new object:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># What the Prototype pattern avoids:</span>
 <span class="c1"># needing one factory for every class.</span>
 
-<span class="k">class</span> <span class="nc">NoteFactory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fraction</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">NoteFactory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fraction</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fraction</span> <span class="o">=</span> <span class="n">fraction</span>
 
-    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Note</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fraction</span><span class="p">)</span>
 
-<span class="k">class</span> <span class="nc">SharpFactory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SharpFactory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Sharp</span><span class="p">()</span>
 
-<span class="k">class</span> <span class="nc">FlatFactory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FlatFactory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Flat</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -215,22 +215,22 @@ with exactly the same arguments it received:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The Prototype pattern: teach each object</span>
 <span class="c1"># instance how to build copies of itself.</span>
 
-<span class="k">class</span> <span class="nc">Note</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Note</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="s2">&quot;Musical note 1 ÷ `fraction` measures long.&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fraction</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fraction</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fraction</span> <span class="o">=</span> <span class="n">fraction</span>
 
-    <span class="k">def</span> <span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Note</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fraction</span><span class="p">)</span>
 
-<span class="k">class</span> <span class="nc">Sharp</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Sharp</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="s2">&quot;The symbol ♯.&quot;</span>
-    <span class="k">def</span> <span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Sharp</span><span class="p">()</span>
 
-<span class="k">class</span> <span class="nc">Flat</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Flat</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="s2">&quot;The symbol ♭.&quot;</span>
-    <span class="k">def</span> <span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Flat</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -246,8 +246,8 @@ but this clever simplification made it much easier
 for the Gang of Four to accomplish parametrized object creation
 in some of the underpowered object oriented languages
 that were popular last century.</p>
-</div>
-</div>
+</section>
+</section>
 
     </article>
     <hr>

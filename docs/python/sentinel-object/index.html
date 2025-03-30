@@ -16,30 +16,31 @@
     </p>
     
     <article>
-      <div class="section" id="the-sentinel-object-pattern">
-<h1>The Sentinel Object Pattern<a class="headerlink" href="#the-sentinel-object-pattern" title="Permalink to this headline">¶</a></h1>
+      <section id="the-sentinel-object-pattern">
+<h1>The Sentinel Object Pattern<a class="headerlink" href="#the-sentinel-object-pattern" title="Link to this heading">¶</a></h1>
 <p><em>A Python variation on the traditional Sentinel Value pattern</em></p>
 <div class="admonition-verdict admonition">
-<p class="first admonition-title">Verdict</p>
-<p class="last">The Sentinel Object pattern is a standard Pythonic approach
+<p class="admonition-title">Verdict</p>
+<p>The Sentinel Object pattern is a standard Pythonic approach
 that’s used both in the Standard Library and beyond.
 The pattern most often uses Python’s built-in <code class="docutils literal notranslate"><span class="pre">None</span></code> object,
 but in situations where <code class="docutils literal notranslate"><span class="pre">None</span></code> might be a useful value,
 a unique sentinel <code class="docutils literal notranslate"><span class="pre">object()</span></code> can be used instead
 to indicate missing or unspecified data.</p>
 </div>
-<div class="contents topic" id="contents">
+<nav class="contents" id="contents">
 <p class="topic-title">Contents:</p>
 <ul class="simple">
-<li><a class="reference internal" href="#the-sentinel-object-pattern" id="id1">The Sentinel Object Pattern</a><ul>
-<li><a class="reference internal" href="#sentinel-value" id="id2">Sentinel Value</a></li>
-<li><a class="reference internal" href="#the-null-pointer-pattern" id="id3">The Null Pointer Pattern</a></li>
-<li><a class="reference internal" href="#the-null-object-pattern" id="id4">The Null Object Pattern</a></li>
-<li><a class="reference internal" href="#sentinel-objects" id="id5">Sentinel Objects</a></li>
+<li><p><a class="reference internal" href="#the-sentinel-object-pattern" id="id1">The Sentinel Object Pattern</a></p>
+<ul>
+<li><p><a class="reference internal" href="#sentinel-value" id="id2">Sentinel Value</a></p></li>
+<li><p><a class="reference internal" href="#the-null-pointer-pattern" id="id3">The Null Pointer Pattern</a></p></li>
+<li><p><a class="reference internal" href="#the-null-object-pattern" id="id4">The Null Object Pattern</a></p></li>
+<li><p><a class="reference internal" href="#sentinel-objects" id="id5">Sentinel Objects</a></p></li>
 </ul>
 </li>
 </ul>
-</div>
+</nav>
 <p>Programming is easiest
 in problem domains where values are always specified:
 where everyone in the database is guaranteed to have a name,
@@ -52,8 +53,8 @@ where object attributes or whole objects go missing.
 What simple mechanisms are available
 to distinguish useful data
 from placeholders that indicate data is absent?</p>
-<div class="section" id="sentinel-value">
-<h2>Sentinel Value<a class="headerlink" href="#sentinel-value" title="Permalink to this headline">¶</a></h2>
+<section id="sentinel-value">
+<h2>Sentinel Value<a class="headerlink" href="#sentinel-value" title="Link to this heading">¶</a></h2>
 <p>The traditional Sentinel Value pattern
 will be familiar to Python programmers
 from the
@@ -83,7 +84,7 @@ This often saves a line of code and a bit of indentation:</p>
 <p>This is a classic example of a sentinel value.
 The value <code class="docutils literal notranslate"><span class="pre">-1</span></code> is simply an integer,
 just like the function’s other possible return values,
-but with a special meaning that has been agreed upon ahead of time&nbsp;—
+but with a special meaning that has been agreed upon ahead of time —
 and woe betide the program that is returned <code class="docutils literal notranslate"><span class="pre">-1</span></code>,
 forgets to check, and tries using it as an index into the string!
 The result will not be what the programmer intended.</p>
@@ -110,9 +111,9 @@ checks for the empty string replace checks for <code class="docutils literal not
 and the program no longer crashes
 when later code tries invoking a string method
 on what turns out to be <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-</div>
-<div class="section" id="the-null-pointer-pattern">
-<h2>The Null Pointer Pattern<a class="headerlink" href="#the-null-pointer-pattern" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="the-null-pointer-pattern">
+<h2>The Null Pointer Pattern<a class="headerlink" href="#the-null-pointer-pattern" title="Link to this heading">¶</a></h2>
 <p>The null pointer pattern is impossible in Python,
 but worth mentioning to outline the difference between Python
 and languages that complicate their data model
@@ -172,9 +173,9 @@ using only the single return value supported by C functions:</p>
 </div>
 <p>The exception itself is stored elsewhere
 and can be retrieved using the Python C API.</p>
-</div>
-<div class="section" id="the-null-object-pattern">
-<span id="null-object"></span><h2>The Null Object Pattern<a class="headerlink" href="#the-null-object-pattern" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="the-null-object-pattern">
+<span id="null-object"></span><h2>The Null Object Pattern<a class="headerlink" href="#the-null-object-pattern" title="Link to this heading">¶</a></h2>
 <p>“Null objects” are real, valid objects
 that happen to represent
 a blank value or an item that does not exist.
@@ -213,17 +214,17 @@ specifically designed to represent the idea of “no one”:</p>
 instead of <code class="docutils literal notranslate"><span class="pre">None</span></code>,
 and both kinds of code touching employee managers will benefit:</p>
 <ul class="simple">
-<li>Code that produces simple displays or summaries
+<li><p>Code that produces simple displays or summaries
 can simply print or tally the <code class="docutils literal notranslate"><span class="pre">NO_MANAGER</span></code> manager object
 as though it were a normal employee object.
 When code can run successfully against the Null Object,
-the need for a special <code class="docutils literal notranslate"><span class="pre">if</span></code> statement disappears.</li>
-<li>Code that does need to specially handle the case
+the need for a special <code class="docutils literal notranslate"><span class="pre">if</span></code> statement disappears.</p></li>
+<li><p>Code that does need to specially handle the case
 of an employee with no acting manager
 now becomes a bit more readable.
 Instead of using the generic <code class="docutils literal notranslate"><span class="pre">is</span> <span class="pre">None</span></code>
 it will perform the check with the specific <code class="docutils literal notranslate"><span class="pre">is</span> <span class="pre">NO_MANAGER</span></code>
-and will thereby gain a bit more readability.</li>
+and will thereby gain a bit more readability.</p></li>
 </ul>
 <p>While not appropriate in all situations —
 it can, for example, be difficult to design Null Objects
@@ -232,9 +233,9 @@ Null Objects appear even in the Python Standard Library:
 the <code class="docutils literal notranslate"><span class="pre">logging</span></code> module has a <code class="docutils literal notranslate"><span class="pre">NullHandler</span></code>
 which is a drop-in replacement for its other handlers
 but does no actual logging.</p>
-</div>
-<div class="section" id="sentinel-objects">
-<h2>Sentinel Objects<a class="headerlink" href="#sentinel-objects" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="sentinel-objects">
+<h2>Sentinel Objects<a class="headerlink" href="#sentinel-objects" title="Link to this heading">¶</a></h2>
 <p>Finally we come to the Sentinel Object pattern itself.</p>
 <p>The standard Python sentinel is the built-in <code class="docutils literal notranslate"><span class="pre">None</span></code> object,
 used wherever some alternative needs to be provided
@@ -275,11 +276,11 @@ from a function call that has not yet been cached:</p>
 </div>
 <p>This pattern occurs several times in the Standard Library.</p>
 <ul class="simple">
-<li>As shown above, <code class="docutils literal notranslate"><span class="pre">functools.lru_cache()</span></code> uses a sentinel object
-internally.</li>
-<li>The <code class="docutils literal notranslate"><span class="pre">bz2</span></code> module has a global <code class="docutils literal notranslate"><span class="pre">_sentinel</span></code> object.</li>
-<li>The <code class="docutils literal notranslate"><span class="pre">configparser</span></code> module has a sentinal <code class="docutils literal notranslate"><span class="pre">_UNSET</span></code>
-also defined as a module global.</li>
+<li><p>As shown above, <code class="docutils literal notranslate"><span class="pre">functools.lru_cache()</span></code> uses a sentinel object
+internally.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">bz2</span></code> module has a global <code class="docutils literal notranslate"><span class="pre">_sentinel</span></code> object.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">configparser</span></code> module has a sentinal <code class="docutils literal notranslate"><span class="pre">_UNSET</span></code>
+also defined as a module global.</p></li>
 </ul>
 <p>The second interesting circumstance that calls for a sentinel
 is when a function or method wants to know
@@ -307,8 +308,8 @@ described at the top of this page.
 The Sentinel Object is defined
 by its use of the Python <code class="docutils literal notranslate"><span class="pre">is</span></code> operator
 to detect whether the sentinel is present.</p>
-</div>
-</div>
+</section>
+</section>
 
     </article>
     <hr>

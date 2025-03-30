@@ -16,15 +16,15 @@
     </p>
     
     <article>
-      <div class="section" id="the-iterator-pattern">
-<h1>The Iterator Pattern<a class="headerlink" href="#the-iterator-pattern" title="Permalink to this headline">¶</a></h1>
+      <section id="the-iterator-pattern">
+<h1>The Iterator Pattern<a class="headerlink" href="#the-iterator-pattern" title="Link to this heading">¶</a></h1>
 <p><em>A “Behavioral Pattern” from the</em> <a class="reference internal" href="../"><span class="doc">Gang of Four book</span></a></p>
 <div class="admonition-verdict admonition">
-<p class="first admonition-title">Verdict</p>
+<p class="admonition-title">Verdict</p>
 <p>Python supports the Iterator Pattern
 at the most fundamental level available to a programming language:
 it’s built into Python’s syntax.</p>
-<p class="last">But to support not only the object-based Iterator Pattern
+<p>But to support not only the object-based Iterator Pattern
 but also its own legacy iteration protocol,
 Python relegates the actual iteration object protocol
 to a pair of dunder methods.
@@ -55,8 +55,8 @@ should be moved into an “iterator” object that,
 from the outside,
 simply yields one item after another
 without exposing the internals of how the data structure is designed.</p>
-<div class="section" id="iterating-with-the-for-loop">
-<h2>Iterating with the “for” loop<a class="headerlink" href="#iterating-with-the-for-loop" title="Permalink to this headline">¶</a></h2>
+<section id="iterating-with-the-for-loop">
+<h2>Iterating with the “for” loop<a class="headerlink" href="#iterating-with-the-for-loop" title="Link to this heading">¶</a></h2>
 <p>Python’s <code class="docutils literal notranslate"><span class="pre">for</span></code> loop
 abstracts the Iterator Pattern so thoroughly
 that most Python programmers are never even aware
@@ -128,9 +128,9 @@ inside of expressions —
 instead of going to the trouble of inventing
 a separate special-purpose syntax for inline iteration —
 makes the language simpler, easier to learn, and easier to remember.</p>
-</div>
-<div class="section" id="the-pattern-the-iterable-and-its-iterator">
-<h2>The pattern: the iterable and its iterator<a class="headerlink" href="#the-pattern-the-iterable-and-its-iterator" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="the-pattern-the-iterable-and-its-iterator">
+<h2>The pattern: the iterable and its iterator<a class="headerlink" href="#the-pattern-the-iterable-and-its-iterator" title="Link to this heading">¶</a></h2>
 <p>Let’s now step behind the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop
 and learn about the design pattern that powers it.
 The traditional Iterator Pattern involves three kinds of object.</p>
@@ -150,20 +150,20 @@ as the iterator of every other kind of container.</p>
 that let you step behind the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop
 and pull the levers of iteration yourself.</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">iter()</span></code> takes a container object as its argument
+<li><p><code class="docutils literal notranslate"><span class="pre">iter()</span></code> takes a container object as its argument
 and asks it to build and return a new iterator object.
 If the argument you pass isn’t actually a container,
-a <code class="docutils literal notranslate"><span class="pre">TypeError</span></code> is raised: <code class="docutils literal notranslate"><span class="pre">object</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">iterable</span></code>.</li>
-<li><code class="docutils literal notranslate"><span class="pre">next()</span></code> takes the iterator as its argument and,
+a <code class="docutils literal notranslate"><span class="pre">TypeError</span></code> is raised: <code class="docutils literal notranslate"><span class="pre">object</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">iterable</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">next()</span></code> takes the iterator as its argument and,
 each time it’s called,
 returns the next item from the container.
 Once the container has no more objects to return,
-the exception <code class="docutils literal notranslate"><span class="pre">StopIteration</span></code> is raised.</li>
+the exception <code class="docutils literal notranslate"><span class="pre">StopIteration</span></code> is raised.</p></li>
 </ul>
 <p>To manually reenact the previous section’s first <code class="docutils literal notranslate"><span class="pre">for</span></code> loop,
 we make a single call to <code class="docutils literal notranslate"><span class="pre">iter()</span></code>
 followed by four calls to <code class="docutils literal notranslate"><span class="pre">next()</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">it</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">some_primes</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">it</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">some_primes</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">it</span>
 <span class="go">&lt;list_iterator object at 0x7f072ffdb518&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">))</span>
@@ -174,7 +174,7 @@ followed by four calls to <code class="docutils literal notranslate"><span class
 <span class="go">5</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">))</span>
 <span class="gt">Traceback (most recent call last):</span>
-  <span class="c">...</span>
+<span class="w">  </span><span class="c">...</span>
 <span class="gr">StopIteration</span>
 </pre></div>
 </div>
@@ -228,7 +228,7 @@ had tried to support iteration using only a single internal counter,
 then the inner <code class="docutils literal notranslate"><span class="pre">for</span></code> loop would have used up all of the items
 and left the outer <code class="docutils literal notranslate"><span class="pre">for</span></code> loop without any further items to visit.
 Instead, we are given a separate iterator on each call to <code class="docutils literal notranslate"><span class="pre">iter()</span></code>.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">it1</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">sides</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">it1</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">sides</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">it2</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">sides</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">it1</span>
 <span class="go">&lt;list_iterator object at 0x7fa8b8b292b0&gt;</span>
@@ -245,9 +245,9 @@ under which an object might be operated on
 by several <code class="docutils literal notranslate"><span class="pre">for</span></code> loops at the same time,
 so each of those <code class="docutils literal notranslate"><span class="pre">for</span></code> loops will also need their own iterator
 to avoid throwing each other off track.</p>
-</div>
-<div class="section" id="a-twist-objects-which-are-their-own-iterator">
-<h2>A twist: objects which are their own iterator<a class="headerlink" href="#a-twist-objects-which-are-their-own-iterator" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="a-twist-objects-which-are-their-own-iterator">
+<h2>A twist: objects which are their own iterator<a class="headerlink" href="#a-twist-objects-which-are-their-own-iterator" title="Link to this heading">¶</a></h2>
 <p>Each time you pass a normal Python container
 like a list, set, or dictionary to <code class="docutils literal notranslate"><span class="pre">iter()</span></code>,
 you receive a new iterator object
@@ -263,7 +263,7 @@ Instead, it remembers its previous place in the file
 and continues yielding lines from where you previously left off.</p>
 <p>The fact that a file picks up where it left off
 can be used to loop over a file in phases.
-A&nbsp;simple example of a file format that’s composed of different sections
+A simple example of a file format that’s composed of different sections
 is the traditional UNIX mailbox file:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">From</span> <span class="n">jdoe</span><span class="nd">@machine</span><span class="o">.</span><span class="n">example</span> <span class="n">Fri</span> <span class="n">Nov</span> <span class="mi">21</span> <span class="mi">09</span><span class="p">:</span><span class="mi">55</span><span class="p">:</span><span class="mi">06</span> <span class="mi">1997</span>
 <span class="n">From</span><span class="p">:</span> <span class="n">John</span> <span class="n">Doe</span> <span class="o">&lt;</span><span class="n">jdoe</span><span class="nd">@machine</span><span class="o">.</span><span class="n">example</span><span class="o">&gt;</span>
@@ -287,7 +287,7 @@ and ends at either the next envelope <code class="docutils literal notranslate">
 or the end of the file.
 Here’s how we might parse the first message from a mailbox file
 using only <code class="docutils literal notranslate"><span class="pre">for</span></code> loops:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">parse_email</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">parse_email</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">envelope</span> <span class="o">=</span> <span class="n">line</span>
         <span class="k">break</span>
@@ -326,7 +326,7 @@ and preserve state between one <code class="docutils literal notranslate"><span 
 <p>We can see the answer by stepping behind the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop,
 calling <code class="docutils literal notranslate"><span class="pre">iter()</span></code> ourselves,
 and examining the result:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;email.txt&#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;email.txt&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">f</span>
 <span class="go">&lt;_io.TextIOWrapper name=&#39;email.txt&#39; mode=&#39;r&#39; encoding=&#39;UTF-8&#39;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">it1</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
@@ -407,7 +407,7 @@ are all advancing the same iterator
 along through the 3 items in the underlying list.
 The <code class="docutils literal notranslate"><span class="pre">for</span></code> loop works because the iterator object <code class="docutils literal notranslate"><span class="pre">it</span></code>
 returns itself when asked for its iterator:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">it</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">it</span>
 <span class="go">&lt;list_iterator object at 0x7f4fdce6c5f8&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">iter</span><span class="p">(</span><span class="n">it</span><span class="p">)</span>
 <span class="go">&lt;list_iterator object at 0x7f4fdce6c5f8&gt;</span>
@@ -437,25 +437,25 @@ as it originally did on an open file:</p>
 it’s better not to make your caller remember to pass an iterator.
 Instead, have them pass the container
 and call <code class="docutils literal notranslate"><span class="pre">iter()</span></code> yourself.</p>
-</div>
-<div class="section" id="implementing-an-iterable-and-iterator">
-<h2>Implementing an Iterable and Iterator<a class="headerlink" href="#implementing-an-iterable-and-iterator" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="implementing-an-iterable-and-iterator">
+<h2>Implementing an Iterable and Iterator<a class="headerlink" href="#implementing-an-iterable-and-iterator" title="Link to this heading">¶</a></h2>
 <p>How can a class implement the Iterator Pattern
 and plug in to Python’s native iteration mechanisms
 <code class="docutils literal notranslate"><span class="pre">for</span></code>, <code class="docutils literal notranslate"><span class="pre">iter()</span></code>, and <code class="docutils literal notranslate"><span class="pre">next()</span></code>?</p>
 <ul class="simple">
-<li>The container must offer an <code class="docutils literal notranslate"><span class="pre">__iter__()</span></code> method
+<li><p>The container must offer an <code class="docutils literal notranslate"><span class="pre">__iter__()</span></code> method
 that returns an iterator object.
-Supporting this method makes a container an <em>iterable</em>.</li>
-<li>Each iterator must offer a <code class="docutils literal notranslate"><span class="pre">__next__()</span></code> method
-(in old Python&nbsp;2 code, the spelling is <code class="docutils literal notranslate"><span class="pre">next()</span></code> without the dunder)
+Supporting this method makes a container an <em>iterable</em>.</p></li>
+<li><p>Each iterator must offer a <code class="docutils literal notranslate"><span class="pre">__next__()</span></code> method
+(in old Python 2 code, the spelling is <code class="docutils literal notranslate"><span class="pre">next()</span></code> without the dunder)
 that returns the next item from the container each time it is called.
-It should raise <code class="docutils literal notranslate"><span class="pre">StopIterator</span></code> when there are no further items.</li>
-<li>Remember the special case we learned about in the previous section —
+It should raise <code class="docutils literal notranslate"><span class="pre">StopIterator</span></code> when there are no further items.</p></li>
+<li><p>Remember the special case we learned about in the previous section —
 that some users pass iterators to a <code class="docutils literal notranslate"><span class="pre">for</span></code> loop
 instead of passing the underlying container?
 To cover this case, each iterator is also required
-to offer an <code class="docutils literal notranslate"><span class="pre">__iter__()</span></code> method that simply returns itself.</li>
+to offer an <code class="docutils literal notranslate"><span class="pre">__iter__()</span></code> method that simply returns itself.</p></li>
 </ul>
 <p>We can see all of these requirements working together
 by implementing our own simple iterator!</p>
@@ -464,29 +464,29 @@ be stored as persistent values inside the container,
 or even exist until <code class="docutils literal notranslate"><span class="pre">__next__()</span></code> is called.
 This lets us offer a very simple Iterator Pattern example
 without even implementing storage in the container:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">OddNumbers</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">OddNumbers</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="s2">&quot;An iterable object.&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maximum</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maximum</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">maximum</span> <span class="o">=</span> <span class="n">maximum</span>
 
-    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">OddIterator</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-<span class="k">class</span> <span class="nc">OddIterator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">OddIterator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="s2">&quot;An iterator.&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">container</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">container</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="n">container</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
 
-    <span class="k">def</span> <span class="fm">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">+=</span> <span class="mi">2</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">maximum</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">StopIteration</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span>
 
-    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span>
 </pre></div>
 </div>
@@ -528,9 +528,9 @@ It will work seamlessly with a <code class="docutils literal notranslate"><span 
 </div>
 <p>Three simple methods are all that’s needed
 to unlock access to Python’s syntax-level support for iteration.</p>
-</div>
-<div class="section" id="pythons-extra-level-of-indirection">
-<h2>Python’s extra level of indirection<a class="headerlink" href="#pythons-extra-level-of-indirection" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="pythons-extra-level-of-indirection">
+<h2>Python’s extra level of indirection<a class="headerlink" href="#pythons-extra-level-of-indirection" title="Link to this heading">¶</a></h2>
 <p>But, one question:
 why does Python even have <code class="docutils literal notranslate"><span class="pre">iter()</span></code> and <code class="docutils literal notranslate"><span class="pre">next()</span></code>?</p>
 <p>The standard Iteration Pattern,
@@ -546,7 +546,7 @@ and let users call them directly using the well-understood
 <p>Originally, Python’s <code class="docutils literal notranslate"><span class="pre">for</span></code> loop only supported containers
 that were integer-indexed, like the Python list and tuple.
 Its underlying operation looked something like this:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">some_primes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">some_primes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="go">2</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">some_primes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 <span class="go">3</span>
@@ -554,7 +554,7 @@ Its underlying operation looked something like this:</p>
 <span class="go">5</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">some_primes</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
 <span class="gt">Traceback (most recent call last):</span>
-  <span class="c">...</span>
+<span class="w">  </span><span class="c">...</span>
 <span class="gr">IndexError</span>: <span class="n">list index out of range</span>
 </pre></div>
 </div>
@@ -567,7 +567,7 @@ you had to first ask for a <code class="docutils literal notranslate"><span clas
 then iterate over the integer-indexed list object —
 because integer indexes were all the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop understood.</p>
 <p>When the time came for <a class="reference external" href="https://www.python.org/dev/peps/pep-0234/">PEP-234</a>
-to incorporate the Iterator Pattern into Python&nbsp;2.2,
+to incorporate the Iterator Pattern into Python 2.2,
 there was a problem.
 If the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop was now going to start calling
 <code class="docutils literal notranslate"><span class="pre">__iter__()</span></code> on the container it was given,
@@ -584,26 +584,26 @@ that the language features two iteration patterns —
 one legacy, and one the object based Iterator Pattern itself.
 The PEP decreed that:</p>
 <ul class="simple">
-<li>The <code class="docutils literal notranslate"><span class="pre">for</span></code> loop would now prefer the Iterator Pattern.
+<li><p>The <code class="docutils literal notranslate"><span class="pre">for</span></code> loop would now prefer the Iterator Pattern.
 If a container offered <code class="docutils literal notranslate"><span class="pre">__iter__()</span></code>,
-then the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop would use the iterator it returned.</li>
-<li>To support old containers,
+then the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop would use the iterator it returned.</p></li>
+<li><p>To support old containers,
 <code class="docutils literal notranslate"><span class="pre">for</span></code> would fall back to looking for a <code class="docutils literal notranslate"><span class="pre">__getitem__()</span></code> method and,
 if it existed,
 passing it the integers 0,1,2,… to receive items
-until it received an <code class="docutils literal notranslate"><span class="pre">IndexError</span></code>.</li>
-<li>To expose this mechanism to Python programmers
+until it received an <code class="docutils literal notranslate"><span class="pre">IndexError</span></code>.</p></li>
+<li><p>To expose this mechanism to Python programmers
 without every programmer needing to hand-implement
 this carefully crafted fallback themselves,
 <code class="docutils literal notranslate"><span class="pre">iter()</span></code> was introduced.
 It gives programmers access the underlying operation
 “create an iterator from an iterable”
 that would otherwise have only been natively available
-to the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop itself.</li>
-<li>Finally, <code class="docutils literal notranslate"><span class="pre">next()</span></code> was added in a later version of Python
+to the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop itself.</p></li>
+<li><p>Finally, <code class="docutils literal notranslate"><span class="pre">next()</span></code> was added in a later version of Python
 so that both halves of the Iterator Pattern —
 and not just the container half —
-would be symmetrically covered by builtins.</li>
+would be symmetrically covered by builtins.</p></li>
 </ul>
 <p>While they were at it,
 they also tossed an obscure convenience into <code class="docutils literal notranslate"><span class="pre">iter()</span></code>
@@ -613,8 +613,8 @@ I’ll recommend you read about it
 <a class="reference external" href="https://docs.python.org/3/library/functions.html#iter">in the Standard Libary documention</a>
 for <code class="docutils literal notranslate"><span class="pre">iter()</span></code> if you’re curious,
 and then experiment with it for yourself.</p>
-</div>
-</div>
+</section>
+</section>
 
     </article>
     <hr>

@@ -16,12 +16,12 @@
     </p>
     
     <article>
-      <div class="section" id="the-composition-over-inheritance-principle">
-<h1>The Composition Over Inheritance Principle<a class="headerlink" href="#the-composition-over-inheritance-principle" title="Permalink to this headline">¶</a></h1>
+      <section id="the-composition-over-inheritance-principle">
+<h1>The Composition Over Inheritance Principle<a class="headerlink" href="#the-composition-over-inheritance-principle" title="Link to this heading">¶</a></h1>
 <p><em>A principle from the</em> <a class="reference internal" href="../"><span class="doc">Gang of Four book</span></a></p>
 <div class="admonition-verdict admonition">
-<p class="first admonition-title">Verdict</p>
-<p class="last">In Python as in other programming languages,
+<p class="admonition-title">Verdict</p>
+<p>In Python as in other programming languages,
 this grand principle encourages software architects
 to escape from Object Orientation
 and enjoy the simpler practices
@@ -33,15 +33,16 @@ in its “Introduction” chapter.
 The principle is so important that they display it indented and in italics,
 like this:</p>
 <blockquote>
-<div><em>Favor object composition over class inheritance.</em></div></blockquote>
+<div><p><em>Favor object composition over class inheritance.</em></p>
+</div></blockquote>
 <p>Let’s take a single design problem
 and watch how this principle works itself out
 through several of the classic Gang of Four design patterns.
 Each design pattern will assemble simple classes,
 unburdened by inheritance,
 into an elegant runtime solution.</p>
-<div class="section" id="problem-the-subclass-explosion">
-<h2>Problem: the subclass explosion<a class="headerlink" href="#problem-the-subclass-explosion" title="Permalink to this headline">¶</a></h2>
+<section id="problem-the-subclass-explosion">
+<h2>Problem: the subclass explosion<a class="headerlink" href="#problem-the-subclass-explosion" title="Link to this heading">¶</a></h2>
 <p>A crucial weakness of inheritance as a design strategy
 is that a class often needs to be specialized
 along several different design axes at once,
@@ -57,33 +58,33 @@ so let’s use logging as our example.
 Imagine a base logging class
 that has gradually gained subclasses
 as developers needed to send log messages to new destinations.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">syslog</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">syslog</span>
 
 <span class="c1"># The initial class.</span>
 
-<span class="k">class</span> <span class="nc">Logger</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Logger</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="n">file</span>
 
-    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 
 <span class="c1"># Two more classes, that send messages elsewhere.</span>
 
-<span class="k">class</span> <span class="nc">SocketLogger</span><span class="p">(</span><span class="n">Logger</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sock</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SocketLogger</span><span class="p">(</span><span class="n">Logger</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sock</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sock</span> <span class="o">=</span> <span class="n">sock</span>
 
-    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">sendall</span><span class="p">((</span><span class="n">message</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">))</span>
 
-<span class="k">class</span> <span class="nc">SyslogLogger</span><span class="p">(</span><span class="n">Logger</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">priority</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SyslogLogger</span><span class="p">(</span><span class="n">Logger</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">priority</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">priority</span> <span class="o">=</span> <span class="n">priority</span>
 
-    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="n">syslog</span><span class="o">.</span><span class="n">syslog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priority</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -93,12 +94,12 @@ some users only want to see messages with the word “Error” in them,
 and a developer responds with a new subclass of <code class="docutils literal notranslate"><span class="pre">Logger</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># New design direction: filtering messages.</span>
 
-<span class="k">class</span> <span class="nc">FilteredLogger</span><span class="p">(</span><span class="n">Logger</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FilteredLogger</span><span class="p">(</span><span class="n">Logger</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span> <span class="o">=</span> <span class="n">pattern</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span> <span class="ow">in</span> <span class="n">message</span><span class="p">:</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 
@@ -130,7 +131,7 @@ But in the general case the application will wind up with 3×2=6 classes:</p>
 </pre></div>
 </div>
 <p>The total number of classes will increase geometrically
-if <em>m</em> and&nbsp;<em>n</em> both continue to grow.
+if <em>m</em> and <em>n</em> both continue to grow.
 This is the “proliferation of classes”
 and “explosion of subclasses”
 that the Gang of Four want to avoid.</p>
@@ -142,43 +143,43 @@ it would be accused of violating the “Single Responsibility Principle.”</p>
 <p>But how can we distribute
 the two features of message filtering and message output
 across different classes?</p>
-</div>
-<div class="section" id="solution-1-the-adapter-pattern">
-<h2>Solution #1: The Adapter Pattern<a class="headerlink" href="#solution-1-the-adapter-pattern" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="solution-1-the-adapter-pattern">
+<h2>Solution #1: The Adapter Pattern<a class="headerlink" href="#solution-1-the-adapter-pattern" title="Link to this heading">¶</a></h2>
 <p>One solution is the Adapter Pattern:
 to decide that the original logger class
 doesn’t need to be improved,
 because any mechanism for outputting messages
 can be wrapped up to look like the file object that the logger is expecting.</p>
 <ol class="arabic simple">
-<li>So we keep the original <code class="docutils literal notranslate"><span class="pre">Logger</span></code>.</li>
-<li>And we also keep the <code class="docutils literal notranslate"><span class="pre">FilteredLogger</span></code>.</li>
-<li>But instead of creating destination-specific subclasses,
+<li><p>So we keep the original <code class="docutils literal notranslate"><span class="pre">Logger</span></code>.</p></li>
+<li><p>And we also keep the <code class="docutils literal notranslate"><span class="pre">FilteredLogger</span></code>.</p></li>
+<li><p>But instead of creating destination-specific subclasses,
 we adapt each destination to the behavior of a file
-and then pass the adapter to a <code class="docutils literal notranslate"><span class="pre">Logger</span></code> as its output file.</li>
+and then pass the adapter to a <code class="docutils literal notranslate"><span class="pre">Logger</span></code> as its output file.</p></li>
 </ol>
 <p>Here are adapters for each of the other two outputs:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">socket</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">socket</span>
 
-<span class="k">class</span> <span class="nc">FileLikeSocket</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sock</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FileLikeSocket</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sock</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sock</span> <span class="o">=</span> <span class="n">sock</span>
 
-    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_and_newline</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_and_newline</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">sendall</span><span class="p">(</span><span class="n">message_and_newline</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">flush</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">flush</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>
 
-<span class="k">class</span> <span class="nc">FileLikeSyslog</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">priority</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FileLikeSyslog</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">priority</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">priority</span> <span class="o">=</span> <span class="n">priority</span>
 
-    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_and_newline</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_and_newline</span><span class="p">):</span>
         <span class="n">message</span> <span class="o">=</span> <span class="n">message_and_newline</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="n">syslog</span><span class="o">.</span><span class="n">syslog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priority</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">flush</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">flush</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>
 </pre></div>
 </div>
@@ -214,9 +215,9 @@ that the <code class="docutils literal notranslate"><span class="pre">FileLikeSo
 in real life that adapter comes built-in to Python’s Standard Library.
 Simply call any socket’s <a class="reference external" href="https://docs.python.org/3/library/socket.html#socket.socket.makefile"><code class="docutils literal notranslate"><span class="pre">makefile()</span></code></a> method
 to receive a complete adapter that makes the socket look like a file.</p>
-</div>
-<div class="section" id="solution-2-the-bridge-pattern">
-<h2>Solution #2: The Bridge Pattern<a class="headerlink" href="#solution-2-the-bridge-pattern" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="solution-2-the-bridge-pattern">
+<h2>Solution #2: The Bridge Pattern<a class="headerlink" href="#solution-2-the-bridge-pattern" title="Link to this heading">¶</a></h2>
 <p>The Bridge Pattern splits a class’s behavior
 between an outer “abstraction” object that the caller sees
 and an “implementation” object that’s wrapped inside.
@@ -239,44 +240,44 @@ instead of also having to support a <code class="docutils literal notranslate"><
 that was usually a no-op.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The “abstractions” that callers will see.</span>
 
-<span class="k">class</span> <span class="nc">Logger</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Logger</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">handler</span> <span class="o">=</span> <span class="n">handler</span>
 
-    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 
-<span class="k">class</span> <span class="nc">FilteredLogger</span><span class="p">(</span><span class="n">Logger</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FilteredLogger</span><span class="p">(</span><span class="n">Logger</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span> <span class="o">=</span> <span class="n">pattern</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span> <span class="ow">in</span> <span class="n">message</span><span class="p">:</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 
 <span class="c1"># The “implementations” hidden behind the scenes.</span>
 
-<span class="k">class</span> <span class="nc">FileHandler</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FileHandler</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="n">file</span>
 
-    <span class="k">def</span> <span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 
-<span class="k">class</span> <span class="nc">SocketHandler</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sock</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SocketHandler</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sock</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sock</span> <span class="o">=</span> <span class="n">sock</span>
 
-    <span class="k">def</span> <span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">sendall</span><span class="p">((</span><span class="n">message</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">))</span>
 
-<span class="k">class</span> <span class="nc">SyslogHandler</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">priority</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SyslogHandler</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">priority</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">priority</span> <span class="o">=</span> <span class="n">priority</span>
 
-    <span class="k">def</span> <span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="n">syslog</span><span class="o">.</span><span class="n">syslog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priority</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -301,9 +302,9 @@ by composing an abstraction with an implementation.</p>
 the subclass explosion is avoided
 because two kinds of class are composed together at runtime
 without requiring either class to be extended.</p>
-</div>
-<div class="section" id="solution-3-the-decorator-pattern">
-<h2>Solution #3: The Decorator Pattern<a class="headerlink" href="#solution-3-the-decorator-pattern" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="solution-3-the-decorator-pattern">
+<h2>Solution #3: The Decorator Pattern<a class="headerlink" href="#solution-3-the-decorator-pattern" title="Link to this heading">¶</a></h2>
 <p>What if we wanted to apply two different filters to the same log?
 Neither of the above solutions supports multiple filters —
 say, one filtering by priority and the other matching a keyword.</p>
@@ -320,36 +321,36 @@ so that they all alike offer a <code class="docutils literal notranslate"><span 
 then we have arrived at the Decorator Pattern:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The loggers all perform real output.</span>
 
-<span class="k">class</span> <span class="nc">FileLogger</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FileLogger</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="n">file</span>
 
-    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 
-<span class="k">class</span> <span class="nc">SocketLogger</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sock</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SocketLogger</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sock</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sock</span> <span class="o">=</span> <span class="n">sock</span>
 
-    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">sendall</span><span class="p">((</span><span class="n">message</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">))</span>
 
-<span class="k">class</span> <span class="nc">SyslogLogger</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">priority</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SyslogLogger</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">priority</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">priority</span> <span class="o">=</span> <span class="n">priority</span>
 
-    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="n">syslog</span><span class="o">.</span><span class="n">syslog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priority</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
 
 <span class="c1"># The filter calls the same method it offers.</span>
 
-<span class="k">class</span> <span class="nc">LogFilter</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">logger</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LogFilter</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">logger</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span> <span class="o">=</span> <span class="n">pattern</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logger</span>
 
-    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span> <span class="ow">in</span> <span class="n">message</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </pre></div>
@@ -390,27 +391,27 @@ we can now stack several different filters atop the same log!</p>
 while filters can be stacked,
 output routines cannot be combined or stacked.
 Log messages can still only be written to one output.</p>
-</div>
-<div class="section" id="solution-4-beyond-the-gang-of-four-patterns">
-<h2>Solution #4: Beyond the Gang of Four patterns<a class="headerlink" href="#solution-4-beyond-the-gang-of-four-patterns" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="solution-4-beyond-the-gang-of-four-patterns">
+<h2>Solution #4: Beyond the Gang of Four patterns<a class="headerlink" href="#solution-4-beyond-the-gang-of-four-patterns" title="Link to this heading">¶</a></h2>
 <p>Python’s logging module wanted even more flexibility:
 not only to support multiple filters,
 but to support multiple outputs for a single stream of log messages.
 Based on the design of logging modules in other languages —
-see <a class="reference external" href="https://www.python.org/dev/peps/pep-0282/">PEP&nbsp;282</a>’s
+see <a class="reference external" href="https://www.python.org/dev/peps/pep-0282/">PEP 282</a>’s
 “Influences” section for the main inspirations —
 the Python logging module
 implements its own Composition Over Inheritance pattern.</p>
 <ol class="arabic simple">
-<li>The <code class="docutils literal notranslate"><span class="pre">Logger</span></code> class that callers interact with
+<li><p>The <code class="docutils literal notranslate"><span class="pre">Logger</span></code> class that callers interact with
 doesn’t itself implement either filtering or output.
-Instead, it maintains a list of filters and a list of handlers.</li>
-<li>For each log message,
+Instead, it maintains a list of filters and a list of handlers.</p></li>
+<li><p>For each log message,
 the logger calls each of its filters.
-The message is discarded if any filter rejects it.</li>
-<li>For each log message that’s accepted by all the filters,
+The message is discarded if any filter rejects it.</p></li>
+<li><p>For each log message that’s accepted by all the filters,
 the logger loops over its output handlers
-and asks every one of them to <code class="docutils literal notranslate"><span class="pre">emit()</span></code> the message.</li>
+and asks every one of them to <code class="docutils literal notranslate"><span class="pre">emit()</span></code> the message.</p></li>
 </ol>
 <p>Or, at least, that’s the core of the idea.
 The Standard Library’s logging is in fact more complicated.
@@ -431,47 +432,47 @@ might deserve both multiple filters <em>and</em> multiple outputs —
 to decouple filter classes and handler classes entirely:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># There is now only one logger.</span>
 
-<span class="k">class</span> <span class="nc">Logger</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">handlers</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Logger</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">handlers</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">filters</span> <span class="o">=</span> <span class="n">filters</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span> <span class="o">=</span> <span class="n">handlers</span>
 
-    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filters</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span>
                 <span class="n">h</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 
 <span class="c1"># Filters now know only about strings!</span>
 
-<span class="k">class</span> <span class="nc">TextFilter</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TextFilter</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span> <span class="o">=</span> <span class="n">pattern</span>
 
-    <span class="k">def</span> <span class="nf">match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span> <span class="ow">in</span> <span class="n">text</span>
 
 <span class="c1"># Handlers look like “loggers” did in the previous solution.</span>
 
-<span class="k">class</span> <span class="nc">FileHandler</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FileHandler</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="n">file</span>
 
-    <span class="k">def</span> <span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 
-<span class="k">class</span> <span class="nc">SocketHandler</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sock</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SocketHandler</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sock</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sock</span> <span class="o">=</span> <span class="n">sock</span>
 
-    <span class="k">def</span> <span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">sendall</span><span class="p">((</span><span class="n">message</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">))</span>
 
-<span class="k">class</span> <span class="nc">SyslogHandler</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">priority</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SyslogHandler</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">priority</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">priority</span> <span class="o">=</span> <span class="n">priority</span>
 
-    <span class="k">def</span> <span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="n">syslog</span><span class="o">.</span><span class="n">syslog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priority</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -521,9 +522,9 @@ Sometimes, yes, you will find an existing Design Pattern
 that’s a perfect fit for your problem —
 but if not,
 your design might be stronger if you move beyond them.</p>
-</div>
-<div class="section" id="dodge-if-statements">
-<h2>Dodge: “if” statements<a class="headerlink" href="#dodge-if-statements" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="dodge-if-statements">
+<h2>Dodge: “if” statements<a class="headerlink" href="#dodge-if-statements" title="Link to this heading">¶</a></h2>
 <p>I suspect that the above code has startled many readers.
 To a typical Python programmer,
 such heavy use of classes might look entirely contrived —
@@ -536,19 +537,19 @@ No!
 “Simple is better than complex.”
 Why add a class,
 when an <code class="docutils literal notranslate"><span class="pre">if</span></code> statement will work instead?
-A&nbsp;single logger class can gradually accrete conditionals
+A single logger class can gradually accrete conditionals
 until it handles all the same cases
 as our previous examples:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Each new feature as an “if” statement.</span>
 
-<span class="k">class</span> <span class="nc">Logger</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sock</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Logger</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sock</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span> <span class="o">=</span> <span class="n">pattern</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="n">file</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sock</span> <span class="o">=</span> <span class="n">sock</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">priority</span> <span class="o">=</span> <span class="n">priority</span>
 
-    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">message</span><span class="p">:</span>
                 <span class="k">return</span>
@@ -592,7 +593,7 @@ that will get a feature working.
 But let’s balance that temptation by making explicit what’s been lost
 by dodging Composition Over Inheritance:</p>
 <ol class="arabic simple">
-<li><strong>Locality.</strong>
+<li><p><strong>Locality.</strong>
 Reorganizing the code to use <code class="docutils literal notranslate"><span class="pre">if</span></code> statements
 hasn’t been an unmitigated win for readability.
 If you are tasked with improving or debugging one particular feature —
@@ -601,8 +602,8 @@ you will find that you can’t read its code all in one place.
 The code behind that single feature
 is scattered between the initializer’s parameter list,
 the initializer’s code,
-and the <code class="docutils literal notranslate"><span class="pre">log()</span></code> method itself.</li>
-<li><strong>Deletability.</strong>
+and the <code class="docutils literal notranslate"><span class="pre">log()</span></code> method itself.</p></li>
+<li><p><strong>Deletability.</strong>
 An underappreciated property of good design
 is that it makes deleting features easy.
 Perhaps only veterans of large and mature Python applications
@@ -621,8 +622,8 @@ with the <code class="docutils literal notranslate"><span class="pre">socket</sp
 Can it be removed?
 Not if we need to keep the list of positional parameters consistent —
 we would need to retain the parameter,
-but raise an exception if it’s ever used.</li>
-<li><strong>Dead code analysis.</strong>
+but raise an exception if it’s ever used.</p></li>
+<li><p><strong>Dead code analysis.</strong>
 Related to the previous point
 is the fact that when we use Composition Over Inheritance,
 dead code analyzers
@@ -632,8 +633,8 @@ But dead code analysis is often helpless to make a determination like
 “you can now remove all the attributes and <code class="docutils literal notranslate"><span class="pre">if</span></code> statements
 related to socket output,
 because no surviving call to the initializer
-passes anything for <code class="docutils literal notranslate"><span class="pre">socket</span></code> other than <code class="docutils literal notranslate"><span class="pre">None</span></code>.”</li>
-<li><strong>Testing.</strong>
+passes anything for <code class="docutils literal notranslate"><span class="pre">socket</span></code> other than <code class="docutils literal notranslate"><span class="pre">None</span></code>.”</p></li>
+<li><p><strong>Testing.</strong>
 One of the strongest signals about code health that our tests provide
 is how many lines of irrelevant code have to run
 before reaching the line under test.
@@ -649,8 +650,8 @@ with the right combination of several features
 merely to test one of them
 is an important warning sign,
 that might seem trivial in this small example
-but becomes crucial as a system grows larger.</li>
-<li><strong>Efficiency.</strong>
+but becomes crucial as a system grows larger.</p></li>
+<li><p><strong>Efficiency.</strong>
 I’m deliberately putting this point last,
 because readability and maintainability
 are generally more important concerns.
@@ -660,7 +661,7 @@ Even if you want a simple unfiltered log to a single file,
 every single message will be forced to run an <code class="docutils literal notranslate"><span class="pre">if</span></code> statement
 against every possible feature you could have enabled.
 The technique of composition, by contrast,
-only runs code for the features you’ve composed together.</li>
+only runs code for the features you’ve composed together.</p></li>
 </ol>
 <p>For all of these reasons,
 I suggest that the apparent simplicity of the <code class="docutils literal notranslate"><span class="pre">if</span></code> statement forest
@@ -668,9 +669,9 @@ is, from the point of view of software design, largely an illusion.
 The ability to read the logger top-to-bottom as a single piece of code
 comes at the cost of several other kinds of conceptual expense
 that will grow sharply with the size of the codebase.</p>
-</div>
-<div class="section" id="dodge-multiple-inheritance">
-<h2>Dodge: Multiple Inheritance<a class="headerlink" href="#dodge-multiple-inheritance" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="dodge-multiple-inheritance">
+<h2>Dodge: Multiple Inheritance<a class="headerlink" href="#dodge-multiple-inheritance" title="Link to this heading">¶</a></h2>
 <p>Some Python projects
 fall short of practicing Composition Over Inheritance
 because they are tempted to dodge the principle
@@ -690,34 +691,34 @@ can list both <code class="docutils literal notranslate"><span class="pre">Socke
 and inherit from both:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Our original example’s base class and subclasses.</span>
 
-<span class="k">class</span> <span class="nc">Logger</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Logger</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="n">file</span>
 
-    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 
-<span class="k">class</span> <span class="nc">SocketLogger</span><span class="p">(</span><span class="n">Logger</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sock</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SocketLogger</span><span class="p">(</span><span class="n">Logger</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sock</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sock</span> <span class="o">=</span> <span class="n">sock</span>
 
-    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">sendall</span><span class="p">((</span><span class="n">message</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">))</span>
 
-<span class="k">class</span> <span class="nc">FilteredLogger</span><span class="p">(</span><span class="n">Logger</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FilteredLogger</span><span class="p">(</span><span class="n">Logger</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span> <span class="o">=</span> <span class="n">pattern</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span> <span class="ow">in</span> <span class="n">message</span><span class="p">:</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 
 <span class="c1"># A class derived through multiple inheritance.</span>
 
-<span class="k">class</span> <span class="nc">FilteredSocketLogger</span><span class="p">(</span><span class="n">FilteredLogger</span><span class="p">,</span> <span class="n">SocketLogger</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">sock</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FilteredSocketLogger</span><span class="p">(</span><span class="n">FilteredLogger</span><span class="p">,</span> <span class="n">SocketLogger</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">sock</span><span class="p">):</span>
         <span class="n">FilteredLogger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">SocketLogger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sock</span><span class="p">)</span>
 
@@ -737,22 +738,22 @@ and inherit from both:</p>
 to our Decorator Pattern solution.
 In both cases:</p>
 <ul class="simple">
-<li>There’s a logger class for each kind of output
+<li><p>There’s a logger class for each kind of output
 (instead of our Adapter’s asymmetry
 between writing files directly
-but non-files through an adapter).</li>
-<li>The <code class="docutils literal notranslate"><span class="pre">message</span></code> preserves the exact value provided by the caller
+but non-files through an adapter).</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">message</span></code> preserves the exact value provided by the caller
 (instead of our Adapter’s habit
 of replacing it with a file-specific value
-by appending a newline).</li>
-<li>The filter and loggers are symmetric
+by appending a newline).</p></li>
+<li><p>The filter and loggers are symmetric
 in that they both implement the same method <code class="docutils literal notranslate"><span class="pre">log()</span></code>.
 (Our other solutions besides the Decorator
 had filter classes offering one method
-and output classes offering another).</li>
-<li>The filter never tries to produce output on its own but,
+and output classes offering another).</p></li>
+<li><p>The filter never tries to produce output on its own but,
 if a message survives filtering,
-defers the task of output to other code.</li>
+defers the task of output to other code.</p></li>
 </ul>
 <p>These close similarities
 with our earlier Decorator solution
@@ -763,7 +764,7 @@ Let’s sharpen the focus still further with a question:</p>
 <p><em>If we have thorough unit tests for both the logger and filter,
 how confident are we that they will work together?</em></p>
 <ol class="arabic">
-<li><p class="first">The success of the Decorator example
+<li><p>The success of the Decorator example
 depends only on the public behaviors of each class:
 that the <code class="docutils literal notranslate"><span class="pre">LogFilter</span></code> offers a <code class="docutils literal notranslate"><span class="pre">log()</span></code> method
 that in turn calls <code class="docutils literal notranslate"><span class="pre">log()</span></code> on the object it wraps
@@ -790,7 +791,7 @@ or else monkey patch to verify that <code class="docutils literal notranslate"><
 to guarantee that multiple inheritance keeps working
 as future developers work on the code.</p>
 </li>
-<li><p class="first">Multiple inheritance has introduced a new <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> method
+<li><p>Multiple inheritance has introduced a new <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> method
 because neither base class’s <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> method
 accepts enough arguments for a combined filter and logger.
 That new code needs to be tested,
@@ -819,7 +820,7 @@ The filter accepts its <code class="docutils literal notranslate"><span class="p
 the logger accepts its <code class="docutils literal notranslate"><span class="pre">sock</span></code>,
 and there is no possible conflict between the two.</p>
 </li>
-<li><p class="first">Finally,
+<li><p>Finally,
 it’s possible that two classes work fine on their own,
 but have class or instance attributes with the same name
 that will collide
@@ -853,15 +854,15 @@ can you make it safe for the application to use such classes at runtime.</p>
 <p>In addition to breaking the guarantees of unit testing,
 multiple inheritance involves at least three further liabilities.</p>
 <ol class="arabic simple" start="4">
-<li>Introspection is simple in the Decorator case.
+<li><p>Introspection is simple in the Decorator case.
 Simply <code class="docutils literal notranslate"><span class="pre">print(my_filter.logger)</span></code> or view that attribute in a debugger
 to see what sort of output logger is attached.
 In the case of multiple inheritance, however,
 you can only learn which filter and logger have been combined
 by examining the metadata of the class itself —
 either by reading its <code class="docutils literal notranslate"><span class="pre">__mro__</span></code>
-or subjecting the object to a series of <code class="docutils literal notranslate"><span class="pre">isinstance()</span></code> tests.</li>
-<li>It’s trivial in the Decorator case
+or subjecting the object to a series of <code class="docutils literal notranslate"><span class="pre">isinstance()</span></code> tests.</p></li>
+<li><p>It’s trivial in the Decorator case
 to take a live combination of a filter and logger
 and at runtime to swap in a different logger
 through assignment to the <code class="docutils literal notranslate"><span class="pre">.logger</span></code> attribute —
@@ -873,8 +874,8 @@ of overwriting the object’s class.
 While changing an object’s class at runtime
 is not impossible in a dynamic language like Python,
 it’s generally considered a symptom
-that software design has gone wrong.</li>
-<li>Finally,
+that software design has gone wrong.</p></li>
+<li><p>Finally,
 multiple inheritance provides no built-in mechanism
 to help the programmer order the base classes correctly.
 The <code class="docutils literal notranslate"><span class="pre">FilteredSocketLogger</span></code>
@@ -885,7 +886,7 @@ with putting third-party base classes in the right order.
 The Decorator pattern, by contrast,
 makes it obvious which way the classes compose:
 the filter’s <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> wants a <code class="docutils literal notranslate"><span class="pre">logger</span></code> object,
-but the logger’s <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> doesn’t ask for a <code class="docutils literal notranslate"><span class="pre">filter</span></code>.</li>
+but the logger’s <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> doesn’t ask for a <code class="docutils literal notranslate"><span class="pre">filter</span></code>.</p></li>
 </ol>
 <p>Multiple inheritance, then,
 incurs a number of liabilities
@@ -893,9 +894,9 @@ without adding a single advantage.
 At least in this example,
 solving a design problem with inheritance
 is strictly worse than a design based on composition.</p>
-</div>
-<div class="section" id="dodge-mixins">
-<h2>Dodge: Mixins<a class="headerlink" href="#dodge-mixins" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="dodge-mixins">
+<h2>Dodge: Mixins<a class="headerlink" href="#dodge-mixins" title="Link to this heading">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">FilteredSocketLogger</span></code> in the previous section
 needed its own custom <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> method
 because it needed to accept arguments for both of its base classes.
@@ -913,16 +914,16 @@ and then invite callers to customize the attribute directly,
 out-of-band of initialization:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Don’t accept a “pattern” during initialization.</span>
 
-<span class="k">class</span> <span class="nc">FilteredLogger</span><span class="p">(</span><span class="n">Logger</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FilteredLogger</span><span class="p">(</span><span class="n">Logger</span><span class="p">):</span>
     <span class="n">pattern</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 
-    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span> <span class="ow">in</span> <span class="n">message</span><span class="p">:</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 
 <span class="c1"># Multiple inheritance is now simpler.</span>
 
-<span class="k">class</span> <span class="nc">FilteredSocketLogger</span><span class="p">(</span><span class="n">FilteredLogger</span><span class="p">,</span> <span class="n">SocketLogger</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FilteredSocketLogger</span><span class="p">(</span><span class="n">FilteredLogger</span><span class="p">,</span> <span class="n">SocketLogger</span><span class="p">):</span>
     <span class="k">pass</span>  <span class="c1"># This subclass needs no extra code!</span>
 
 <span class="c1"># The caller can just set “pattern” directly.</span>
@@ -950,16 +951,16 @@ that lives entirely outside the class hierarchy
 with which multiple inheritance will combine it.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Simplify the filter by making it a mixin.</span>
 
-<span class="k">class</span> <span class="nc">FilterMixin</span><span class="p">:</span>  <span class="c1"># No base class!</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FilterMixin</span><span class="p">:</span>  <span class="c1"># No base class!</span>
     <span class="n">pattern</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 
-    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span> <span class="ow">in</span> <span class="n">message</span><span class="p">:</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 
 <span class="c1"># Multiple inheritance looks the same as above.</span>
 
-<span class="k">class</span> <span class="nc">FilteredLogger</span><span class="p">(</span><span class="n">FilterMixin</span><span class="p">,</span> <span class="n">FileLogger</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FilteredLogger</span><span class="p">(</span><span class="n">FilterMixin</span><span class="p">,</span> <span class="n">FileLogger</span><span class="p">):</span>
     <span class="k">pass</span>  <span class="c1"># Again, the subclass needs no extra code.</span>
 
 <span class="c1"># Works just fine.</span>
@@ -990,9 +991,9 @@ So while the mixin pattern
 does improve the readability and conceptual simplicity
 of multiple inheritance,
 it’s not a complete solution for its problems.</p>
-</div>
-<div class="section" id="dodge-building-classes-dynamically">
-<h2>Dodge: Building classes dynamically<a class="headerlink" href="#dodge-building-classes-dynamically" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="dodge-building-classes-dynamically">
+<h2>Dodge: Building classes dynamically<a class="headerlink" href="#dodge-building-classes-dynamically" title="Link to this heading">¶</a></h2>
 <p>As we saw in the previous two sections,
 neither traditional multiple inheritance nor mixins
 solve the Gang of Four’s problem
@@ -1001,7 +1002,7 @@ they merely avoid code duplication when two classes need to be combined.</p>
 <p>Multiple inheritance still requires, in the general case,
 “a proliferation of classes” with <em>m</em>×<em>n</em> class statements
 that each look like:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">FilteredSocketLogger</span><span class="p">(</span><span class="n">FilteredLogger</span><span class="p">,</span> <span class="n">SocketLogger</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">FilteredSocketLogger</span><span class="p">(</span><span class="n">FilteredLogger</span><span class="p">,</span> <span class="n">SocketLogger</span><span class="p">):</span>
     <span class="o">...</span>
 </pre></div>
 </div>
@@ -1057,8 +1058,8 @@ to build a <code class="docutils literal notranslate"><span class="pre">class</s
 and then pass it to <code class="docutils literal notranslate"><span class="pre">eval()</span></code>.</p>
 <p>But building classes on-the-fly carries severe liabilities.</p>
 <ul class="simple">
-<li>Readability suffers.
-A&nbsp;human reading the above snippet of code
+<li><p>Readability suffers.
+A human reading the above snippet of code
 will have to do extra work
 to determine what sort of object an instance of <code class="docutils literal notranslate"><span class="pre">cls</span></code> is.
 Also, many Python programmers
@@ -1066,8 +1067,8 @@ aren’t familiar with <code class="docutils literal notranslate"><span class="p
 and will need to stop and puzzle over its documentation.
 If they have difficulty with the novel concept
 that classes can be defined dynamically,
-they might still be confused.</li>
-<li>If a constructed class like <code class="docutils literal notranslate"><span class="pre">PatternFilteredFileLog</span></code>
+they might still be confused.</p></li>
+<li><p>If a constructed class like <code class="docutils literal notranslate"><span class="pre">PatternFilteredFileLog</span></code>
 is named in an exception or error message,
 the developer will probably be unhappy to discover
 that nothing comes up when they search the code for that class name.
@@ -1079,8 +1080,8 @@ and trying to determine which one generated the class.
 Sometimes developers have to resort
 to calling each method with bad arguments
 and using the line numbers in the resulting tracebacks
-to track down the base classes.</li>
-<li>Type introspection will, in the general case,
+to track down the base classes.</p></li>
+<li><p>Type introspection will, in the general case,
 fail for classes constructed dynamically at runtime.
 “Jump to class” shortcuts in your editor
 won’t have anywhere to take you
@@ -1091,13 +1092,13 @@ And type checking engines like
 and <a class="reference external" href="https://github.com/facebook/pyre-check">pyre-check</a>
 will be unlikely to offer the strong protections for your generated class
 that they’re able to provide
-for normal Python classes.</li>
-<li>The beautiful Jupyter Notebook feature <code class="docutils literal notranslate"><span class="pre">%autoreload</span></code>
+for normal Python classes.</p></li>
+<li><p>The beautiful Jupyter Notebook feature <code class="docutils literal notranslate"><span class="pre">%autoreload</span></code>
 possesses a nearly preternatural ability
 to detect and reload modified source code in a live Python interpreter.
 But it’s foiled, for example, by the multiple inheritance classes
 that <a class="reference external" href="https://github.com/matplotlib/matplotlib/blob/54b426397c0e7567edaee4f7f77036c2b8569573/lib/matplotlib/axes/_subplots.py#L180">matplotlib builds at runtime</a>
-through <code class="docutils literal notranslate"><span class="pre">type()</span></code> calls inside its <code class="docutils literal notranslate"><span class="pre">subplot_class_factory()</span></code>.</li>
+through <code class="docutils literal notranslate"><span class="pre">type()</span></code> calls inside its <code class="docutils literal notranslate"><span class="pre">subplot_class_factory()</span></code>.</p></li>
 </ul>
 <p>Once its liabilities are weighed,
 the attempt to use runtime class generation as a last-ditch maneuver
@@ -1106,8 +1107,8 @@ stands as a <em>reductio ad absurdum</em>
 of the entire project of dodging Composition Over Inheritance
 when you need an object’s behavior
 to vary over several independent axes.</p>
-</div>
-</div>
+</section>
+</section>
 
     </article>
     <hr>

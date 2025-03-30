@@ -16,12 +16,12 @@
     </p>
     
     <article>
-      <div class="section" id="the-composite-pattern">
-<h1>The Composite Pattern<a class="headerlink" href="#the-composite-pattern" title="Permalink to this headline">¶</a></h1>
+      <section id="the-composite-pattern">
+<h1>The Composite Pattern<a class="headerlink" href="#the-composite-pattern" title="Link to this heading">¶</a></h1>
 <p><em>A “Structural Pattern” from the</em> <a class="reference internal" href="../"><span class="doc">Gang of Four book</span></a></p>
 <div class="admonition-verdict admonition">
-<p class="first admonition-title">Verdict</p>
-<p class="last">The Composite Pattern can bring symmetry
+<p class="admonition-title">Verdict</p>
+<p>The Composite Pattern can bring symmetry
 not only to object hierarchies in Python,
 but even to hierarchies exposed by low-level system calls
 and high-level network applications.
@@ -31,7 +31,7 @@ You won’t be forced to inherit your container objects
 and the objects inside of them
 from a common parent class.
 Instead, you can build classes
-that share only a common interface&nbsp;rather than any implementation —
+that share only a common interface rather than any implementation —
 or that are simply duck typed to offer common behavior.</p>
 </div>
 <p>The Composite Pattern suggests
@@ -48,8 +48,8 @@ that we can begin by stepping back from Python
 and even from object-based programming,
 and looking at how the Composite Pattern works
 at the level of an operating system.</p>
-<div class="section" id="example-the-unix-file-system">
-<h2>Example: the UNIX file system<a class="headerlink" href="#example-the-unix-file-system" title="Permalink to this headline">¶</a></h2>
+<section id="example-the-unix-file-system">
+<h2>Example: the UNIX file system<a class="headerlink" href="#example-the-unix-file-system" title="Link to this heading">¶</a></h2>
 <p>The admirably pithy two-letter UNIX command <code class="docutils literal notranslate"><span class="pre">ls</span></code>,
 according to its manual page, stands for “list directory”
 and when given the path to a directory
@@ -147,7 +147,7 @@ Or should the single <code class="docutils literal notranslate"><span class="pre
 at least have used a different letter for that third bit,
 maybe <code class="docutils literal notranslate"><span class="pre">x</span></code> when applied to a file but <code class="docutils literal notranslate"><span class="pre">s</span></code> for “search”
 when applied to a directory?
-I&nbsp;myself think the designers of UNIX made the right decision here,
+I myself think the designers of UNIX made the right decision here,
 because I find it easier to remember
 that <code class="docutils literal notranslate"><span class="pre">x</span></code> means something a little different for a directory
 than to remember a separate letter for directories,
@@ -172,7 +172,7 @@ between the UNIX system call for reading a normal file’s content
 and the call for reading the list of files in a directory,
 and for a crucial reason:
 the two operations return different types of data.
-A&nbsp;file contains an unstructured stream of bytes;
+A file contains an unstructured stream of bytes;
 a directory, a series of distinct filenames.
 The question of return type
 will serve as a very important guardrail when you are designing in Python:
@@ -181,9 +181,9 @@ leads you to engineer calls
 that require an <code class="docutils literal notranslate"><span class="pre">if</span></code> statement or <code class="docutils literal notranslate"><span class="pre">isinstance()</span></code>
 to safely handle their return value,
 then the desire for symmetry has led you astray.</p>
-</div>
-<div class="section" id="on-hierarchies">
-<h2>On hierarchies<a class="headerlink" href="#on-hierarchies" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="on-hierarchies">
+<h2>On hierarchies<a class="headerlink" href="#on-hierarchies" title="Link to this heading">¶</a></h2>
 <p>As we now turn our attention
 to how the Composite Pattern looks in a programming language like Python,
 we should ponder a question
@@ -202,43 +202,44 @@ Hierarchies were everywhere.</p>
 like a tide that having run far up the sand
 begins to finally sweep out again.</p>
 <ul class="simple">
-<li>Popular languages in the late 1990s
+<li><p>Popular languages in the late 1990s
 went wild for deeply nested package namespaces.
 To take a modern example from Go,
 the package <code class="docutils literal notranslate"><span class="pre">google.golang.org/appengine</span></code>, one must admit,
 comes with a hard guarantee
 that it won’t conflict with the name of a package from another firm.
-The Zope&nbsp;3 project, in its heyday,
+The Zope 3 project, in its heyday,
 happily festooned the Python Package Index
 with multi-level package names
 like <code class="docutils literal notranslate"><span class="pre">zope.app.form</span></code> and <code class="docutils literal notranslate"><span class="pre">zope.app.i18n</span></code>.
 But today most Python packages
 opt for a simple non-compound name
 that jostles alongside the names of all other Python packages.
-And it almost never causes problems.</li>
-<li>The programming curricula of yore were rife with binary search trees,
-B+&nbsp;trees, and tree balancing algorithms.
+And it almost never causes problems.</p></li>
+<li><p>The programming curricula of yore were rife with binary search trees,
+B+ trees, and tree balancing algorithms.
 But in real code, trees are very scarce.
 For every programmer who works on trees to, say,
 to write a persistent storage engine like BoltDB or Redis,
 a thousand programmers get to skip the exercise.
 Python programmers don’t tend to use binary search trees;
 we use the even faster hash table (the Python “dictionary”)
-whose structure, as it happens, is entirely flat — not a hierarchy.</li>
-<li>There was an era when hierarchy
+whose structure, as it happens, is entirely flat — not a hierarchy.</p></li>
+<li><p>There was an era when hierarchy
 was inherent in the structure of databases.
 An employee record might hold a salary history right inside of it.
 But while hierarchy continues to exist around the edges of data storage,
 most recently in the form of NoSQL and document databases,
 our workhorse data stores tend to be flat ones:
-the relational database, the CSV file, the Pandas dataframe.</li>
+the relational database, the CSV file, the Pandas dataframe.</p></li>
 </ul>
 <p>Again and again our discipline seems to revert back, where we can,
 to tables and lists and arrays
 where hierarchies might have reigned instead.
 The principle has even been enshrined in the famous <em>Zen of Python:</em></p>
 <blockquote>
-<div>“Flat is better than nested.”</div></blockquote>
+<div><p>“Flat is better than nested.”</p>
+</div></blockquote>
 <p>The big exception,
 the realm in which hierarchy does reign supreme today,
 is the document.
@@ -251,17 +252,17 @@ to build them in code using object and method calls.
 Instead, when we can, we parse them from a native representation
 that makes the hierarchy explicit and natural.
 The great monument to the Composite Pattern on today’s web
-is not document construction&nbsp;—
-documents are usually delivered as HTML&nbsp;—
+is not document construction —
+documents are usually delivered as HTML —
 but document manipulation,
 through the Document Object Model exposed for the use of JavaScript code.</p>
 <p>I will leave for another time
 my discussion of how the Document Object Model delivered a hierarchy,
 so programmers invented jQuery because they preferred an array instead.</p>
 <p>Let’s now turn to what the Composite pattern looks like in code.</p>
-</div>
-<div class="section" id="example-gui-programming-with-tkinter">
-<h2>Example: GUI programming with Tkinter<a class="headerlink" href="#example-gui-programming-with-tkinter" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="example-gui-programming-with-tkinter">
+<h2>Example: GUI programming with Tkinter<a class="headerlink" href="#example-gui-programming-with-tkinter" title="Link to this heading">¶</a></h2>
 <p>Let’s imagine that we want to print to the screen
 the hierarchy of frames and buttons
 out of which we have built a graphical user interface (GUI) using Tkinter,
@@ -317,12 +318,12 @@ and always assume the presence of the method.
 Here, so that you can see a working example,
 is a complete program that builds a simple Tkinter GUI
 that can print out the widget hierarchy to the terminal:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tkinter</span> <span class="kn">import</span> <span class="n">Tk</span><span class="p">,</span> <span class="n">Frame</span><span class="p">,</span> <span class="n">Button</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">tkinter</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tk</span><span class="p">,</span> <span class="n">Frame</span><span class="p">,</span> <span class="n">Button</span>
 
 <span class="c1"># Our routine, that gets to treat all widgets the same.</span>
 
-<span class="k">def</span> <span class="nf">print_tree</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Print a hierarchy of Tk widgets in the terminal.&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_tree</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Print a hierarchy of Tk widgets in the terminal.&quot;&quot;&quot;</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;{:&lt;</span><span class="si">{}</span><span class="s1">} * </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">indent</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span> <span class="n">widget</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">widget</span><span class="o">.</span><span class="n">winfo_children</span><span class="p">():</span>
         <span class="n">print_tree</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">indent</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
@@ -357,7 +358,7 @@ that can print out the widget hierarchy to the terminal:</p>
 no <code class="docutils literal notranslate"><span class="pre">if</span></code> statement is necessary
 to handle whatever kind of widget is passed to <code class="docutils literal notranslate"><span class="pre">print_tree()</span></code>.</p>
 <p>Note that there is controversy among Composite Pattern
-enthusiasts over whether all widgets should really act like containers&nbsp;—
+enthusiasts over whether all widgets should really act like containers —
 isn’t it fraudulent, they ask,
 for a widget to implement <code class="docutils literal notranslate"><span class="pre">winfo_children()</span></code>
 if it’s not going to let you add child widgets?
@@ -369,7 +370,7 @@ would be to avoid putting <code class="docutils literal notranslate"><span class
 and instead only making truly general operations
 like <code class="docutils literal notranslate"><span class="pre">winfo_rootx()</span></code> universal
 (general, because all widgets have an <em>x</em>-coordinate).
-I&nbsp;myself tend to enjoy interfaces more
+I myself tend to enjoy interfaces more
 when there is as much symmetry as possible.</p>
 <p>If you study the Tkinter library —
 which is perhaps the most classic object oriented module
@@ -380,9 +381,9 @@ was instead made a common operation on them all
 for the sake of simplicity
 and for the convenience of all the code that uses them.
 This is the Composite Pattern.</p>
-</div>
-<div class="section" id="implementation-to-inherit-or-not">
-<h2>Implementation: to inherit, or not?<a class="headerlink" href="#implementation-to-inherit-or-not" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="implementation-to-inherit-or-not">
+<h2>Implementation: to inherit, or not?<a class="headerlink" href="#implementation-to-inherit-or-not" title="Link to this heading">¶</a></h2>
 <p>The benefits of the symmetry that the Composite Pattern creates
 between containers and their contents
 only accrue if the symmetry makes the objects interchangeable.
@@ -404,19 +405,19 @@ the objects can be called symmetrically.</p>
 You are free to position your code anywhere along the spectrum
 of safety versus brevity that you prefer.
 You can go the classic route and have a common superclass:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Widget</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Widget</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[]</span>
 
-<span class="k">class</span> <span class="nc">Frame</span><span class="p">(</span><span class="n">Widget</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">child_widgets</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Frame</span><span class="p">(</span><span class="n">Widget</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">child_widgets</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">child_widgets</span> <span class="o">=</span> <span class="n">child_widgets</span>
 
-    <span class="k">def</span> <span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">child_widgets</span>
 
-<span class="k">class</span> <span class="nc">Label</span><span class="p">(</span><span class="n">Widget</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Label</span><span class="p">(</span><span class="n">Widget</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span>
 </pre></div>
 </div>
@@ -425,18 +426,18 @@ and you can rely on tests to help you maintain the symmetries
 between containers and contents.
 (Where, for very simple scripts,
 your “test” might simply be the fact that the code runs.)</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Frame</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">child_widgets</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Frame</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">child_widgets</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">child_widgets</span> <span class="o">=</span> <span class="n">child_widgets</span>
 
-    <span class="k">def</span> <span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">child_widgets</span>
 
-<span class="k">class</span> <span class="nc">Label</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Label</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span>
 
-    <span class="k">def</span> <span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[]</span>
 </pre></div>
 </div>
@@ -444,18 +445,18 @@ your “test” might simply be the fact that the code runs.)</p>
 on the design spectrum between these two extremes.
 Python supports many approaches:</p>
 <ul class="simple">
-<li>The classic common superclass architecture,
-shown in the first example above.</li>
-<li>Making the superclass an abstract base class
-with the tools inside Standard Library’s <code class="docutils literal notranslate"><span class="pre">abc</span></code> module.</li>
-<li>Having the two classes share an interface,
-like those supported by the old <code class="docutils literal notranslate"><span class="pre">zope.interface</span></code> package.</li>
-<li>You could spin up a type checking library like MyPy
+<li><p>The classic common superclass architecture,
+shown in the first example above.</p></li>
+<li><p>Making the superclass an abstract base class
+with the tools inside Standard Library’s <code class="docutils literal notranslate"><span class="pre">abc</span></code> module.</p></li>
+<li><p>Having the two classes share an interface,
+like those supported by the old <code class="docutils literal notranslate"><span class="pre">zope.interface</span></code> package.</p></li>
+<li><p>You could spin up a type checking library like MyPy
 and use annotations to ask for hard guarantees
 that all of the objects processed by your code —
 both container and contents —
-implement the runtime behaviors that your code requires.</li>
-<li>You could duck type, and ask for neither permission or forgiveness!</li>
+implement the runtime behaviors that your code requires.</p></li>
+<li><p>You could duck type, and ask for neither permission or forgiveness!</p></li>
 </ul>
 <p>Because Python offers this whole range of approaches,
 I choose not to define the Composite Pattern classically,
@@ -464,8 +465,8 @@ for creating or enforcing symmetry.
 Instead, I define it simply as the creation of symmetry
 — by whatever means —
 among the objects involved in concentric object hierarchies.</p>
-</div>
-</div>
+</section>
+</section>
 
     </article>
     <hr>

@@ -16,19 +16,19 @@
     </p>
     
     <article>
-      <div class="section" id="the-flyweight-pattern">
-<h1>The Flyweight Pattern<a class="headerlink" href="#the-flyweight-pattern" title="Permalink to this headline">¶</a></h1>
+      <section id="the-flyweight-pattern">
+<h1>The Flyweight Pattern<a class="headerlink" href="#the-flyweight-pattern" title="Link to this heading">¶</a></h1>
 <p><em>A “Structural Pattern” from the</em> <a class="reference internal" href="../"><span class="doc">Gang of Four book</span></a></p>
 <div class="admonition-verdict admonition">
-<p class="first admonition-title">Verdict</p>
-<p class="last">Flyweight objects are such a perfect fit for Python
+<p class="admonition-title">Verdict</p>
+<p>Flyweight objects are such a perfect fit for Python
 that the language itself uses the pattern for such popular values
 as identifiers, some integers, and Boolean true and false.</p>
 </div>
 <p>A perfect example of the Flyweight Pattern
 is the Python <a class="reference external" href="https://docs.python.org/3/library/sys.html#sys.intern"><code class="docutils literal notranslate"><span class="pre">intern()</span></code></a> function.
-It’s a builtin in Python&nbsp;2
-which was moved into the <a class="reference external" href="https://docs.python.org/3/library/sys.html"><code class="docutils literal notranslate"><span class="pre">sys</span></code></a> module in Python&nbsp;3.
+It’s a builtin in Python 2
+which was moved into the <a class="reference external" href="https://docs.python.org/3/library/sys.html"><code class="docutils literal notranslate"><span class="pre">sys</span></code></a> module in Python 3.
 When you pass it a string,
 it returns an exactly equal string.
 Its advantage is that it saves space:
@@ -47,7 +47,7 @@ by computing the string <code class="docutils literal notranslate"><span class="
 (to make it likely that any given Python implementation
 will really give us two different strings)
 and pass them to the intern function:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">intern</span>  <span class="c1"># not necessary in Python 2</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">sys</span><span class="w"> </span><span class="kn">import</span> <span class="n">intern</span>  <span class="c1"># not necessary in Python 2</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">intern</span><span class="p">(</span><span class="s1">&#39;py&#39;</span> <span class="o">+</span> <span class="s1">&#39;thon&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">intern</span><span class="p">(</span><span class="s1">&#39;PYTHON&#39;</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span>
@@ -61,21 +61,21 @@ and pass them to the intern function:</p>
 <p>Strings are natural candidates for the Flyweight Pattern
 because they have all three of the key properties of a flyweight object:</p>
 <ul class="simple">
-<li>Python strings are immutable,
+<li><p>Python strings are immutable,
 which makes them safe to share.
 Otherwise a routine that decided to change one of the string’s characters
-would affect the single copy shared with everyone else.</li>
-<li>A Python string carries no context about how it is being used.
+would affect the single copy shared with everyone else.</p></li>
+<li><p>A Python string carries no context about how it is being used.
 If it needed to maintain a reference back
 to the list, dictionary, or other object that was using it,
-then each string could only serve in one context at a time.</li>
-<li>Strings are important for their value,
+then each string could only serve in one context at a time.</p></li>
+<li><p>Strings are important for their value,
 not their object identity.
 We compare them with <code class="docutils literal notranslate"><span class="pre">==</span></code> instead of with the <code class="docutils literal notranslate"><span class="pre">is</span></code> keyword.
-A&nbsp;well-written Python program will not even notice
+A well-written Python program will not even notice
 whether the string <code class="docutils literal notranslate"><span class="pre">&quot;brandon&quot;</span></code> used in one place as a directory name
 and somewhere else as a username
-are the same object or two different objects.</li>
+are the same object or two different objects.</p></li>
 </ul>
 <p>The Gang of Four describe these same requirements a bit differently
 when they require that, “Most object state can be made extrinsic.”
@@ -107,8 +107,8 @@ to separate the two kinds of state:</p>
 but the <a class="reference external" href="https://www.researchgate.net/profile/Mark_Linton2/publication/220877079_Glyphs_flyweight_objects_for_user_interfaces/links/58adbb6345851503be91e1dc/Glyphs-flyweight-objects-for-user-interfaces.pdf?origin=publication_detail">original 1990 paper introducing Flyweights</a>
 found that a document editor written using the pattern
 had considerably simpler code.</p>
-<div class="section" id="factory-or-constructor">
-<h2>Factory or Constructor<a class="headerlink" href="#factory-or-constructor" title="Permalink to this headline">¶</a></h2>
+<section id="factory-or-constructor">
+<h2>Factory or Constructor<a class="headerlink" href="#factory-or-constructor" title="Link to this heading">¶</a></h2>
 <p>The Gang of Four only imagined using a factory function like <code class="docutils literal notranslate"><span class="pre">intern()</span></code>
 for managing a collection of flyweights,
 but Python often moves the logic into a class’s constructor instead.</p>
@@ -118,7 +118,7 @@ While they can be accessed
 through their builtin names <code class="docutils literal notranslate"><span class="pre">True</span></code> and <code class="docutils literal notranslate"><span class="pre">False</span></code>,
 they are also returned by their class
 when it is passed an object to test for truthiness or falsehood.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 <span class="go">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
 <span class="go">False</span>
@@ -128,13 +128,13 @@ when it is passed an object to test for truthiness or falsehood.</p>
 </div>
 <p>Another example is integers.
 As an implementation detail,
-the default C&nbsp;language version of Python
+the default C language version of Python
 treats the integers −5 through 256 as flyweights.
 Those integers are created ahead of time as the interpreter launches,
 and are returned when an integer with one of those values is needed.
 Computing any other integer value
 results in a unique object from each computation.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="mi">1</span> <span class="o">+</span> <span class="mi">4</span> <span class="ow">is</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">3</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="mi">1</span> <span class="o">+</span> <span class="mi">4</span> <span class="ow">is</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">3</span>
 <span class="go">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="mi">100</span> <span class="o">+</span> <span class="mi">400</span> <span class="ow">is</span> <span class="mi">200</span> <span class="o">+</span> <span class="mi">300</span>
 <span class="go">False</span>
@@ -143,7 +143,7 @@ results in a unique object from each computation.</p>
 <p>There are a few other flyweights hiding in the Standard Library
 for very common immutable objects,
 like the empty string and the empty tuple.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">str</span><span class="p">()</span> <span class="ow">is</span> <span class="s1">&#39;&#39;</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">str</span><span class="p">()</span> <span class="ow">is</span> <span class="s1">&#39;&#39;</span>
 <span class="go">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">tuple</span><span class="p">([])</span> <span class="ow">is</span> <span class="p">()</span>
 <span class="go">True</span>
@@ -154,17 +154,17 @@ qualifies as a flyweight.
 The <code class="docutils literal notranslate"><span class="pre">None</span></code> object, for example, does not qualify:
 a class needs more than one instance to be a true Flyweight,
 but <code class="docutils literal notranslate"><span class="pre">None</span></code> is the only instance of <code class="docutils literal notranslate"><span class="pre">NoneType</span></code>.</p>
-</div>
-<div class="section" id="implementing">
-<h2>Implementing<a class="headerlink" href="#implementing" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="implementing">
+<h2>Implementing<a class="headerlink" href="#implementing" title="Link to this heading">¶</a></h2>
 <p>The simplest flyweights are allocated ahead of time.
-A&nbsp;system for assigning letter grades
+A system for assigning letter grades
 might use flyweights for the grades themselves:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_grades</span> <span class="o">=</span> <span class="p">[</span><span class="n">letter</span> <span class="o">+</span> <span class="n">suffix</span>
            <span class="k">for</span> <span class="n">letter</span> <span class="ow">in</span> <span class="s1">&#39;ABCD&#39;</span>
            <span class="k">for</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">]</span>
 
-<span class="k">def</span> <span class="nf">compute_grade</span><span class="p">(</span><span class="n">percent</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_grade</span><span class="p">(</span><span class="n">percent</span><span class="p">):</span>
     <span class="n">percent</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">59</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mi">99</span><span class="p">,</span> <span class="n">percent</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">_grades</span><span class="p">[(</span><span class="mi">99</span> <span class="o">-</span> <span class="n">percent</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">//</span> <span class="mi">10</span><span class="p">]</span>
 
@@ -182,10 +182,10 @@ A-
 are more complicated:
 they’ll need a dynamic data structure
 in which to enroll the flyweights and find them again later.
-A&nbsp;dictionary is a typical choice:</p>
+A dictionary is a typical choice:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_strings</span> <span class="o">=</span> <span class="p">{}</span>
 
-<span class="k">def</span> <span class="nf">my_intern</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">my_intern</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">_strings</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">string</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">s</span>
 
@@ -218,14 +218,14 @@ but the keys are more complicated object instances.</p>
 but Python provides another possibility:
 a class can implement the pattern right in its constructor,
 just like <code class="docutils literal notranslate"><span class="pre">bool()</span></code> and <code class="docutils literal notranslate"><span class="pre">int()</span></code>.
-Rewriting the above example as a class&nbsp;—
+Rewriting the above example as a class —
 and, for the sake of example, allocating objects on-demand
 instead of building them ahead of time —
 would produce something like:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Grade</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Grade</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="n">_instances</span> <span class="o">=</span> <span class="p">{}</span>
 
-    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">percent</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">percent</span><span class="p">):</span>
         <span class="n">percent</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mi">99</span><span class="p">,</span> <span class="n">percent</span><span class="p">))</span>
         <span class="n">letter</span> <span class="o">=</span> <span class="s1">&#39;FDCBA&#39;</span><span class="p">[(</span><span class="n">percent</span> <span class="o">-</span> <span class="mi">50</span><span class="p">)</span> <span class="o">//</span> <span class="mi">10</span><span class="p">]</span>
         <span class="bp">self</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instances</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">letter</span><span class="p">)</span>
@@ -234,7 +234,7 @@ would produce something like:</p>
             <span class="bp">self</span><span class="o">.</span><span class="n">letter</span> <span class="o">=</span> <span class="n">letter</span>
         <span class="k">return</span> <span class="bp">self</span>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;Grade </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">letter</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">Grade</span><span class="p">(</span><span class="mi">55</span><span class="p">),</span> <span class="n">Grade</span><span class="p">(</span><span class="mi">85</span><span class="p">),</span> <span class="n">Grade</span><span class="p">(</span><span class="mi">95</span><span class="p">),</span> <span class="n">Grade</span><span class="p">(</span><span class="mi">100</span><span class="p">))</span>
@@ -278,8 +278,8 @@ and unless they always remember that fact when reading code.</p>
 will be less likely to trigger assumptions
 like “this code is building a new object”
 and in any case is simpler both to implement and debug.</p>
-</div>
-</div>
+</section>
+</section>
 
     </article>
     <hr>

@@ -16,11 +16,11 @@
     </p>
     
     <article>
-      <div class="section" id="the-builder-pattern">
-<h1>The Builder Pattern<a class="headerlink" href="#the-builder-pattern" title="Permalink to this headline">¶</a></h1>
+      <section id="the-builder-pattern">
+<h1>The Builder Pattern<a class="headerlink" href="#the-builder-pattern" title="Link to this heading">¶</a></h1>
 <p><em>A “Creational Pattern” from the</em> <a class="reference internal" href="../"><span class="doc">Gang of Four book</span></a></p>
 <div class="admonition-verdict admonition">
-<p class="first admonition-title">Verdict</p>
+<p class="admonition-title">Verdict</p>
 <p>The full-fledged Builder Pattern as imagined by the Gang of Four
 arranged for a single series of method calls
 to power the creation of several different object hierarchies —
@@ -28,7 +28,7 @@ but that use of the pattern
 has turned out to be vanishingly rare in Python.
 Instead, the Builder is wildly popular
 simply for its convenience.</p>
-<p class="last">You might also have seen a more recent pattern
+<p>You might also have seen a more recent pattern
 calling itself the “Builder”
 which pairs each immutable class in a program
 with a more convenient builder class.
@@ -36,18 +36,19 @@ That pattern, happily, is never necessary in Python
 since the language itself provides built-in syntactic support
 for optional constructor arguments.</p>
 </div>
-<div class="contents topic" id="contents">
+<nav class="contents" id="contents">
 <p class="topic-title">Contents:</p>
 <ul class="simple">
-<li><a class="reference internal" href="#the-builder-pattern" id="id1">The Builder Pattern</a><ul>
-<li><a class="reference internal" href="#the-builder-as-convenience" id="id2">The Builder as convenience</a></li>
-<li><a class="reference internal" href="#nuance" id="id3">Nuance</a></li>
-<li><a class="reference internal" href="#dueling-builders" id="id4">Dueling builders</a></li>
-<li><a class="reference internal" href="#a-degenerate-case-simulating-optional-arguments" id="id5">A degenerate case: simulating optional arguments</a></li>
+<li><p><a class="reference internal" href="#the-builder-pattern" id="id1">The Builder Pattern</a></p>
+<ul>
+<li><p><a class="reference internal" href="#the-builder-as-convenience" id="id2">The Builder as convenience</a></p></li>
+<li><p><a class="reference internal" href="#nuance" id="id3">Nuance</a></p></li>
+<li><p><a class="reference internal" href="#dueling-builders" id="id4">Dueling builders</a></p></li>
+<li><p><a class="reference internal" href="#a-degenerate-case-simulating-optional-arguments" id="id5">A degenerate case: simulating optional arguments</a></p></li>
 </ul>
 </li>
 </ul>
-</div>
+</nav>
 <p>The Builder pattern has a most interesting history.
 Its primary intent,
 as described by the Gang of Four in the very first sentence
@@ -69,8 +70,8 @@ and explore why it is rarely used that way in Python.
 Finally, for completeness,
 we will look at the more recent use of the pattern
 to help languages whose syntax is less flexible than Python’s.</p>
-<div class="section" id="the-builder-as-convenience">
-<h2>The Builder as convenience<a class="headerlink" href="#the-builder-as-convenience" title="Permalink to this headline">¶</a></h2>
+<section id="the-builder-as-convenience">
+<h2>The Builder as convenience<a class="headerlink" href="#the-builder-as-convenience" title="Link to this heading">¶</a></h2>
 <p>The Builder pattern is wildly popular in Python
 because it lets client code stay simple and sleek
 even while directing the creation of an elaborate hierarchy of objects.</p>
@@ -88,10 +89,10 @@ is the <a class="reference external" href="https://matplotlib.org/">matplotlib</
 <code class="docutils literal notranslate"><span class="pre">pyplot</span></code> interface.
 It lets the caller build a simple plot with just a single line of code,
 and save the diagram to disk with just one line more:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">6.2</span><span class="p">,</span> <span class="mf">6.2</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
 
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;sine.png&#39;</span><span class="p">)</span>
 </pre></div>
@@ -103,15 +104,15 @@ for matplotlib to represent even this simple plot.
 Here, for example, are eight of the objects
 that were generated behind the scenes
 by the <code class="docutils literal notranslate"><span class="pre">plot()</span></code> call above:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
 <span class="go">&lt;Figure size 640x480 with 1 Axes&gt;</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
 <span class="go">&lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff910917a20&gt;</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span><span class="o">.</span><span class="n">bbox</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span><span class="o">.</span><span class="n">bbox</span>
 <span class="go">TransformedBbox(</span>
 <span class="go">    Bbox(x0=0.125, y0=0.10999999999999999, x1=0.9, y1=0.88),</span>
 <span class="go">    BboxTransformTo(</span>
@@ -149,7 +150,7 @@ which, in fairness, does require the caller to build a small pile of objects
 any time they want to do anything interesting.
 The “Examples” section of the <code class="docutils literal notranslate"><span class="pre">urllib2</span></code> documentation
 provides an illustration:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">urllib2</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">urllib2</span>
 
 <span class="c1"># Create an OpenerDirector with support for Basic HTTP Authentication...</span>
 
@@ -171,16 +172,17 @@ the library would instead have offered functions or methods
 that concealed from client code
 the structure and classes
 in the opener - builder - authentication handler hierarchy.</p>
-</div>
-<div class="section" id="nuance">
-<h2>Nuance<a class="headerlink" href="#nuance" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="nuance">
+<h2>Nuance<a class="headerlink" href="#nuance" title="Link to this heading">¶</a></h2>
 <p>My claim that the matplotlib <code class="docutils literal notranslate"><span class="pre">pyplot</span></code> interface is a Builder
 is complicated by the second-to-last paragraph in the Gang of Four’s
 chapter on the Builder:</p>
 <blockquote>
-<div>“Builder <strong>returns the product as a final step</strong>, but as far as the
+<div><p>“Builder <strong>returns the product as a final step</strong>, but as far as the
 Abstract Factory pattern is concerned, the product gets returned
-immediately.”</div></blockquote>
+immediately.”</p>
+</div></blockquote>
 <p>While this stipulation focuses on the difference between the Builder
 and the <a class="reference internal" href="../abstract-factory/"><span class="doc">Abstract Factory</span></a>,
 it makes clear that — for the Gang of Four —
@@ -201,18 +203,19 @@ and ask the plot itself to save a rendered image to a file.</p>
 </pre></div>
 </div>
 <p>Such are the demands of pedantry: an extra line of code.</p>
-</div>
-<div class="section" id="dueling-builders">
-<h2>Dueling builders<a class="headerlink" href="#dueling-builders" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="dueling-builders">
+<h2>Dueling builders<a class="headerlink" href="#dueling-builders" title="Link to this heading">¶</a></h2>
 <p>When the Gang of Four introduced the Builder,
 they had greater ambitions for the pattern
 than mere convenience and encapsulation.
 The opening sentence of their chapter on the Builder
 declared the following “Intent”:</p>
 <blockquote>
-<div>“Separate the construction of a complex object from its
+<div><p>“Separate the construction of a complex object from its
 representation so that the same construction process can create
-different representations.”</div></blockquote>
+different representations.”</p>
+</div></blockquote>
 <p>For the Gang of Four, then,
 the Builder pattern is only operating at full tilt
 when a library offers several implementations of the same Builder,
@@ -229,9 +232,9 @@ let’s turn to the Gang of Four’s own sample code.
 Here, for example, is one situation in which their Builder is placed
 as it responds to calls describing the creation of a maze
 (the example has been lightly edited to translate it into Python):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">StandardMazeBuilder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">StandardMazeBuilder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="c1"># ...</span>
-    <span class="k">def</span> <span class="nf">build_door</span><span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_door</span><span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">):</span>
         <span class="n">room1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_maze</span><span class="o">.</span><span class="n">get_room</span><span class="p">(</span><span class="n">n1</span><span class="p">)</span>
         <span class="n">room2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_maze</span><span class="o">.</span><span class="n">get_room</span><span class="p">(</span><span class="n">n2</span><span class="p">)</span>
         <span class="n">door</span> <span class="o">=</span> <span class="n">Door</span><span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">r2</span><span class="p">)</span>
@@ -289,9 +292,9 @@ and the convenience of writing code to traverse them
 that has produced almost an entire absence
 of the full-tilt Builder pattern
 from today’s popular Python libraries.</p>
-</div>
-<div class="section" id="a-degenerate-case-simulating-optional-arguments">
-<h2>A degenerate case: simulating optional arguments<a class="headerlink" href="#a-degenerate-case-simulating-optional-arguments" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="a-degenerate-case-simulating-optional-arguments">
+<h2>A degenerate case: simulating optional arguments<a class="headerlink" href="#a-degenerate-case-simulating-optional-arguments" title="Link to this heading">¶</a></h2>
 <p>For the sake of completeness,
 I should describe an alternative Builder pattern
 that differs from the pattern described by the Gang of Four,
@@ -303,16 +306,16 @@ and substitutes for those languages’ lack
 of optional parameters.</p>
 <p>The degenerate Builder addresses this problem:</p>
 <ul class="simple">
-<li>A programmer designs a class
+<li><p>A programmer designs a class
 with immutable attributes.
 Once a class instance is created,
-its attributes will be impossible to modify.</li>
-<li>The class has not just one or two, but many attributes —
-imagine that it has a dozen.</li>
-<li>The programmer is trapped in a programming language
+its attributes will be impossible to modify.</p></li>
+<li><p>The class has not just one or two, but many attributes —
+imagine that it has a dozen.</p></li>
+<li><p>The programmer is trapped in a programming language
 that lacks Python’s support for optional arguments.
-A&nbsp;call to the class constructor will need to supply a value
-for every single attribute each time the class is instantiated.</li>
+A call to the class constructor will need to supply a value
+for every single attribute each time the class is instantiated.</p></li>
 </ul>
 <p>You can imagine the verbose and unhappy consequences.
 Not only will every single object instantiation
@@ -323,7 +326,7 @@ Imagine reading a long list of values like
 <code class="docutils literal notranslate"><span class="pre">None</span></code> <code class="docutils literal notranslate"><span class="pre">None</span></code> <code class="docutils literal notranslate"><span class="pre">0</span></code> <code class="docutils literal notranslate"><span class="pre">''</span></code> <code class="docutils literal notranslate"><span class="pre">None</span></code>
 and trying to visually pair each value
 with the corresponding name in the attribute list.
-A&nbsp;comment next to each value can improve readability,
+A comment next to each value can improve readability,
 but the language will not provide any guard rail
 if a later edit accidentally moves the comments out of sync
 with the actual attributes.</p>
@@ -335,26 +338,26 @@ can supplement each class they write with a second class
 that serves as a builder for the first.
 The differences between the builder and the class it constructs are that:</p>
 <ul class="simple">
-<li>The Builder class carries all the same attributes as the target class.</li>
-<li>The Builder class is <em>not</em> immutable.</li>
-<li>The Builder class requires very few arguments to instantiate.
-Most or all of its attributes start off with default values.</li>
-<li>The Builder offers a mechanism
+<li><p>The Builder class carries all the same attributes as the target class.</p></li>
+<li><p>The Builder class is <em>not</em> immutable.</p></li>
+<li><p>The Builder class requires very few arguments to instantiate.
+Most or all of its attributes start off with default values.</p></li>
+<li><p>The Builder offers a mechanism
 for each attribute that starts with a default value
-to be rewritten with a different value.</li>
-<li>Finally, the Builder offers a method
+to be rewritten with a different value.</p></li>
+<li><p>Finally, the Builder offers a method
 that creates an instance of the original immutable class
 whose attributes are copied from the corresponding attributes
-of the Builder instance.</li>
+of the Builder instance.</p></li>
 </ul>
 <p>Here is a tiny example in Python —
 non-tiny examples are, alas, painful to read
 because of their rampant repetition:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Slightly less convenient in Python &lt; 3.6:</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NamedTuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NamedTuple</span>
 
-<span class="k">class</span> <span class="nc">Port</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Port</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
     <span class="n">number</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
     <span class="n">protocol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
@@ -373,13 +376,13 @@ because of their rampant repetition:</p>
 <span class="c1"># But what if Python lacked optional arguments?</span>
 <span class="c1"># Then we might engage in contortions like:</span>
 
-<span class="k">class</span> <span class="nc">PortBuilder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PortBuilder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">port</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Port</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="p">)</span>
 
 <span class="c1"># The Builder lets the caller create a Port without</span>
@@ -420,8 +423,8 @@ when reading or even porting their code,
 in which case you will want to recognize the pattern
 so that you can replace it with something simpler
 if the code is re-implemented in Python.</p>
-</div>
-</div>
+</section>
+</section>
 
     </article>
     <hr>

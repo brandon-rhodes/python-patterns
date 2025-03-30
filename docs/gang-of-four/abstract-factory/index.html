@@ -16,12 +16,12 @@
     </p>
     
     <article>
-      <div class="section" id="the-abstract-factory-pattern">
-<h1>The Abstract Factory Pattern<a class="headerlink" href="#the-abstract-factory-pattern" title="Permalink to this headline">¶</a></h1>
+      <section id="the-abstract-factory-pattern">
+<h1>The Abstract Factory Pattern<a class="headerlink" href="#the-abstract-factory-pattern" title="Link to this heading">¶</a></h1>
 <p><em>A “Creational Pattern” from the</em> <a class="reference internal" href="../"><span class="doc">Gang of Four book</span></a></p>
 <div class="admonition-verdict admonition">
-<p class="first admonition-title">Verdict</p>
-<p class="last">The Abstract Factory is an awkward workaround
+<p class="admonition-title">Verdict</p>
+<p>The Abstract Factory is an awkward workaround
 for the lack of first-class functions and classes
 in less powerful programming languages.
 It is a poor fit for Python,
@@ -44,31 +44,31 @@ and a <code class="docutils literal notranslate"><span class="pre">dict</span></
 <p>But some users will not be content with these defaults.
 For example, an accountant would probably be unhappy
 with the choice of a <code class="docutils literal notranslate"><span class="pre">float</span></code>
-to represent an exact amount like “9&nbsp;dollars 61&nbsp;cents”
+to represent an exact amount like “9 dollars 61 cents”
 and would prefer an exact <code class="docutils literal notranslate"><span class="pre">Decimal</span></code> instead.</p>
 <p>The need to control what kind of numeric object the <code class="docutils literal notranslate"><span class="pre">json</span></code> module creates
 is a specific instance of a general problem:</p>
 <ul class="simple">
-<li>In the course of performing its duties,
+<li><p>In the course of performing its duties,
 a routine is going to need to create a number of objects
-on behalf of the caller.</li>
-<li>But the class that the routine would instantiate by default
-does not cover all possible cases.</li>
-<li>So instead of hard-coding that default class
+on behalf of the caller.</p></li>
+<li><p>But the class that the routine would instantiate by default
+does not cover all possible cases.</p></li>
+<li><p>So instead of hard-coding that default class
 and making customization impossible,
 the routine wants to let the caller specify which classes
-it will instantiate.</li>
+it will instantiate.</p></li>
 </ul>
 <p>First, we’ll look at the Pythonic approach to this problem.
 Then we’ll start placing a series of restrictions on our Python code
 to more closely model legacy object oriented languages,
 until the Abstract Factory pattern emerges
 as the best solution within those limitations.</p>
-<div class="section" id="the-pythonic-approach-callable-factories">
-<h2>The Pythonic approach: callable factories<a class="headerlink" href="#the-pythonic-approach-callable-factories" title="Permalink to this headline">¶</a></h2>
+<section id="the-pythonic-approach-callable-factories">
+<h2>The Pythonic approach: callable factories<a class="headerlink" href="#the-pythonic-approach-callable-factories" title="Link to this heading">¶</a></h2>
 <p>In Python, a “callable” —
 any object <code class="docutils literal notranslate"><span class="pre">f</span></code> that executes code
-when invoked using the syntax <code class="docutils literal notranslate"><span class="pre">f(a,&nbsp;b,&nbsp;c)</span></code> —
+when invoked using the syntax <code class="docutils literal notranslate"><span class="pre">f(a, b, c)</span></code> —
 is a first-class object.
 To be “first class” means that a callable can be passed as a parameter,
 returned as a return value,
@@ -80,10 +80,10 @@ a fancy term for “routines that build and return new objects.”</p>
 <p>A beginning Python programmer might expect
 that each time they need to supply a factory,
 they will be responsible for writing a function:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">decimal</span> <span class="kn">import</span> <span class="n">Decimal</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">decimal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Decimal</span>
 
-<span class="k">def</span> <span class="nf">build_decimal</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_decimal</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">parse_float</span><span class="o">=</span><span class="n">build_decimal</span><span class="p">))</span>
@@ -137,9 +137,9 @@ we need to head in a different direction.
 Here we’ll pursue what happens to an object factory itself —
 whether <code class="docutils literal notranslate"><span class="pre">Decimal()</span></code> or our hand-written <code class="docutils literal notranslate"><span class="pre">build_decimal()</span></code> —
 if we begin restricting the set of Python features we let ourselves use.</p>
-</div>
-<div class="section" id="restriction-outlaw-passing-callables">
-<h2>Restriction: outlaw passing callables<a class="headerlink" href="#restriction-outlaw-passing-callables" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="restriction-outlaw-passing-callables">
+<h2>Restriction: outlaw passing callables<a class="headerlink" href="#restriction-outlaw-passing-callables" title="Link to this heading">¶</a></h2>
 <p>What if Python didn’t let you pass callables as parameters?</p>
 <p>That restriction would remove an entire dimension from Python’s flexibility.
 Instead of supporting both “nouns” and “verbs” as arguments —
@@ -149,15 +149,15 @@ Under that restriction,
 every simple factory would need to pivot from a function to a method:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># In Python: a factory function.</span>
 
-<span class="k">def</span> <span class="nf">build_decimal</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_decimal</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;$&#39;</span><span class="p">))</span>
 
 <span class="c1"># In some legacy languages: the code must</span>
 <span class="c1"># move inside a class method instead.</span>
 
-<span class="k">class</span> <span class="nc">DecimalFactory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DecimalFactory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;$&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
@@ -175,9 +175,9 @@ but the class that holds it.</p>
 let’s switch to a simpler task that can fit in a couple of lines of code:
 parsing a comma-separated list of numbers.
 Here’s how the parser would invoke the builder method on our factory class.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Loader</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Loader</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">factory</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">factory</span><span class="p">):</span>
         <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>  <span class="c1"># allow trailing comma</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">factory</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)]</span>
 
@@ -193,9 +193,9 @@ thanks to the fact that Python classes offer static and class methods
 that can be invoked without an instance,
 we have not yet been reduced to needing to instantiate the factory class —
 we are simply passing the Python class in as a first-class object.</p>
-</div>
-<div class="section" id="restriction-outlaw-passing-classes">
-<h2>Restriction: outlaw passing classes<a class="headerlink" href="#restriction-outlaw-passing-classes" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="restriction-outlaw-passing-classes">
+<h2>Restriction: outlaw passing classes<a class="headerlink" href="#restriction-outlaw-passing-classes" title="Link to this heading">¶</a></h2>
 <p>Next, let’s also pretend that a Python class cannot be passed as a value,
 but that only object instances can be assigned to names
 and passed as parameters.</p>
@@ -227,15 +227,15 @@ Where does it accept as an argument, or use in its result,
 the object <code class="docutils literal notranslate"><span class="pre">self</span></code> on which it is being invoked?
 It makes no use of it at all!
 The method never mentions <code class="docutils literal notranslate"><span class="pre">self</span></code> in its code.
-As&nbsp;Jack Diederich propounded in his famous talk
+As Jack Diederich propounded in his famous talk
 <a class="reference external" href="https://www.youtube.com/watch?v=o9pEzgHorH0">Stop Writing Classes</a>,
 a method that never uses <code class="docutils literal notranslate"><span class="pre">self</span></code>
 should not actually be a method in Python.
 But such are the depths
 to which we’ve been driven by these artificial restrictions.</p>
-</div>
-<div class="section" id="generalizing-the-complete-abstract-factory">
-<h2>Generalizing: the complete Abstract Factory<a class="headerlink" href="#generalizing-the-complete-abstract-factory" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="generalizing-the-complete-abstract-factory">
+<h2>Generalizing: the complete Abstract Factory<a class="headerlink" href="#generalizing-the-complete-abstract-factory" title="Link to this heading">¶</a></h2>
 <p>Two final moves will illustrate the full design pattern.</p>
 <p>First, let’s expand our factory
 to create every kind of object that the loader needs to create —
@@ -244,17 +244,18 @@ but even the container that will hold them.
 Now that we have switched to instantiating the factory,
 we can write these as plain methods
 instead of static methods:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Factory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">build_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Factory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[]</span>
 
-    <span class="k">def</span> <span class="nf">build_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>And here is an updated loader that uses this factory:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Loader</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">factory</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Loader</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">factory</span><span class="p">):</span>
         <span class="n">sequence</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">build_sequence</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">substring</span> <span class="ow">in</span> <span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">):</span>
             <span class="n">item</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">build_number</span><span class="p">(</span><span class="n">substring</span><span class="p">)</span>
@@ -285,16 +286,16 @@ in the pattern’s name “Abstract Factory”.
 Your abstract class would merely promise
 that the <code class="docutils literal notranslate"><span class="pre">factory</span></code> argument to <code class="docutils literal notranslate"><span class="pre">load()</span></code>
 would be a class adhering to the required interface:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
 
-<span class="k">class</span> <span class="nc">AbstractFactory</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AbstractFactory</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
 
     <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">build_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>
 
     <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">build_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
         <span class="k">pass</span>
 </pre></div>
 </div>
@@ -307,8 +308,8 @@ which they construct and return
 without the caller needing to know the details.</p>
 <p>It’s like something you might do in Python, but made overly complicated.
 So avoid the Abstract Factory and use callables as factories instead.</p>
-</div>
-</div>
+</section>
+</section>
 
     </article>
     <hr>
