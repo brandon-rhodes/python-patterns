@@ -242,7 +242,7 @@ as it responds to calls describing the creation of a maze
 
     class StandardMazeBuilder(object):
         # ...
-        def build_door(n1, n2):
+        def build_door(self, n1, n2):
             room1 = self._current_maze.get_room(n1)
             room2 = self._current_maze.get_room(n2)
             door = Door(r1, r2)
